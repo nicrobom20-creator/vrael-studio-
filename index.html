@@ -3,246 +3,315 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<!-- ========== НАСТРОЙКИ: название студии меняется здесь и в тексте (поиск по "VRAEL STUDIO") ========== -->
 <title>VRAEL STUDIO — Telegram-боты, сайты и ИИ-ассистенты для бизнеса</title>
-<meta name="description" content="Делаем Telegram-ботов, лендинги, сайты и ИИ-ассистентов для малого бизнеса. Быстро, красиво, под ключ.">
+<meta name="description" content="Студия цифровых продуктов. Telegram-боты, лендинги, сайты и ИИ-ассистенты для бизнеса — под ключ.">
+<meta name="theme-color" content="#0c0c0b">
+<meta property="og:title" content="VRAEL STUDIO — цифровые продукты, которые работают">
+<meta property="og:description" content="Telegram-боты, лендинги, сайты и ИИ-ассистенты для бизнеса.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Unbounded:wght@500;700;800&display=swap" rel="stylesheet">
-<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 32 32%22%3E%3Crect width=%2232%22 height=%2232%22 rx=%228%22 fill=%22%238b5cf6%22/%3E%3Ctext x=%2216%22 y=%2223%22 font-size=%2219%22 text-anchor=%22middle%22 fill=%22white%22 font-family=%22Arial%22 font-weight=%22bold%22%3EV%3C/text%3E%3C/svg%3E">
-<meta property="og:title" content="VRAEL STUDIO — Telegram-боты, сайты и ИИ-ассистенты">
-<meta property="og:description" content="Делаем Telegram-ботов, лендинги, сайты и ИИ-ассистентов для малого бизнеса.">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant:ital,wght@0,400;0,500;1,400&family=Inter+Tight:wght@300;400;500;600&display=swap" rel="stylesheet">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 32 32%22%3E%3Crect width=%2232%22 height=%2232%22 fill=%22%230c0c0b%22/%3E%3Cpath d=%22M8 9l8 15 8-15%22 fill=%22none%22 stroke=%22%23d4c4a8%22 stroke-width=%222%22/%3E%3C/svg%3E">
 <link rel="stylesheet" href="style.css">
 </head>
 <body>
-<div class="bg-orbs" aria-hidden="true"><span class="orb o1"></span><span class="orb o2"></span><span class="orb o3"></span></div>
-<div class="grid-bg" aria-hidden="true"></div>
 
 <!-- ===== ШАПКА ===== -->
 <header class="nav" id="nav">
-  <div class="container nav-inner">
-    <a href="#top" class="logo"><span class="logo-mark">V</span><span class="brand">VRAEL STUDIO</span></a>
-    <nav class="nav-links">
-      <a href="#services">Услуги</a>
-      <a href="#cases">Кейсы</a>
-      <a href="#process">Как работаем</a>
-      <a href="#faq">FAQ</a>
-    </nav>
-    <a class="btn btn-sm btn-primary" href="https://t.me/vraelstudio" target="_blank" rel="noopener">Написать</a>
+  <a href="#top" class="wordmark" aria-label="VRAEL STUDIO — наверх">VRAEL<span>STUDIO</span></a>
+  <nav class="nav-links" aria-label="Разделы">
+    <a href="#services">Услуги</a>
+    <a href="#case">Кейс</a>
+    <a href="#process">Процесс</a>
+    <a href="#faq">Вопросы</a>
+  </nav>
+  <div class="nav-right">
+    <a class="nav-contact" href="https://t.me/vraelstudio" target="_blank" rel="noopener">@vraelstudio</a>
+    <a class="btn btn-sand btn-sm" href="https://t.me/Hshshcuaosocgw_bot" target="_blank" rel="noopener">Записаться</a>
   </div>
 </header>
 
 <main id="top">
+
 <!-- ===== HERO ===== -->
-<section class="hero">
-  <div class="container hero-grid">
-    <div class="hero-text">
-      <div class="badge reveal"><span class="dot"></span>Принимаем новые проекты</div>
-      <h1 class="reveal">Боты, сайты и&nbsp;ИИ, которые <span class="grad">приводят клиентов</span></h1>
-      <p class="lead reveal">VRAEL STUDIO — студия разработки на&nbsp;стыке дизайна и&nbsp;искусственного интеллекта. Делаем Telegram-ботов, лендинги и&nbsp;ИИ-ассистентов для малого бизнеса — быстро, красиво и&nbsp;под ключ.</p>
-      <div class="hero-cta reveal">
-        <a class="btn btn-primary btn-lg" href="https://t.me/Hshshcuaosocgw_bot" target="_blank" rel="noopener">Обсудить проект <span class="arrow">→</span></a>
-        <a class="btn btn-ghost btn-lg" href="#cases">Смотреть работы</a>
-      </div>
-      <ul class="hero-points reveal">
-        <li>⚡ Первый результат — за&nbsp;несколько дней</li>
-        <li>🎨 Современный дизайн</li>
-        <li>🤖 ИИ внутри</li>
-      </ul>
+<section class="hero" id="hero">
+  <canvas class="hero-canvas" id="heroCanvas" aria-hidden="true"></canvas>
+  <div class="hero-vignette" aria-hidden="true"></div>
+  <div class="hero-inner">
+    <p class="kicker hero-in" style="--d:.1s">Студия цифровых продуктов</p>
+    <h1 class="hero-title">
+      <span class="line"><span class="hero-in" style="--d:.25s">Цифровые продукты,</span></span>
+      <span class="line"><span class="hero-in" style="--d:.4s"><em>которые работают</em> на&nbsp;вас.</span></span>
+    </h1>
+    <p class="hero-lead hero-in" style="--d:.6s">Telegram-боты, лендинги, сайты и&nbsp;ИИ-ассистенты. Строго, быстро, под ключ.</p>
+    <div class="hero-cta hero-in" style="--d:.75s">
+      <a class="btn btn-light" href="https://t.me/Hshshcuaosocgw_bot" target="_blank" rel="noopener">Записаться на консультацию</a>
+      <a class="btn btn-outline" href="#case">Смотреть кейс</a>
     </div>
+  </div>
+  <div class="hero-specs hero-in" style="--d:.95s">
+    <div class="spec"><span class="spec-label">Telegram-бот</span><span class="spec-val">от 5 000 ₽</span></div>
+    <div class="spec"><span class="spec-label">Первый результат</span><span class="spec-val">за несколько дней</span></div>
+    <div class="spec"><span class="spec-label">Консультация</span><span class="spec-val">бесплатно</span></div>
+  </div>
+  <a href="#manifest" class="scroll-cue" aria-label="Листать вниз"><span></span></a>
+</section>
 
-    <div class="hero-visual reveal" aria-hidden="true">
-      <div class="phone">
-        <div class="phone-notch"></div>
-        <div class="chat-head"><span class="ava">🤖</span><div><b>Онлайн-запись</b><small>бот</small></div></div>
-        <div class="chat">
-          <div class="msg in m1">Здравствуйте! 👋 Выберите услугу:</div>
-          <div class="chips m2"><span>Консультация</span><span class="on">Стрижка</span><span>Маникюр</span></div>
-          <div class="msg in m3">Отлично! Свободное время на завтра:</div>
-          <div class="chips m4"><span>12:00</span><span class="on">15:30</span><span>18:00</span></div>
-          <div class="msg out m5">Записаться на 15:30</div>
-          <div class="msg in m6 ok">✅ Готово! Напомню за 2 часа до визита.</div>
+<!-- ===== МАНИФЕСТ ===== -->
+<section class="manifest" id="manifest">
+  <p class="kicker reveal">VRAEL STUDIO</p>
+  <p class="manifest-text" data-words>Меньше шума. Больше заявок. Мы&nbsp;делаем ботов и&nbsp;сайты, которые выглядят дорого и&nbsp;приводят клиентов&nbsp;— без долгих согласований и&nbsp;лишних посредников.</p>
+</section>
+
+<!-- ===== КИНО-БЛОК: сайт и бот как одна система ===== -->
+<section class="stage" id="stage">
+  <div class="stage-bg" aria-hidden="true"></div>
+  <div class="stage-copy">
+    <p class="kicker reveal">Одна система</p>
+    <h2 class="reveal">Сайт продаёт.<br><em>Бот принимает заявки.</em></h2>
+    <p class="reveal">Делаем всё в&nbsp;одном стиле: сайт, Telegram-бот и&nbsp;ИИ-ассистент работают вместе, а&nbsp;заявки приходят вам в&nbsp;Telegram.</p>
+  </div>
+  <div class="stage-media" aria-hidden="true">
+    <div class="browser" data-parallax="0.025">
+      <div class="br-bar"><i></i><i></i><i></i><span>vrael-studio</span></div>
+      <div class="br-body">
+        <div class="br-nav"><b>VRAEL</b><span></span><span></span><span></span><em></em></div>
+        <div class="br-hero">
+          <div class="br-h1">Ваш бизнес.<br><i>Ваш сайт.</i></div>
+          <div class="br-lines"><span></span><span></span></div>
+          <div class="br-btns"><span class="a"></span><span class="b"></span></div>
         </div>
+        <div class="br-cards"><span></span><span></span><span></span></div>
       </div>
-      <div class="float-card fc1 glass"><span class="ic">📈</span><div><b>Новая заявка</b><small>только что</small></div></div>
-      <div class="float-card fc2 glass"><span class="ic">✨</span><div><b>ИИ-ответ</b><small>24/7 без выходных</small></div></div>
     </div>
-  </div>
-  <div class="container marquee-wrap">
-    <div class="marquee">
-      <div class="marquee-track">
-        <span>Telegram-боты</span><span>•</span><span>Лендинги</span><span>•</span><span>Сайты</span><span>•</span><span>ИИ-ассистенты</span><span>•</span><span>Онлайн-запись</span><span>•</span><span>Приём заказов</span><span>•</span><span>Автоматизация</span><span>•</span>
-        <span>Telegram-боты</span><span>•</span><span>Лендинги</span><span>•</span><span>Сайты</span><span>•</span><span>ИИ-ассистенты</span><span>•</span><span>Онлайн-запись</span><span>•</span><span>Приём заказов</span><span>•</span><span>Автоматизация</span><span>•</span>
+    <div class="mini-phone" data-parallax="-0.05">
+      <div class="mp-screen">
+        <div class="mp-head"><span>V</span>Заявки</div>
+        <div class="mp-msg">Новая заявка с&nbsp;сайта</div>
+        <div class="mp-msg s">Имя, телефон, услуга</div>
+        <div class="mp-msg">Новая запись: завтра, 15:00</div>
       </div>
     </div>
   </div>
 </section>
 
-<!-- ===== УСЛУГИ (цены редактируются в элементах .price) ===== -->
+<!-- ===== УСЛУГИ (цены редактируются в .svc-price) ===== -->
 <section class="section" id="services">
-  <div class="container">
-    <div class="sec-head reveal">
-      <span class="eyebrow">Услуги</span>
-      <h2>Что мы <span class="grad">делаем</span></h2>
-      <p>Берём задачу целиком: от идеи и дизайна до запуска и поддержки.</p>
-    </div>
-    <div class="cards cards-4">
-      <article class="card glass reveal tilt">
-        <div class="card-ic">🤖</div>
+  <div class="sec-head">
+    <p class="kicker reveal">Услуги</p>
+    <h2 class="reveal">Четыре продукта.<br><em>Один стандарт.</em></h2>
+  </div>
+  <div class="svc-grid">
+    <article class="svc reveal">
+      <div class="svc-art art-bot" aria-hidden="true">
+        <div class="bub b1"></div><div class="bub b2"></div><div class="bub b3"></div>
+      </div>
+      <div class="svc-body">
+        <span class="svc-num">01</span>
         <h3>Telegram-боты</h3>
-        <p>Онлайн-запись, приём заказов, каталоги, оплата, рассылки и уведомления владельцу.</p>
-        <div class="price">от <b>5 000 ₽</b></div><!-- ЦЕНА: поменяйте здесь -->
-      </article>
-      <article class="card glass reveal tilt">
-        <div class="card-ic">🚀</div>
+        <p>Онлайн-запись, приём заказов, каталоги, оплата, рассылки и&nbsp;уведомления владельцу.</p>
+        <div class="svc-price"><span>от</span> 5 000 ₽</div>
+      </div>
+    </article>
+    <article class="svc reveal" style="--rd:.08s">
+      <div class="svc-art art-land" aria-hidden="true">
+        <div class="frame"><i class="t"></i><i class="h"></i><i class="h s"></i><b></b></div>
+      </div>
+      <div class="svc-body">
+        <span class="svc-num">02</span>
         <h3>Лендинги</h3>
-        <p>Одностраничный сайт, который продаёт: сильный оффер, красивый дизайн, заявки в Telegram.</p>
-        <div class="price">от <b>8 000 ₽</b></div><!-- ЦЕНА: поменяйте здесь -->
-      </article>
-      <article class="card glass reveal tilt">
-        <div class="card-ic">🌐</div>
+        <p>Одна страница, которая продаёт: сильный оффер, точный дизайн, заявки сразу в&nbsp;Telegram.</p>
+        <div class="svc-price"><span>от</span> 8 000 ₽</div>
+      </div>
+    </article>
+    <article class="svc reveal" style="--rd:.16s">
+      <div class="svc-art art-site" aria-hidden="true">
+        <div class="stack"><i></i><i></i><i></i></div>
+      </div>
+      <div class="svc-body">
+        <span class="svc-num">03</span>
         <h3>Сайты</h3>
-        <p>Многостраничные сайты для компаний и экспертов: адаптив, скорость, понятная структура.</p>
-        <div class="price">от <b>15 000 ₽</b></div><!-- ЦЕНА: поменяйте здесь -->
-      </article>
-      <article class="card glass reveal tilt">
-        <div class="card-ic">🧠</div>
+        <p>Многостраничные сайты для компаний и&nbsp;экспертов. Адаптив, скорость, ясная структура.</p>
+        <div class="svc-price"><span>от</span> 15 000 ₽</div>
+      </div>
+    </article>
+    <article class="svc reveal" style="--rd:.24s">
+      <div class="svc-art art-ai" aria-hidden="true">
+        <div class="rings"><i></i><i></i><i></i></div>
+      </div>
+      <div class="svc-body">
+        <span class="svc-num">04</span>
         <h3>ИИ-ассистенты</h3>
-        <p>Бот на базе нейросети: отвечает клиентам 24/7, консультирует и собирает заявки.</p>
-        <div class="price">от <b>10 000 ₽</b></div><!-- ЦЕНА: поменяйте здесь -->
-      </article>
-    </div>
+        <p>Ассистент на&nbsp;базе нейросети. Отвечает клиентам 24/7, консультирует и&nbsp;собирает заявки.</p>
+        <div class="svc-price"><span>от</span> 10 000 ₽</div>
+      </div>
+    </article>
   </div>
 </section>
 
-<!-- ===== КЕЙСЫ =====
-     ВНИМАНИЕ: карточки ниже — ПРИМЕРЫ (sample content). Кроме первого кейса (реальный бот @Hshshcuaosocgw_bot),
-     это концепты-заглушки. Замените их на свои реальные проекты, когда они появятся. -->
-<section class="section" id="cases">
-  <div class="container">
-    <div class="sec-head reveal">
-      <span class="eyebrow">Портфолио</span>
-      <h2>Наши <span class="grad">проекты</span></h2>
-      <p>Живые проекты и концепты, которые показывают, как может выглядеть ваш.</p>
+<!-- ===== ЖИВОЙ КЕЙС (реальный бот @Hshshcuaosocgw_bot) ===== -->
+<section class="case" id="case">
+  <div class="case-bg" aria-hidden="true"></div>
+  <div class="case-grid">
+    <div class="case-copy">
+      <p class="kicker reveal"><span class="live-dot"></span>Работает прямо сейчас</p>
+      <h2 class="reveal">Бот записи<br><em>VRAEL STUDIO</em></h2>
+      <p class="case-lead reveal">Наш собственный бот. Клиент выбирает услугу, формат и&nbsp;время&nbsp;— а&nbsp;мы сразу получаем заявку. Проверьте сами: это тот&nbsp;же продукт, который мы сделаем вам.</p>
+      <dl class="case-specs reveal">
+        <div><dt>Консультация</dt><dd>30 мин</dd></div>
+        <div><dt>Окно записи</dt><dd>7 дней</dd></div>
+        <div><dt>Напоминание</dt><dd>за 2 часа</dd></div>
+      </dl>
+      <div class="case-cta reveal">
+        <a class="btn btn-sand" href="https://t.me/Hshshcuaosocgw_bot" target="_blank" rel="noopener">Открыть @Hshshcuaosocgw_bot</a>
+      </div>
     </div>
-    <div class="cases">
-      <!-- Реальный кейс -->
-      <article class="case glass reveal case-big">
-        <div class="case-art art-bot">
-          <div class="mini-chat">
-            <div class="mc in">Выберите услугу 👇</div>
-            <div class="mc out">Запись на завтра</div>
-            <div class="mc in">✅ Вы записаны на 15:30</div>
+    <div class="case-device reveal" data-parallax="0.06" aria-hidden="true">
+      <div class="phone">
+        <div class="phone-screen">
+          <div class="tg-head">
+            <span class="tg-ava">V</span>
+            <div><b>VRAEL STUDIO</b><small>бот</small></div>
+          </div>
+          <div class="tg-chat" id="tgChat">
+            <div class="m in">Здравствуйте! Это VRAEL STUDIO. Выберите услугу для консультации:</div>
+            <div class="kb"><span>Telegram-бот</span><span class="on">Лендинг</span><span>Сайт под ключ</span><span>ИИ-ассистент</span></div>
+            <div class="m in">Формат встречи?</div>
+            <div class="kb two"><span>📞 Звонок</span><span class="on">💬 Чат в Telegram</span></div>
+            <div class="m in">Свободное время на&nbsp;завтра:</div>
+            <div class="kb three"><span>11:30</span><span class="on">15:00</span><span>17:30</span></div>
+            <div class="m out">15:00</div>
+            <div class="m in ok">Готово. Вы записаны на&nbsp;завтра, 15:00. Напомню за&nbsp;2&nbsp;часа.</div>
           </div>
         </div>
-        <div class="case-body">
-          <div class="tags"><span>Telegram-бот</span><span>Онлайн-запись</span><span class="live">● Работает</span></div>
-          <h3>Бот онлайн-записи клиентов</h3>
-          <p>Выбор услуги, даты и времени, подтверждение записи и мгновенное уведомление владельцу. Подходит для салонов, мастеров, студий и консультантов.</p>
-          <a class="btn btn-primary" href="https://t.me/Hshshcuaosocgw_bot" target="_blank" rel="noopener">Открыть бота @Hshshcuaosocgw_bot →</a>
-        </div>
-      </article>
-      <!-- ПРИМЕР (концепт) -->
-      <article class="case glass reveal">
-        <div class="case-art art-land"><div class="wire"><i></i><i></i><i class="s"></i><b></b></div></div>
-        <div class="case-body">
-          <div class="tags"><span>Лендинг</span><span class="concept">Концепт</span></div>
-          <h3>Лендинг для кофейни</h3>
-          <p>Меню, акции и кнопка заказа в Telegram — всё на одной странице.</p>
-        </div>
-      </article>
-      <!-- ПРИМЕР (концепт) -->
-      <article class="case glass reveal">
-        <div class="case-art art-ai"><div class="ai-orb"></div></div>
-        <div class="case-body">
-          <div class="tags"><span>ИИ-ассистент</span><span class="concept">Концепт</span></div>
-          <h3>ИИ-консультант для магазина</h3>
-          <p>Отвечает на вопросы о товарах и доставке, помогает выбрать и передаёт заявку менеджеру.</p>
-        </div>
-      </article>
-      <!-- ПРИМЕР (концепт) -->
-      <article class="case glass reveal">
-        <div class="case-art art-site"><div class="bars"><i></i><i></i><i></i><i></i><i></i></div></div>
-        <div class="case-body">
-          <div class="tags"><span>Сайт</span><span class="concept">Концепт</span></div>
-          <h3>Сайт для репетитора</h3>
-          <p>Программы занятий, расписание и форма записи на пробный урок.</p>
-        </div>
-      </article>
+      </div>
+      <div class="notice">
+        <span class="notice-dot"></span>
+        <div><b>Новая заявка</b><small>Лендинг · завтра, 15:00</small></div>
+      </div>
     </div>
+  </div>
+</section>
+
+<!-- ===== КОНЦЕПТЫ (НЕ реальные клиенты — замените своими проектами, когда появятся) ===== -->
+<section class="section" id="concepts">
+  <div class="sec-head row">
+    <div>
+      <p class="kicker reveal">Концепты</p>
+      <h2 class="reveal">Как может выглядеть<br><em>ваш проект.</em></h2>
+    </div>
+    <p class="sec-note reveal">Демонстрационные концепты студии. Не&nbsp;клиентские работы&nbsp;— показываем подход и&nbsp;уровень.</p>
+  </div>
+  <div class="concepts">
+    <article class="concept reveal">
+      <div class="concept-art c-coffee" aria-hidden="true">
+        <div class="mock-site">
+          <div class="ms-bar"><i></i><i></i><i></i></div>
+          <div class="ms-hero"><span class="ms-h">Кофе<br>с&nbsp;характером</span><span class="ms-btn">Заказать</span></div>
+          <div class="ms-row"><i></i><i></i><i></i></div>
+        </div>
+      </div>
+      <div class="concept-meta"><span class="tag">Концепт</span><span class="type">Лендинг</span></div>
+      <h3>Лендинг для кофейни</h3>
+      <p>Меню, акции и&nbsp;кнопка заказа в&nbsp;Telegram&nbsp;— всё на&nbsp;одной странице.</p>
+    </article>
+    <article class="concept reveal" style="--rd:.08s">
+      <div class="concept-art c-shop" aria-hidden="true">
+        <div class="mock-ai">
+          <div class="ai-q">Подойдёт ли размер M?</div>
+          <div class="ai-a"><i></i><i></i><i class="s"></i></div>
+          <div class="ai-pulse"></div>
+        </div>
+      </div>
+      <div class="concept-meta"><span class="tag">Концепт</span><span class="type">ИИ-ассистент</span></div>
+      <h3>ИИ-консультант для магазина</h3>
+      <p>Отвечает о&nbsp;товарах и&nbsp;доставке, помогает выбрать и&nbsp;передаёт заявку менеджеру.</p>
+    </article>
+    <article class="concept reveal" style="--rd:.16s">
+      <div class="concept-art c-tutor" aria-hidden="true">
+        <div class="mock-cal">
+          <div class="cal-h"><i></i><span>Пробный урок</span></div>
+          <div class="cal-g"><i></i><i></i><i class="on"></i><i></i><i></i><i></i><i></i><i class="on"></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
+        </div>
+      </div>
+      <div class="concept-meta"><span class="tag">Концепт</span><span class="type">Сайт</span></div>
+      <h3>Сайт для репетитора</h3>
+      <p>Программы занятий, расписание и&nbsp;запись на&nbsp;пробный урок.</p>
+    </article>
   </div>
 </section>
 
 <!-- ===== ПРОЦЕСС ===== -->
-<section class="section" id="process">
-  <div class="container">
-    <div class="sec-head reveal">
-      <span class="eyebrow">Процесс</span>
-      <h2>Как мы <span class="grad">работаем</span></h2>
-    </div>
-    <ol class="steps">
-      <li class="step glass reveal"><span class="num">01</span><h3>Знакомство</h3><p>Пишете в Telegram, обсуждаем задачу, цели и бюджет.</p></li>
-      <li class="step glass reveal"><span class="num">02</span><h3>Прототип</h3><p>Показываем структуру и дизайн, согласовываем детали.</p></li>
-      <li class="step glass reveal"><span class="num">03</span><h3>Разработка</h3><p>Собираем проект с помощью ИИ — быстро и без потери качества.</p></li>
-      <li class="step glass reveal"><span class="num">04</span><h3>Запуск</h3><p>Тестируем, запускаем и помогаем с первыми правками.</p></li>
-    </ol>
+<section class="section process" id="process">
+  <div class="sec-head">
+    <p class="kicker reveal">Процесс</p>
+    <h2 class="reveal">Четыре шага<br><em>до запуска.</em></h2>
   </div>
+  <div class="track" id="track"><span class="track-fill" id="trackFill"></span></div>
+  <ol class="steps">
+    <li class="step reveal"><span class="step-n">01</span><h3>Знакомство</h3><p>Пишете в&nbsp;Telegram. Обсуждаем задачу, цели и&nbsp;бюджет.</p></li>
+    <li class="step reveal" style="--rd:.1s"><span class="step-n">02</span><h3>Прототип</h3><p>Показываем структуру и&nbsp;дизайн. Согласуем детали.</p></li>
+    <li class="step reveal" style="--rd:.2s"><span class="step-n">03</span><h3>Разработка</h3><p>Собираем проект с&nbsp;помощью ИИ. Быстро и&nbsp;без потери качества.</p></li>
+    <li class="step reveal" style="--rd:.3s"><span class="step-n">04</span><h3>Запуск</h3><p>Тестируем, запускаем, помогаем с&nbsp;первыми правками.</p></li>
+  </ol>
 </section>
 
 <!-- ===== ПОЧЕМУ МЫ ===== -->
-<section class="section" id="why">
-  <div class="container">
-    <div class="sec-head reveal">
-      <span class="eyebrow">Почему мы</span>
-      <h2>Скорость студии, <span class="grad">внимание фрилансера</span></h2>
-    </div>
-    <div class="cards cards-3">
-      <div class="card glass reveal"><div class="card-ic">⚡</div><h3>Быстро</h3><p>ИИ-инструменты ускоряют разработку: то, что раньше занимало недели, делаем за дни.</p></div>
-      <div class="card glass reveal"><div class="card-ic">💎</div><h3>Красиво</h3><p>Современный дизайн, который не стыдно показать клиентам и партнёрам.</p></div>
-      <div class="card glass reveal"><div class="card-ic">🤝</div><h3>На связи</h3><p>Общаемся напрямую в Telegram, без менеджеров и долгих согласований.</p></div>
-      <div class="card glass reveal"><div class="card-ic">🧩</div><h3>Под ключ</h3><p>Дизайн, разработка, запуск — вам не нужно разбираться в технических деталях.</p></div>
-      <div class="card glass reveal"><div class="card-ic">💸</div><h3>Честные цены</h3><p>Фиксируем стоимость до старта работ, без скрытых доплат.</p></div>
-      <div class="card glass reveal"><div class="card-ic">🔧</div><h3>Поддержка</h3><p>Поможем с правками и доработками после запуска.</p></div>
-    </div>
+<section class="section why" id="why">
+  <div class="sec-head">
+    <p class="kicker reveal">Почему мы</p>
+    <h2 class="reveal">Скорость студии.<br><em>Внимание мастера.</em></h2>
+  </div>
+  <div class="why-grid">
+    <div class="why-item reveal"><h3>Быстро</h3><p>ИИ-инструменты ускоряют разработку. То, что занимало недели, делаем за&nbsp;дни.</p></div>
+    <div class="why-item reveal" style="--rd:.06s"><h3>Красиво</h3><p>Дизайн, который не&nbsp;стыдно показать клиентам и&nbsp;партнёрам.</p></div>
+    <div class="why-item reveal" style="--rd:.12s"><h3>Напрямую</h3><p>Общаемся в&nbsp;Telegram. Без менеджеров и&nbsp;долгих согласований.</p></div>
+    <div class="why-item reveal"><h3>Под ключ</h3><p>Дизайн, разработка, запуск. Разбираться в&nbsp;технике не&nbsp;нужно.</p></div>
+    <div class="why-item reveal" style="--rd:.06s"><h3>Честная цена</h3><p>Фиксируем стоимость до&nbsp;старта. Без скрытых доплат.</p></div>
+    <div class="why-item reveal" style="--rd:.12s"><h3>Поддержка</h3><p>Помогаем с&nbsp;правками и&nbsp;доработками после запуска.</p></div>
   </div>
 </section>
 
 <!-- ===== FAQ ===== -->
-<section class="section" id="faq">
-  <div class="container narrow">
-    <div class="sec-head reveal">
-      <span class="eyebrow">FAQ</span>
-      <h2>Частые <span class="grad">вопросы</span></h2>
+<section class="section faq-sec" id="faq">
+  <div class="faq-wrap">
+    <div class="sec-head">
+      <p class="kicker reveal">Вопросы</p>
+      <h2 class="reveal">Коротко<br><em>о главном.</em></h2>
     </div>
     <div class="faq">
-      <details class="glass reveal" open><summary>Сколько времени занимает проект?</summary><p>Простой бот или лендинг — обычно несколько дней. Сроки для крупных проектов обсуждаем индивидуально и фиксируем заранее.</p></details>
-      <details class="glass reveal"><summary>Как происходит оплата?</summary><p>Обычно предоплата перед стартом и остаток после сдачи. Точные условия согласуем до начала работ.</p></details>
-      <details class="glass reveal"><summary>Нужно ли мне что-то понимать в технике?</summary><p>Нет. Вы рассказываете о бизнесе и задаче, остальное берём на себя и объясняем простым языком.</p></details>
-      <details class="glass reveal"><summary>Можно ли потом что-то поменять?</summary><p>Да. Тексты, цены, услуги и дизайн можно менять, а мы поможем с доработками.</p></details>
-      <details class="glass reveal"><summary>Что значит «с помощью ИИ»?</summary><p>Мы используем нейросети для ускорения разработки и встраиваем ИИ в продукты — например, чтобы бот сам отвечал клиентам.</p></details>
+      <details class="reveal"><summary>Сколько времени занимает проект?</summary><p>Простой бот или лендинг&nbsp;— обычно несколько дней. Сроки крупных проектов обсуждаем индивидуально и&nbsp;фиксируем заранее.</p></details>
+      <details class="reveal"><summary>Как происходит оплата?</summary><p>Обычно предоплата перед стартом и&nbsp;остаток после сдачи. Точные условия согласуем до&nbsp;начала работ.</p></details>
+      <details class="reveal"><summary>Нужно ли разбираться в технике?</summary><p>Нет. Вы рассказываете о&nbsp;бизнесе и&nbsp;задаче. Остальное берём на&nbsp;себя и&nbsp;объясняем простым языком.</p></details>
+      <details class="reveal"><summary>Можно ли потом что-то поменять?</summary><p>Да. Тексты, цены, услуги и&nbsp;дизайн можно менять, а&nbsp;мы поможем с&nbsp;доработками.</p></details>
+      <details class="reveal"><summary>Что значит «с помощью ИИ»?</summary><p>Мы используем нейросети, чтобы ускорить разработку, и&nbsp;встраиваем ИИ в&nbsp;продукты&nbsp;— например, чтобы бот сам отвечал клиентам.</p></details>
     </div>
   </div>
 </section>
 
 <!-- ===== ФИНАЛЬНЫЙ CTA ===== -->
-<section class="section">
-  <div class="container">
-    <div class="final glass reveal">
-      <div class="final-glow" aria-hidden="true"></div>
-      <h2>Готовы запустить <span class="grad">свой проект?</span></h2>
-      <p>Напишите в Telegram — обсудим задачу и предложим решение.</p>
-      <a class="btn btn-primary btn-lg" href="https://t.me/vraelstudio" target="_blank" rel="noopener">Написать в Telegram <span class="arrow">→</span></a>
+<section class="final" id="contact">
+  <div class="final-inner">
+    <p class="kicker dark reveal">Начнём</p>
+    <h2 class="reveal">Расскажите о&nbsp;задаче.<br><em>Остальное&nbsp;— наше.</em></h2>
+    <p class="final-lead reveal">Бесплатная консультация 30&nbsp;минут. Звонок или чат&nbsp;— как удобно.</p>
+    <div class="final-cta reveal">
+      <a class="btn btn-dark" href="https://t.me/Hshshcuaosocgw_bot" target="_blank" rel="noopener">Записаться на консультацию</a>
+      <a class="btn btn-outline-dark" href="https://t.me/vraelstudio" target="_blank" rel="noopener">Написать @vraelstudio</a>
     </div>
   </div>
 </section>
 </main>
 
 <footer class="footer">
-  <div class="container foot-inner">
-    <a href="#top" class="logo"><span class="logo-mark">V</span><span class="brand">VRAEL STUDIO</span></a>
-    <span>© <span id="year">2026</span> VRAEL STUDIO. Боты, сайты и ИИ для бизнеса.</span>
-    <span><a href="https://t.me/vraelstudio" target="_blank" rel="noopener">Telegram</a> · <a href="mailto:vraelstudio@gmail.com">vraelstudio@gmail.com</a></span>
+  <div class="foot-top">
+    <a href="#top" class="wordmark big">VRAEL<span>STUDIO</span></a>
+    <div class="foot-cols">
+      <div><h4>Студия</h4><a href="#services">Услуги</a><a href="#case">Кейс</a><a href="#process">Процесс</a><a href="#faq">Вопросы</a></div>
+      <div><h4>Связь</h4><a href="https://t.me/vraelstudio" target="_blank" rel="noopener">Telegram @vraelstudio</a><a href="mailto:vraelstudio@gmail.com">vraelstudio@gmail.com</a><a href="https://t.me/Hshshcuaosocgw_bot" target="_blank" rel="noopener">Бот записи</a></div>
+    </div>
   </div>
+  <div class="foot-bottom"><span>© <span id="year">2026</span> VRAEL STUDIO</span><span>Боты, сайты и ИИ для бизнеса. Онлайн, по всей России.</span></div>
 </footer>
 <script src="script.js"></script>
 </body>
