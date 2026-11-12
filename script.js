@@ -17,6 +17,7 @@
     "nav.process": "Process",
     "nav.faq": "FAQ",
     "nav.book": "Book now",
+    "nav.channel": "Channel",
     "hero.kicker": "Digital product studio",
     "hero.line1": "Digital products",
     "hero.line2": "<em>that work</em> for&nbsp;you.",
@@ -171,9 +172,11 @@
     "final.lead": "A free 30-minute consultation. Email or Telegram&nbsp;— whichever you prefer.",
     "final.ctaBook": "Book a consultation",
     "final.ctaTg": "Message @vraelstudio",
+    "final.channel": "Our Telegram channel",
     "foot.studio": "Studio",
     "foot.contact": "Contact",
     "foot.bot": "Booking bot",
+    "foot.channel": "Our Telegram channel",
     "foot.tag": "Bots, websites, and AI for business. Available worldwide."
   };
 
