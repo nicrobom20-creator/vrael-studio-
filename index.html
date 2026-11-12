@@ -3,6 +3,23 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
+<script>
+(function(){
+  var q = /(?:^\?|&)lang=(en|ru)(?:&|$)/.exec(location.search);
+  var lang = q ? q[1] : null;
+  if (lang !== "en" && lang !== "ru") {
+    try { lang = localStorage.getItem("vrael-lang"); } catch (e) {}
+  }
+  if (lang !== "en" && lang !== "ru") {
+    var n = String(navigator.language || navigator.userLanguage || "en").toLowerCase();
+    lang = n.indexOf("ru") === 0 ? "ru" : "en";
+  }
+  document.documentElement.lang = lang;
+  document.documentElement.setAttribute("data-lang", lang);
+  setTimeout(function(){ document.documentElement.classList.add("i18n-ready"); }, 1500);
+})();
+</script>
+<style>html[data-lang="en"]:not(.i18n-ready) body{opacity:0}</style>
 <title>VRAEL STUDIO — Telegram-боты, сайты и ИИ-ассистенты для бизнеса</title>
 <meta name="description" content="Студия цифровых продуктов. Telegram-боты, лендинги, сайты и ИИ-ассистенты для бизнеса — под ключ.">
 <meta name="theme-color" content="#0c0c0b">
@@ -18,18 +35,24 @@
 
 <!-- ===== ШАПКА ===== -->
 <header class="nav" id="nav">
-  <a href="#top" class="wordmark" aria-label="VRAEL STUDIO — наверх">VRAEL<span>STUDIO</span></a>
-  <nav class="nav-links" aria-label="Разделы">
-    <a href="#services">Услуги</a>
-    <a href="#plans">Обслуживание</a>
-    <a href="#case">Кейс</a>
-    <a href="#process">Процесс</a>
-    <a href="#faq">Вопросы</a>
+  <a href="#top" class="wordmark" aria-label="VRAEL STUDIO — наверх" data-i18n-aria="aria.top">VRAEL<span>STUDIO</span></a>
+  <nav class="nav-links" aria-label="Разделы" data-i18n-aria="aria.nav">
+    <a href="#services" data-i18n="nav.services">Услуги</a>
+    <a href="#plans" data-i18n="nav.plans">Обслуживание</a>
+    <a href="#case" data-i18n="nav.case">Кейс</a>
+    <a href="#process" data-i18n="nav.process">Процесс</a>
+    <a href="#faq" data-i18n="nav.faq">Вопросы</a>
   </nav>
   <div class="nav-right">
+    <div class="lang-switch" role="group" aria-label="Язык" data-i18n-aria="aria.lang">
+      <button type="button" data-set-lang="ru" aria-pressed="true">RU</button>
+      <span class="lang-sep" aria-hidden="true"></span>
+      <button type="button" data-set-lang="en" aria-pressed="false">EN</button>
+    </div>
     <a class="nav-contact" href="https://t.me/vraelstudio" target="_blank" rel="noopener">@vraelstudio</a>
     <a class="nav-contact" href="https://t.me/vraelstudio1" target="_blank" rel="noopener">Канал</a>
-    <a class="btn btn-sand btn-sm" href="https://t.me/vraelstudio_bot" target="_blank" rel="noopener">Записаться</a>
+    <a class="nav-contact nav-mail" data-lang-only="en" hidden href="mailto:vraelstudio@gmail.com">Email</a>
+    <a class="btn btn-sand btn-sm" href="https://t.me/vraelstudio_bot" target="_blank" rel="noopener" data-i18n="nav.book">Записаться</a>
   </div>
 </header>
 
@@ -40,38 +63,39 @@
   <canvas class="hero-canvas" id="heroCanvas" aria-hidden="true"></canvas>
   <div class="hero-vignette" aria-hidden="true"></div>
   <div class="hero-inner">
-    <p class="kicker hero-in" style="--d:.1s">Студия цифровых продуктов</p>
+    <p class="kicker hero-in" style="--d:.1s" data-i18n="hero.kicker">Студия цифровых продуктов</p>
     <h1 class="hero-title">
-      <span class="line"><span class="hero-in" style="--d:.25s">Цифровые продукты,</span></span>
-      <span class="line"><span class="hero-in" style="--d:.4s"><em>которые работают</em> на&nbsp;вас.</span></span>
+      <span class="line"><span class="hero-in" style="--d:.25s" data-i18n="hero.line1">Цифровые продукты,</span></span>
+      <span class="line"><span class="hero-in" style="--d:.4s" data-i18n-html="hero.line2"><em>которые работают</em> на&nbsp;вас.</span></span>
     </h1>
-    <p class="hero-lead hero-in" style="--d:.6s">Telegram-боты, лендинги, сайты и&nbsp;ИИ-ассистенты. Строго, быстро, под ключ.</p>
+    <p class="hero-lead hero-in" style="--d:.6s" data-i18n-html="hero.lead">Telegram-боты, лендинги, сайты и&nbsp;ИИ-ассистенты. Строго, быстро, под ключ.</p>
     <div class="hero-cta hero-in" style="--d:.75s">
-      <a class="btn btn-light" href="https://t.me/vraelstudio_bot" target="_blank" rel="noopener">Записаться на консультацию</a>
-      <a class="btn btn-outline" href="#case">Смотреть кейс</a>
+      <a class="btn btn-light" href="https://t.me/vraelstudio_bot" target="_blank" rel="noopener" data-i18n="hero.ctaBook">Записаться на консультацию</a>
+      <a class="btn btn-outline" data-lang-only="en" hidden href="mailto:vraelstudio@gmail.com">Email us</a>
+      <a class="btn btn-outline" href="#case" data-i18n="hero.ctaCase">Смотреть кейс</a>
     </div>
   </div>
   <div class="hero-specs hero-in" style="--d:.95s">
-    <div class="spec"><span class="spec-label">Telegram-бот</span><span class="spec-val">от 5 000 ₽</span></div>
-    <div class="spec"><span class="spec-label">Первый результат</span><span class="spec-val">за несколько дней</span></div>
-    <div class="spec"><span class="spec-label">Консультация</span><span class="spec-val">бесплатно</span></div>
+    <div class="spec"><span class="spec-label" data-i18n="hero.spec1l">Telegram-бот</span><span class="spec-val" data-i18n="hero.spec1v">от 5 000 ₽</span></div>
+    <div class="spec"><span class="spec-label" data-i18n="hero.spec2l">Первый результат</span><span class="spec-val" data-i18n="hero.spec2v">за несколько дней</span></div>
+    <div class="spec"><span class="spec-label" data-i18n="hero.spec3l">Консультация</span><span class="spec-val" data-i18n="hero.spec3v">бесплатно</span></div>
   </div>
-  <a href="#manifest" class="scroll-cue" aria-label="Листать вниз"><span></span></a>
+  <a href="#manifest" class="scroll-cue" aria-label="Листать вниз" data-i18n-aria="aria.scroll"><span></span></a>
 </section>
 
 <!-- ===== МАНИФЕСТ ===== -->
 <section class="manifest" id="manifest">
   <p class="kicker reveal">VRAEL STUDIO</p>
-  <p class="manifest-text" data-words>Меньше шума. Больше заявок. Мы&nbsp;делаем ботов и&nbsp;сайты, которые выглядят дорого и&nbsp;приводят клиентов&nbsp;— без долгих согласований и&nbsp;лишних посредников.</p>
+  <p class="manifest-text" data-words data-i18n-html="manifest">Меньше шума. Больше заявок. Мы&nbsp;делаем ботов и&nbsp;сайты, которые выглядят дорого и&nbsp;приводят клиентов&nbsp;— без долгих согласований и&nbsp;лишних посредников.</p>
 </section>
 
 <!-- ===== КИНО-БЛОК: сайт и бот как одна система ===== -->
 <section class="stage" id="stage">
   <div class="stage-bg" aria-hidden="true"></div>
   <div class="stage-copy">
-    <p class="kicker reveal">Одна система</p>
-    <h2 class="reveal">Сайт продаёт.<br><em>Бот принимает заявки.</em></h2>
-    <p class="reveal">Делаем всё в&nbsp;одном стиле: сайт, Telegram-бот и&nbsp;ИИ-ассистент работают вместе, а&nbsp;заявки приходят вам в&nbsp;Telegram.</p>
+    <p class="kicker reveal" data-i18n="stage.kicker">Одна система</p>
+    <h2 class="reveal" data-i18n-html="stage.title">Сайт продаёт.<br><em>Бот принимает заявки.</em></h2>
+    <p class="reveal" data-i18n-html="stage.lead">Делаем всё в&nbsp;одном стиле: сайт, Telegram-бот и&nbsp;ИИ-ассистент работают вместе, а&nbsp;заявки приходят вам в&nbsp;Telegram.</p>
   </div>
   <div class="stage-media" aria-hidden="true">
     <div class="browser" data-parallax="0.025">
@@ -79,7 +103,7 @@
       <div class="br-body">
         <div class="br-nav"><b>VRAEL</b><span></span><span></span><span></span><em></em></div>
         <div class="br-hero">
-          <div class="br-h1">Ваш бизнес.<br><i>Ваш сайт.</i></div>
+          <div class="br-h1" data-i18n-html="stage.mockTitle">Ваш бизнес.<br><i>Ваш сайт.</i></div>
           <div class="br-lines"><span></span><span></span></div>
           <div class="br-btns"><span class="a"></span><span class="b"></span></div>
         </div>
@@ -88,10 +112,10 @@
     </div>
     <div class="mini-phone" data-parallax="-0.05">
       <div class="mp-screen">
-        <div class="mp-head"><span>V</span>Заявки</div>
-        <div class="mp-msg">Новая заявка с&nbsp;сайта</div>
-        <div class="mp-msg s">Имя, телефон, услуга</div>
-        <div class="mp-msg">Новая запись: завтра, 15:00</div>
+        <div class="mp-head"><span>V</span><span data-i18n="stage.phoneHead">Заявки</span></div>
+        <div class="mp-msg" data-i18n-html="stage.msg1">Новая заявка с&nbsp;сайта</div>
+        <div class="mp-msg s" data-i18n="stage.msg2">Имя, телефон, услуга</div>
+        <div class="mp-msg" data-i18n-html="stage.msg3">Новая запись: завтра, 15:00</div>
       </div>
     </div>
   </div>
@@ -100,8 +124,8 @@
 <!-- ===== УСЛУГИ (цены редактируются в .svc-price) ===== -->
 <section class="section" id="services">
   <div class="sec-head">
-    <p class="kicker reveal">Услуги</p>
-    <h2 class="reveal">Пять продуктов.<br><em>Один стандарт.</em></h2>
+    <p class="kicker reveal" data-i18n="svc.kicker">Услуги</p>
+    <h2 class="reveal" data-i18n-html="svc.title">Пять продуктов.<br><em>Один стандарт.</em></h2>
   </div>
   <div class="svc-grid">
     <article class="svc reveal">
@@ -110,9 +134,9 @@
       </div>
       <div class="svc-body">
         <span class="svc-num">01</span>
-        <h3>Telegram-боты</h3>
-        <p>Онлайн-запись, приём заказов, каталоги, оплата, рассылки и&nbsp;уведомления владельцу.</p>
-        <div class="svc-price"><span>от</span> 5 000 ₽</div>
+        <h3 data-i18n="svc.1.title">Telegram-боты</h3>
+        <p data-i18n-html="svc.1.body">Онлайн-запись, приём заказов, каталоги, оплата, рассылки и&nbsp;уведомления владельцу.</p>
+        <div class="svc-price" data-i18n-html="svc.1.price"><span>от</span> 5 000 ₽</div>
       </div>
     </article>
     <article class="svc reveal" style="--rd:.08s">
@@ -121,9 +145,9 @@
       </div>
       <div class="svc-body">
         <span class="svc-num">02</span>
-        <h3>Лендинги</h3>
-        <p>Одна страница, которая продаёт: сильный оффер, точный дизайн, заявки сразу в&nbsp;Telegram.</p>
-        <div class="svc-price"><span>от</span> 8 000 ₽</div>
+        <h3 data-i18n="svc.2.title">Лендинги</h3>
+        <p data-i18n-html="svc.2.body">Одна страница, которая продаёт: сильный оффер, точный дизайн, заявки сразу в&nbsp;Telegram.</p>
+        <div class="svc-price" data-i18n-html="svc.2.price"><span>от</span> 8 000 ₽</div>
       </div>
     </article>
     <article class="svc reveal" style="--rd:.16s">
@@ -132,9 +156,9 @@
       </div>
       <div class="svc-body">
         <span class="svc-num">03</span>
-        <h3>Сайты</h3>
-        <p>Многостраничные сайты для компаний и&nbsp;экспертов. Адаптив, скорость, ясная структура.</p>
-        <div class="svc-price"><span>от</span> 15 000 ₽</div>
+        <h3 data-i18n="svc.3.title">Сайты</h3>
+        <p data-i18n-html="svc.3.body">Многостраничные сайты для компаний и&nbsp;экспертов. Адаптив, скорость, ясная структура.</p>
+        <div class="svc-price" data-i18n-html="svc.3.price"><span>от</span> 15 000 ₽</div>
       </div>
     </article>
     <article class="svc reveal" style="--rd:.24s">
@@ -143,9 +167,9 @@
       </div>
       <div class="svc-body">
         <span class="svc-num">04</span>
-        <h3>ИИ-ассистенты</h3>
-        <p>Ассистент на&nbsp;базе нейросети. Отвечает клиентам 24/7, консультирует и&nbsp;собирает заявки.</p>
-        <div class="svc-price"><span>от</span> 10 000 ₽</div>
+        <h3 data-i18n="svc.4.title">ИИ-ассистенты</h3>
+        <p data-i18n-html="svc.4.body">Ассистент на&nbsp;базе нейросети. Отвечает клиентам 24/7, консультирует и&nbsp;собирает заявки.</p>
+        <div class="svc-price" data-i18n-html="svc.4.price"><span>от</span> 10 000 ₽</div>
       </div>
     </article>
     <article class="svc reveal" style="--rd:.32s">
@@ -155,9 +179,9 @@
       </div>
       <div class="svc-body">
         <span class="svc-num">05</span>
-        <h3>Домен и&nbsp;запуск сайта</h3>
-        <p>Подключим ваш домен .ru или .com, HTTPS и&nbsp;хостинг&nbsp;— сайт по&nbsp;адресу вашего бизнеса.</p>
-        <div class="svc-price"><span>от</span> 1 500 ₽</div>
+        <h3 data-i18n-html="svc.5.title">Домен и&nbsp;запуск сайта</h3>
+        <p data-i18n-html="svc.5.body">Подключим ваш домен .ru или .com, HTTPS и&nbsp;хостинг&nbsp;— сайт по&nbsp;адресу вашего бизнеса.</p>
+        <div class="svc-price" data-i18n-html="svc.5.price"><span>от</span> 1 500 ₽</div>
       </div>
     </article>
   </div>
@@ -167,58 +191,59 @@
 <!-- ===== ОБСЛУЖИВАНИЕ ===== -->
 <section class="section plans" id="plans">
   <div class="sec-head">
-    <p class="kicker reveal">Обслуживание</p>
-    <h2 class="reveal">Сайт и бот<br><em>под присмотром.</em></h2>
-    <p class="sec-note reveal">Ежемесячные тарифы, чтобы продукт не замирал после запуска. Онлайн-оплаты нет&nbsp;— напишите нам, и подключим.</p>
+    <p class="kicker reveal" data-i18n="plans.kicker">Обслуживание</p>
+    <h2 class="reveal" data-i18n-html="plans.title">Сайт и бот<br><em>под присмотром.</em></h2>
+    <p class="sec-note reveal" data-i18n-html="plans.note">Ежемесячные тарифы, чтобы продукт не замирал после запуска. Онлайн-оплаты нет&nbsp;— напишите нам, и подключим.</p>
   </div>
   <div class="plan-grid">
     <article class="plan reveal">
-      <p class="plan-tier">Старт</p>
-      <h3>Спокойная работа</h3>
-      <p class="plan-lead">Хостинг, работа бота или сайта и мелкие правки без сюрпризов.</p>
-      <div class="plan-price"><span>от</span> 1 490 ₽<small>/мес</small></div>
+      <p class="plan-tier" data-i18n="plans.s.tier">Старт</p>
+      <h3 data-i18n="plans.s.title">Спокойная работа</h3>
+      <p class="plan-lead" data-i18n-html="plans.s.lead">Хостинг, работа бота или сайта и мелкие правки без сюрпризов.</p>
+      <div class="plan-price" data-i18n-html="plans.s.price"><span>от</span> 1 490 ₽<small>/мес</small></div>
       <ul>
-        <li>Хостинг и работа бота или сайта</li>
-        <li>Исправление ошибок</li>
-        <li>1 мелкая правка в месяц</li>
+        <li data-i18n="plans.s.f1">Хостинг и работа бота или сайта</li>
+        <li data-i18n="plans.s.f2">Исправление ошибок</li>
+        <li data-i18n="plans.s.f3">1 мелкая правка в месяц</li>
       </ul>
-      <p class="plan-term">3 мес. — 4 020 ₽ (−10%) · 6 мес. — 7 600 ₽ (−15%)</p>
+      <p class="plan-term" data-i18n="plans.s.term">3 мес. — 4 020 ₽ (−10%) · 6 мес. — 7 600 ₽ (−15%)</p>
     </article>
     <article class="plan plan-feat reveal" style="--rd:.08s">
-      <p class="plan-badge">Выгодный / популярный</p>
-      <p class="plan-tier">Бизнес</p>
-      <h3>Поддержка и рост</h3>
-      <p class="plan-lead">Всё из Старта, плюс правки, обновления и ИИ-ассистент для ваших клиентов.</p>
-      <div class="plan-price"><span>от</span> 2 990 ₽<small>/мес</small></div>
+      <p class="plan-badge" data-i18n="plans.badge">Выгодный / популярный</p>
+      <p class="plan-tier" data-i18n="plans.b.tier">Бизнес</p>
+      <h3 data-i18n="plans.b.title">Поддержка и рост</h3>
+      <p class="plan-lead" data-i18n="plans.b.lead">Всё из Старта, плюс правки, обновления и ИИ-ассистент для ваших клиентов.</p>
+      <div class="plan-price" data-i18n-html="plans.b.price"><span>от</span> 2 990 ₽<small>/мес</small></div>
       <ul>
-        <li>Всё из тарифа «Старт»</li>
-        <li>До 3 правок в месяц</li>
-        <li>Обновление цен и фото</li>
-        <li>ИИ-ассистент для клиентов</li>
-        <li>Ответ в течение дня</li>
+        <li data-i18n="plans.b.f1">Всё из тарифа «Старт»</li>
+        <li data-i18n="plans.b.f2">До 3 правок в месяц</li>
+        <li data-i18n="plans.b.f3">Обновление цен и фото</li>
+        <li data-i18n="plans.b.f4">ИИ-ассистент для клиентов</li>
+        <li data-i18n="plans.b.f5">Ответ в течение дня</li>
       </ul>
-      <p class="plan-term">3 мес. — 8 070 ₽ (−10%) · 6 мес. — 15 250 ₽ (−15%)</p>
-      <p class="plan-offer">При заказе сайта или бота с этим тарифом — первый месяц бесплатно.</p>
+      <p class="plan-term" data-i18n="plans.b.term">3 мес. — 8 070 ₽ (−10%) · 6 мес. — 15 250 ₽ (−15%)</p>
+      <p class="plan-offer" data-i18n="plans.b.offer">При заказе сайта или бота с этим тарифом — первый месяц бесплатно.</p>
     </article>
     <article class="plan reveal" style="--rd:.16s">
-      <p class="plan-tier">Премиум</p>
-      <h3>Без ограничений</h3>
-      <p class="plan-lead">Всё из Бизнеса, правки без лимита, отчёт по заявкам и приоритет.</p>
-      <div class="plan-price"><span>от</span> 5 990 ₽<small>/мес</small></div>
+      <p class="plan-tier" data-i18n="plans.p.tier">Премиум</p>
+      <h3 data-i18n="plans.p.title">Без ограничений</h3>
+      <p class="plan-lead" data-i18n="plans.p.lead">Всё из Бизнеса, правки без лимита, отчёт по заявкам и приоритет.</p>
+      <div class="plan-price" data-i18n-html="plans.p.price"><span>от</span> 5 990 ₽<small>/мес</small></div>
       <ul>
-        <li>Всё из тарифа «Бизнес»</li>
-        <li>Правки без лимита (в разумных пределах)</li>
-        <li>Ежемесячный отчёт по заявкам</li>
-        <li>Приоритетная поддержка</li>
+        <li data-i18n="plans.p.f1">Всё из тарифа «Бизнес»</li>
+        <li data-i18n="plans.p.f2">Правки без лимита (в разумных пределах)</li>
+        <li data-i18n="plans.p.f3">Ежемесячный отчёт по заявкам</li>
+        <li data-i18n="plans.p.f4">Приоритетная поддержка</li>
       </ul>
-      <p class="plan-term">3 мес. — 16 170 ₽ (−10%) · 6 мес. — 30 550 ₽ (−15%)</p>
+      <p class="plan-term" data-i18n="plans.p.term">3 мес. — 16 170 ₽ (−10%) · 6 мес. — 30 550 ₽ (−15%)</p>
     </article>
   </div>
   <div class="plan-foot reveal">
-    <p>Скидки при оплате периода: 3 месяца −10%, 6 месяцев −15%. 14 дней после сдачи — мелкие правки бесплатно. Разовые правки без абонемента — от 500 ₽.</p>
+    <p data-i18n="plans.foot">Скидки при оплате периода: 3 месяца −10%, 6 месяцев −15%. 14 дней после сдачи — мелкие правки бесплатно. Разовые правки без абонемента — от 500 ₽.</p>
     <div class="plan-cta">
-      <a class="btn btn-sand" href="https://t.me/vraelstudio_bot" target="_blank" rel="noopener">Выбрать тариф в боте</a>
-      <a class="btn btn-outline" href="https://t.me/vraelstudio" target="_blank" rel="noopener">Написать @vraelstudio</a>
+      <a class="btn btn-sand" href="https://t.me/vraelstudio_bot" target="_blank" rel="noopener" data-i18n="plans.ctaBot">Выбрать тариф в боте</a>
+      <a class="btn btn-outline" href="https://t.me/vraelstudio" target="_blank" rel="noopener" data-i18n="plans.ctaTg">Написать @vraelstudio</a>
+      <a class="btn btn-outline" data-lang-only="en" hidden href="mailto:vraelstudio@gmail.com">Email us</a>
     </div>
   </div>
 </section>
@@ -228,16 +253,16 @@
   <div class="case-bg" aria-hidden="true"></div>
   <div class="case-grid">
     <div class="case-copy">
-      <p class="kicker reveal"><span class="live-dot"></span>Работает прямо сейчас</p>
-      <h2 class="reveal">Бот записи<br><em>VRAEL STUDIO</em></h2>
-      <p class="case-lead reveal">Наш собственный бот. Клиент выбирает услугу, формат и&nbsp;время&nbsp;— а&nbsp;мы сразу получаем заявку. Проверьте сами: это тот&nbsp;же продукт, который мы сделаем вам.</p>
+      <p class="kicker reveal"><span class="live-dot"></span><span data-i18n="case.kicker">Работает прямо сейчас</span></p>
+      <h2 class="reveal" data-i18n-html="case.title">Бот записи<br><em>VRAEL STUDIO</em></h2>
+      <p class="case-lead reveal" data-i18n-html="case.lead">Наш собственный бот. Клиент выбирает услугу, формат и&nbsp;время&nbsp;— а&nbsp;мы сразу получаем заявку. Проверьте сами: это тот&nbsp;же продукт, который мы сделаем вам.</p>
       <dl class="case-specs reveal">
-        <div><dt>Консультация</dt><dd>30 мин</dd></div>
-        <div><dt>Окно записи</dt><dd>7 дней</dd></div>
-        <div><dt>Напоминание</dt><dd>за 2 часа</dd></div>
+        <div><dt data-i18n="case.s1t">Консультация</dt><dd data-i18n="case.s1v">30 мин</dd></div>
+        <div><dt data-i18n="case.s2t">Окно записи</dt><dd data-i18n="case.s2v">7 дней</dd></div>
+        <div><dt data-i18n="case.s3t">Напоминание</dt><dd data-i18n="case.s3v">за 2 часа</dd></div>
       </dl>
       <div class="case-cta reveal">
-        <a class="btn btn-sand" href="https://t.me/vraelstudio_bot" target="_blank" rel="noopener">Открыть @vraelstudio_bot</a>
+        <a class="btn btn-sand" href="https://t.me/vraelstudio_bot" target="_blank" rel="noopener" data-i18n="case.cta">Открыть @vraelstudio_bot</a>
       </div>
     </div>
     <div class="case-device reveal" data-parallax="0.06" aria-hidden="true">
@@ -245,23 +270,23 @@
         <div class="phone-screen">
           <div class="tg-head">
             <span class="tg-ava">V</span>
-            <div><b>VRAEL STUDIO</b><small>бот</small></div>
+            <div><b>VRAEL STUDIO</b><small data-i18n="case.bot">бот</small></div>
           </div>
           <div class="tg-chat" id="tgChat">
-            <div class="m in">Здравствуйте! Это VRAEL STUDIO. Выберите услугу для консультации:</div>
-            <div class="kb"><span>Telegram-бот</span><span class="on">Лендинг</span><span>Сайт под ключ</span><span>ИИ-ассистент</span></div>
-            <div class="m in">Формат встречи?</div>
-            <div class="kb two"><span>📞 Звонок</span><span class="on">💬 Чат в Telegram</span></div>
-            <div class="m in">Свободное время на&nbsp;завтра:</div>
+            <div class="m in" data-i18n="chat.1">Здравствуйте! Это VRAEL STUDIO. Выберите услугу для консультации:</div>
+            <div class="kb"><span data-i18n="chat.k1a">Telegram-бот</span><span class="on" data-i18n="chat.k1b">Лендинг</span><span data-i18n="chat.k1c">Сайт под ключ</span><span data-i18n="chat.k1d">ИИ-ассистент</span></div>
+            <div class="m in" data-i18n="chat.2">Формат встречи?</div>
+            <div class="kb two"><span data-i18n="chat.k2a">📞 Звонок</span><span class="on" data-i18n="chat.k2b">💬 Чат в Telegram</span></div>
+            <div class="m in" data-i18n-html="chat.3">Свободное время на&nbsp;завтра:</div>
             <div class="kb three"><span>11:30</span><span class="on">15:00</span><span>17:30</span></div>
             <div class="m out">15:00</div>
-            <div class="m in ok">Готово. Вы записаны на&nbsp;завтра, 15:00. Напомню за&nbsp;2&nbsp;часа.</div>
+            <div class="m in ok" data-i18n-html="chat.4">Готово. Вы записаны на&nbsp;завтра, 15:00. Напомню за&nbsp;2&nbsp;часа.</div>
           </div>
         </div>
       </div>
       <div class="notice">
         <span class="notice-dot"></span>
-        <div><b>Новая заявка</b><small>Лендинг · завтра, 15:00</small></div>
+        <div><b data-i18n="notice.title">Новая заявка</b><small data-i18n="notice.sub">Лендинг · завтра, 15:00</small></div>
       </div>
     </div>
   </div>
@@ -271,46 +296,46 @@
 <section class="section" id="concepts">
   <div class="sec-head row">
     <div>
-      <p class="kicker reveal">Концепты</p>
-      <h2 class="reveal">Как может выглядеть<br><em>ваш проект.</em></h2>
+      <p class="kicker reveal" data-i18n="concepts.kicker">Концепты</p>
+      <h2 class="reveal" data-i18n-html="concepts.title">Как может выглядеть<br><em>ваш проект.</em></h2>
     </div>
-    <p class="sec-note reveal">Демонстрационные концепты студии. Не&nbsp;клиентские работы&nbsp;— показываем подход и&nbsp;уровень.</p>
+    <p class="sec-note reveal" data-i18n-html="concepts.note">Демонстрационные концепты студии. Не&nbsp;клиентские работы&nbsp;— показываем подход и&nbsp;уровень.</p>
   </div>
   <div class="concepts">
     <article class="concept reveal">
       <div class="concept-art c-coffee" aria-hidden="true">
         <div class="mock-site">
           <div class="ms-bar"><i></i><i></i><i></i></div>
-          <div class="ms-hero"><span class="ms-h">Кофе<br>с&nbsp;характером</span><span class="ms-btn">Заказать</span></div>
+          <div class="ms-hero"><span class="ms-h" data-i18n-html="concepts.1.mock">Кофе<br>с&nbsp;характером</span><span class="ms-btn" data-i18n="concepts.1.btn">Заказать</span></div>
           <div class="ms-row"><i></i><i></i><i></i></div>
         </div>
       </div>
-      <div class="concept-meta"><span class="tag">Концепт</span><span class="type">Лендинг</span></div>
-      <h3>Лендинг для кофейни</h3>
-      <p>Меню, акции и&nbsp;кнопка заказа в&nbsp;Telegram&nbsp;— всё на&nbsp;одной странице.</p>
+      <div class="concept-meta"><span class="tag" data-i18n="concepts.tag">Концепт</span><span class="type" data-i18n="concepts.1.type">Лендинг</span></div>
+      <h3 data-i18n="concepts.1.title">Лендинг для кофейни</h3>
+      <p data-i18n-html="concepts.1.body">Меню, акции и&nbsp;кнопка заказа в&nbsp;Telegram&nbsp;— всё на&nbsp;одной странице.</p>
     </article>
     <article class="concept reveal" style="--rd:.08s">
       <div class="concept-art c-shop" aria-hidden="true">
         <div class="mock-ai">
-          <div class="ai-q">Подойдёт ли размер M?</div>
+          <div class="ai-q" data-i18n="concepts.2.q">Подойдёт ли размер M?</div>
           <div class="ai-a"><i></i><i></i><i class="s"></i></div>
           <div class="ai-pulse"></div>
         </div>
       </div>
-      <div class="concept-meta"><span class="tag">Концепт</span><span class="type">ИИ-ассистент</span></div>
-      <h3>ИИ-консультант для магазина</h3>
-      <p>Отвечает о&nbsp;товарах и&nbsp;доставке, помогает выбрать и&nbsp;передаёт заявку менеджеру.</p>
+      <div class="concept-meta"><span class="tag" data-i18n="concepts.tag">Концепт</span><span class="type" data-i18n="concepts.2.type">ИИ-ассистент</span></div>
+      <h3 data-i18n="concepts.2.title">ИИ-консультант для магазина</h3>
+      <p data-i18n="concepts.2.body">Отвечает о&nbsp;товарах и&nbsp;доставке, помогает выбрать и&nbsp;передаёт заявку менеджеру.</p>
     </article>
     <article class="concept reveal" style="--rd:.16s">
       <div class="concept-art c-tutor" aria-hidden="true">
         <div class="mock-cal">
-          <div class="cal-h"><i></i><span>Пробный урок</span></div>
+          <div class="cal-h"><i></i><span data-i18n="concepts.3.cal">Пробный урок</span></div>
           <div class="cal-g"><i></i><i></i><i class="on"></i><i></i><i></i><i></i><i></i><i class="on"></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
         </div>
       </div>
-      <div class="concept-meta"><span class="tag">Концепт</span><span class="type">Сайт</span></div>
-      <h3>Сайт для репетитора</h3>
-      <p>Программы занятий, расписание и&nbsp;запись на&nbsp;пробный урок.</p>
+      <div class="concept-meta"><span class="tag" data-i18n="concepts.tag">Концепт</span><span class="type" data-i18n="concepts.3.type">Сайт</span></div>
+      <h3 data-i18n="concepts.3.title">Сайт для репетитора</h3>
+      <p data-i18n="concepts.3.body">Программы занятий, расписание и&nbsp;запись на&nbsp;пробный урок.</p>
     </article>
   </div>
 </section>
@@ -318,31 +343,31 @@
 <!-- ===== ПРОЦЕСС ===== -->
 <section class="section process" id="process">
   <div class="sec-head">
-    <p class="kicker reveal">Процесс</p>
-    <h2 class="reveal">Четыре шага<br><em>до запуска.</em></h2>
+    <p class="kicker reveal" data-i18n="process.kicker">Процесс</p>
+    <h2 class="reveal" data-i18n-html="process.title">Четыре шага<br><em>до запуска.</em></h2>
   </div>
   <div class="track" id="track"><span class="track-fill" id="trackFill"></span></div>
   <ol class="steps">
-    <li class="step reveal"><span class="step-n">01</span><h3>Знакомство</h3><p>Пишете в&nbsp;Telegram. Обсуждаем задачу, цели и&nbsp;бюджет.</p></li>
-    <li class="step reveal" style="--rd:.1s"><span class="step-n">02</span><h3>Прототип</h3><p>Показываем структуру и&nbsp;дизайн. Согласуем детали.</p></li>
-    <li class="step reveal" style="--rd:.2s"><span class="step-n">03</span><h3>Разработка</h3><p>Собираем проект и&nbsp;показываем промежуточные результаты. Быстро и&nbsp;без потери качества.</p></li>
-    <li class="step reveal" style="--rd:.3s"><span class="step-n">04</span><h3>Запуск</h3><p>Тестируем, запускаем, помогаем с&nbsp;первыми правками.</p></li>
+    <li class="step reveal"><span class="step-n">01</span><h3 data-i18n="process.1.title">Знакомство</h3><p data-i18n="process.1.body">Пишете в&nbsp;Telegram. Обсуждаем задачу, цели и&nbsp;бюджет.</p></li>
+    <li class="step reveal" style="--rd:.1s"><span class="step-n">02</span><h3 data-i18n="process.2.title">Прототип</h3><p data-i18n="process.2.body">Показываем структуру и&nbsp;дизайн. Согласуем детали.</p></li>
+    <li class="step reveal" style="--rd:.2s"><span class="step-n">03</span><h3 data-i18n="process.3.title">Разработка</h3><p data-i18n="process.3.body">Собираем проект и&nbsp;показываем промежуточные результаты. Быстро и&nbsp;без потери качества.</p></li>
+    <li class="step reveal" style="--rd:.3s"><span class="step-n">04</span><h3 data-i18n="process.4.title">Запуск</h3><p data-i18n="process.4.body">Тестируем, запускаем, помогаем с&nbsp;первыми правками.</p></li>
   </ol>
 </section>
 
 <!-- ===== ПОЧЕМУ МЫ ===== -->
 <section class="section why" id="why">
   <div class="sec-head">
-    <p class="kicker reveal">Почему мы</p>
-    <h2 class="reveal">Скорость студии.<br><em>Внимание мастера.</em></h2>
+    <p class="kicker reveal" data-i18n="why.kicker">Почему мы</p>
+    <h2 class="reveal" data-i18n-html="why.title">Скорость студии.<br><em>Внимание мастера.</em></h2>
   </div>
   <div class="why-grid">
-    <div class="why-item reveal"><h3>Быстро</h3><p>Отлаженный процесс и&nbsp;готовые наработки. То, что обычно занимает недели, делаем за&nbsp;дни.</p></div>
-    <div class="why-item reveal" style="--rd:.06s"><h3>Красиво</h3><p>Дизайн, который не&nbsp;стыдно показать клиентам и&nbsp;партнёрам.</p></div>
-    <div class="why-item reveal" style="--rd:.12s"><h3>Напрямую</h3><p>Общаемся в&nbsp;Telegram. Без менеджеров и&nbsp;долгих согласований.</p></div>
-    <div class="why-item reveal"><h3>Под ключ</h3><p>Дизайн, разработка, запуск. Разбираться в&nbsp;технике не&nbsp;нужно.</p></div>
-    <div class="why-item reveal" style="--rd:.06s"><h3>Честная цена</h3><p>Фиксируем стоимость до&nbsp;старта. Без скрытых доплат.</p></div>
-    <div class="why-item reveal" style="--rd:.12s"><h3>Поддержка</h3><p>Помогаем с&nbsp;правками и&nbsp;доработками после запуска.</p></div>
+    <div class="why-item reveal"><h3 data-i18n="why.1.title">Быстро</h3><p data-i18n-html="why.1.body">Отлаженный процесс и&nbsp;готовые наработки. То, что обычно занимает недели, делаем за&nbsp;дни.</p></div>
+    <div class="why-item reveal" style="--rd:.06s"><h3 data-i18n="why.2.title">Красиво</h3><p data-i18n="why.2.body">Дизайн, который не&nbsp;стыдно показать клиентам и&nbsp;партнёрам.</p></div>
+    <div class="why-item reveal" style="--rd:.12s"><h3 data-i18n="why.3.title">Напрямую</h3><p data-i18n="why.3.body">Общаемся в&nbsp;Telegram. Без менеджеров и&nbsp;долгих согласований.</p></div>
+    <div class="why-item reveal"><h3 data-i18n="why.4.title">Под ключ</h3><p data-i18n="why.4.body">Дизайн, разработка, запуск. Разбираться в&nbsp;технике не&nbsp;нужно.</p></div>
+    <div class="why-item reveal" style="--rd:.06s"><h3 data-i18n="why.5.title">Честная цена</h3><p data-i18n="why.5.body">Фиксируем стоимость до&nbsp;старта. Без скрытых доплат.</p></div>
+    <div class="why-item reveal" style="--rd:.12s"><h3 data-i18n="why.6.title">Поддержка</h3><p data-i18n="why.6.body">Помогаем с&nbsp;правками и&nbsp;доработками после запуска.</p></div>
   </div>
 </section>
 
@@ -350,15 +375,15 @@
 <section class="section faq-sec" id="faq">
   <div class="faq-wrap">
     <div class="sec-head">
-      <p class="kicker reveal">Вопросы</p>
-      <h2 class="reveal">Коротко<br><em>о главном.</em></h2>
+      <p class="kicker reveal" data-i18n="faq.kicker">Вопросы</p>
+      <h2 class="reveal" data-i18n-html="faq.title">Коротко<br><em>о главном.</em></h2>
     </div>
     <div class="faq">
-      <details class="reveal"><summary>Сколько времени занимает проект?</summary><p>Простой бот или лендинг&nbsp;— обычно несколько дней. Сроки крупных проектов обсуждаем индивидуально и&nbsp;фиксируем заранее.</p></details>
-      <details class="reveal"><summary>Как происходит оплата?</summary><p>Обычно предоплата перед стартом и&nbsp;остаток после сдачи. Точные условия согласуем до&nbsp;начала работ.</p></details>
-      <details class="reveal"><summary>Нужно ли разбираться в технике?</summary><p>Нет. Вы рассказываете о&nbsp;бизнесе и&nbsp;задаче. Остальное берём на&nbsp;себя и&nbsp;объясняем простым языком.</p></details>
-      <details class="reveal"><summary>Можно ли потом что-то поменять?</summary><p>Да. 14&nbsp;дней после сдачи мелкие правки бесплатны. Дальше&nbsp;— разовые правки от&nbsp;500&nbsp;₽ или ежемесячный тариф обслуживания: хостинг, правки и&nbsp;ИИ-помощь. При заказе сайта или бота с тарифом «Бизнес» первый месяц бесплатно.</p></details>
-      <details class="reveal"><summary>Можно ли сайт на своём домене .ru или .com?</summary><p>Да. Подключим ваш домен, настроим HTTPS и&nbsp;хостинг&nbsp;— сайт откроется по адресу вашего бизнеса. Сам домен вы оплачиваете у&nbsp;регистратора, обычно это 200–900&nbsp;₽ в&nbsp;год. Подключение и&nbsp;запуск у&nbsp;нас&nbsp;— от 1&nbsp;500&nbsp;₽.</p></details>
+      <details class="reveal"><summary data-i18n="faq.1.q">Сколько времени занимает проект?</summary><p data-i18n-html="faq.1.a">Простой бот или лендинг&nbsp;— обычно несколько дней. Сроки крупных проектов обсуждаем индивидуально и&nbsp;фиксируем заранее.</p></details>
+      <details class="reveal"><summary data-i18n="faq.2.q">Как происходит оплата?</summary><p data-i18n-html="faq.2.a">Обычно предоплата перед стартом и&nbsp;остаток после сдачи. Точные условия согласуем до&nbsp;начала работ.</p></details>
+      <details class="reveal"><summary data-i18n="faq.3.q">Нужно ли разбираться в технике?</summary><p data-i18n-html="faq.3.a">Нет. Вы рассказываете о&nbsp;бизнесе и&nbsp;задаче. Остальное берём на&nbsp;себя и&nbsp;объясняем простым языком.</p></details>
+      <details class="reveal"><summary data-i18n="faq.4.q">Можно ли потом что-то поменять?</summary><p data-i18n-html="faq.4.a">Да. 14&nbsp;дней после сдачи мелкие правки бесплатны. Дальше&nbsp;— разовые правки от&nbsp;500&nbsp;₽ или ежемесячный тариф обслуживания: хостинг, правки и&nbsp;ИИ-помощь. При заказе сайта или бота с тарифом «Бизнес» первый месяц бесплатно.</p></details>
+      <details class="reveal"><summary data-i18n="faq.5.q">Можно ли сайт на своём домене .ru или .com?</summary><p data-i18n-html="faq.5.a">Да. Подключим ваш домен, настроим HTTPS и&nbsp;хостинг&nbsp;— сайт откроется по адресу вашего бизнеса. Сам домен вы оплачиваете у&nbsp;регистратора, обычно это 200–900&nbsp;₽ в&nbsp;год. Подключение и&nbsp;запуск у&nbsp;нас&nbsp;— от 1&nbsp;500&nbsp;₽.</p></details>
     </div>
   </div>
 </section>
@@ -366,13 +391,14 @@
 <!-- ===== ФИНАЛЬНЫЙ CTA ===== -->
 <section class="final" id="contact">
   <div class="final-inner">
-    <p class="kicker dark reveal">Начнём</p>
-    <h2 class="reveal">Расскажите о&nbsp;задаче.<br><em>Остальное&nbsp;— наше.</em></h2>
-    <p class="final-lead reveal">Бесплатная консультация 30&nbsp;минут. Звонок или чат&nbsp;— как удобно.</p>
+    <p class="kicker dark reveal" data-i18n="final.kicker">Начнём</p>
+    <h2 class="reveal" data-i18n-html="final.title">Расскажите о&nbsp;задаче.<br><em>Остальное&nbsp;— наше.</em></h2>
+    <p class="final-lead reveal" data-i18n-html="final.lead">Бесплатная консультация 30&nbsp;минут. Звонок или чат&nbsp;— как удобно.</p>
     <div class="final-cta reveal">
-      <a class="btn btn-dark" href="https://t.me/vraelstudio_bot" target="_blank" rel="noopener">Записаться на консультацию</a>
-      <a class="btn btn-outline-dark" href="https://t.me/vraelstudio" target="_blank" rel="noopener">Написать @vraelstudio</a>
+      <a class="btn btn-dark" href="https://t.me/vraelstudio_bot" target="_blank" rel="noopener" data-i18n="final.ctaBook">Записаться на консультацию</a>
+      <a class="btn btn-outline-dark" href="https://t.me/vraelstudio" target="_blank" rel="noopener" data-i18n="final.ctaTg">Написать @vraelstudio</a>
       <a class="btn btn-outline-dark" href="https://t.me/vraelstudio1" target="_blank" rel="noopener">Наш Telegram-канал</a>
+      <a class="btn btn-outline-dark" data-lang-only="en" hidden href="mailto:vraelstudio@gmail.com">Email us</a>
     </div>
   </div>
 </section>
@@ -382,11 +408,11 @@
   <div class="foot-top">
     <a href="#top" class="wordmark big">VRAEL<span>STUDIO</span></a>
     <div class="foot-cols">
-      <div><h4>Студия</h4><a href="#services">Услуги</a><a href="#plans">Обслуживание</a><a href="#case">Кейс</a><a href="#process">Процесс</a><a href="#faq">Вопросы</a></div>
-      <div><h4>Связь</h4><a href="https://t.me/vraelstudio" target="_blank" rel="noopener">Telegram @vraelstudio</a><a href="https://t.me/vraelstudio1" target="_blank" rel="noopener">Наш Telegram-канал</a><a href="mailto:vraelstudio@gmail.com">vraelstudio@gmail.com</a><a href="https://t.me/vraelstudio_bot" target="_blank" rel="noopener">Бот записи</a></div>
+      <div><h4 data-i18n="foot.studio">Студия</h4><a href="#services" data-i18n="nav.services">Услуги</a><a href="#plans" data-i18n="nav.plans">Обслуживание</a><a href="#case" data-i18n="nav.case">Кейс</a><a href="#process" data-i18n="nav.process">Процесс</a><a href="#faq" data-i18n="nav.faq">Вопросы</a></div>
+      <div><h4 data-i18n="foot.contact">Связь</h4><a href="https://t.me/vraelstudio" target="_blank" rel="noopener">Telegram @vraelstudio</a><a href="https://t.me/vraelstudio1" target="_blank" rel="noopener">Наш Telegram-канал</a><a href="mailto:vraelstudio@gmail.com">vraelstudio@gmail.com</a><a href="https://t.me/vraelstudio_bot" target="_blank" rel="noopener" data-i18n="foot.bot">Бот записи</a></div>
     </div>
   </div>
-  <div class="foot-bottom"><span>© <span id="year">2026</span> VRAEL STUDIO</span><span>Боты, сайты и ИИ для бизнеса. Онлайн, по всей России.</span></div>
+  <div class="foot-bottom"><span>© <span id="year">2026</span> VRAEL STUDIO</span><span data-i18n="foot.tag">Боты, сайты и ИИ для бизнеса. Онлайн, по всей России.</span></div>
 </footer>
 <script src="script.js"></script>
 </body>
