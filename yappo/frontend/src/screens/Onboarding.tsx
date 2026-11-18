@@ -108,7 +108,7 @@ export function Onboarding() {
                     onClick={() => setMascot(item.id)}
                     className={`rounded-2xl border p-2 text-left ${mascot === item.id ? "border-gold bg-black/50" : "border-white/10 bg-black/35"}`}
                   >
-                    <div className="mx-auto h-24 w-24 rounded-2xl bg-[#1a120e]">
+                    <div className="mx-auto h-32 w-full">
                       <Companion mascot={item.id} pose={mascot === item.id ? "wave" : "idle"} className="h-full w-full" />
                     </div>
                     <div className="mt-1 text-sm font-semibold">{item.name}</div>

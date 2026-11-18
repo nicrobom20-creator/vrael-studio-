@@ -4,7 +4,6 @@ import { useNavigate, useParams } from "react-router-dom";
 import { api, haptic } from "../api";
 import { CityScene } from "../components/CityScene";
 import { Companion } from "../components/Companion";
-import { Guide } from "../components/Guide";
 import { TopStats } from "../components/Shell";
 import { LeadIn, MicButton, StarBurst } from "../components/World";
 import { canListen, chime, listenOnce, phraseHit, speakAloud } from "../lib/speech";
@@ -118,15 +117,14 @@ export function StoryScreen() {
           className="glass mb-4 w-full p-4 text-left"
         >
           <div className="mb-3 flex items-center gap-3">
-            <div className="h-16 w-16 shrink-0">
-              {foreign ? (
-                <Guide language={user.language} className="h-full w-full" />
-              ) : (
-                <Companion mascot={mascot} pose={listening ? "point" : pose} />
-              )}
+            <div className="-mt-8 h-20 w-20 shrink-0">
+              <Companion mascot={mascot} pose={foreign || listening ? "point" : pose} />
             </div>
-            <div className="min-w-0 truncate text-xs uppercase tracking-[0.16em] text-gold2">
-              {foreign ? line.name || "Город" : user.mascot_name || "Спутник"}
+            <div className="min-w-0">
+              <div className="truncate text-xs uppercase tracking-[0.16em] text-gold2">
+                {user.mascot_name || "Спутник"}
+              </div>
+              {foreign && <div className="truncate text-[11px] text-cream/60">передаёт: {line.name || "город"}</div>}
             </div>
           </div>
           <div className={`font-display text-[28px] leading-tight ${foreign ? "italic" : ""}`}>{line.text}</div>

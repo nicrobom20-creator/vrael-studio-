@@ -2,7 +2,7 @@ import { motion } from "framer-motion";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { api, haptic } from "../api";
-import { CityScene } from "../components/CityScene";
+import { CityScene, pathSpots } from "../components/CityScene";
 import { Companion } from "../components/Companion";
 import { TopStats } from "../components/Shell";
 import { Fireflies } from "../components/World";
@@ -24,7 +24,7 @@ export function MapScreen() {
   const chapter = path.chapters.find((item) => item.unlocked && !item.complete) || path.chapters[path.chapters.length - 1];
   const current = chapter.nodes.find((node) => node.status === "current");
   const mascot = (user.mascot || "parrot") as MascotId;
-  const spots = routeSpots(chapter.nodes.length);
+  const spots = pathSpots(user.language, chapter.nodes.length);
   const currentIndex = Math.max(0, chapter.nodes.findIndex((node) => node.status === "current"));
 
   return (
@@ -37,11 +37,6 @@ export function MapScreen() {
         xp={user.xp}
         streak={user.streak}
       />
-      <svg className="pointer-events-none absolute inset-0 z-10 h-full w-full" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden>
-        <path d={pathD(spots)} fill="none" stroke="rgba(246,226,176,0.55)" strokeWidth="0.7" strokeDasharray="1.4 1.1" vectorEffect="non-scaling-stroke">
-          <animate attributeName="stroke-dashoffset" from="0" to="-12" dur="2.8s" repeatCount="indefinite" />
-        </path>
-      </svg>
       {chapter.nodes.map((node, index) => (
         <Node
           key={node.id}
@@ -51,11 +46,11 @@ export function MapScreen() {
         />
       ))}
       <motion.div
-        className="pointer-events-none absolute z-20 h-20 w-20"
-        animate={{ left: `${spots[currentIndex].x - 8}%`, top: `${spots[currentIndex].y - 12}%` }}
+        className="pointer-events-none absolute z-20 h-28 w-24"
+        animate={{ left: `${Math.max(2, spots[currentIndex].x - 18)}%`, top: `${spots[currentIndex].y - 16}%` }}
         transition={{ type: "spring", stiffness: 80, damping: 16 }}
       >
-        <Companion mascot={mascot} pose={current ? "run" : "celebrate"} />
+        <Companion mascot={mascot} pose={current ? "point" : "celebrate"} />
       </motion.div>
       <div className="absolute inset-x-3 bottom-[92px] z-30">
         <div className="glass flex items-center gap-3 p-3">
@@ -75,20 +70,6 @@ export function MapScreen() {
       </div>
     </div>
   );
-}
-
-function routeSpots(count: number) {
-  return Array.from({ length: count }, (_, index) => {
-    const t = count <= 1 ? 0.5 : index / (count - 1);
-    const x = 50 + Math.sin(t * Math.PI * 1.35) * 30;
-    const y = 64 - t * 36;
-    return { x, y };
-  });
-}
-
-function pathD(spots: { x: number; y: number }[]) {
-  if (!spots.length) return "";
-  return spots.map((spot, index) => `${index === 0 ? "M" : "L"} ${spot.x} ${spot.y}`).join(" ");
 }
 
 function openNode(node: PathNode, navigate: (path: string) => void, notify: (message: string) => void) {

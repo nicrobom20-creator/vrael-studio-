@@ -187,7 +187,7 @@ export function TrialScreen() {
       />
       {done && (
         <motion.div
-          className="absolute inset-0 z-40 flex flex-col items-center justify-end bg-[#120e0b] px-4 pb-10"
+          className="absolute inset-0 z-40 flex flex-col items-center justify-end bg-[#120e0b]/72 px-4 pb-10"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
         >
@@ -217,7 +217,7 @@ export function TrialScreen() {
           </div>
         </motion.div>
       )}
-      <div className="absolute inset-x-0 bottom-0 z-20 flex flex-col items-center px-3 pb-[max(16px,env(safe-area-inset-bottom))]">
+      <div className={done ? "hidden" : "absolute inset-x-0 bottom-0 z-20 flex flex-col items-center px-3 pb-[max(16px,env(safe-area-inset-bottom))]"}>
         <AnimatePresence mode="wait">
           <motion.div
             key={done ? "done" : index}
