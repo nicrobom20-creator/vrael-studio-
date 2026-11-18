@@ -15,10 +15,15 @@ export function PremiumScreen() {
   async function pay() {
     setBusy(true);
     try {
-      const result = await api<{ pay_url: string; test: boolean }>("/api/billing/checkout", {
+      const result = await api<{ pay_url: string; test: boolean; order_id: string }>("/api/billing/checkout", {
         method: "POST",
         body: JSON.stringify({ plan }),
       });
+      if (result.pay_url.startsWith("/")) {
+        navigate(result.pay_url);
+        notify(result.test ? "Тестовый счёт создан. Доступ откроется после подтверждения оплаты." : "Переходим к оплате");
+        return;
+      }
       if (window.Telegram?.WebApp?.openLink) window.Telegram.WebApp.openLink(result.pay_url);
       else window.location.href = result.pay_url;
     } catch (reason) {
@@ -35,8 +40,7 @@ export function PremiumScreen() {
         <div className="mt-6 text-[11px] uppercase tracking-[0.2em] text-gold2">Yappo Premium</div>
         <h1 className="max-w-sm font-display text-5xl leading-none">Путь без дневных врат.</h1>
         <p className="mt-3 max-w-sm text-sm leading-relaxed text-cream/75">
-          Свободный путь — {config?.limits.lessons ?? 3} испытания в день и {config?.limits.chat ?? 5} сообщений собеседнику.
-          Premium снимает оба предела. Оплата в рублях, доступ открывается только после подтверждённого платежа.
+          Свободный путь — {config?.limits.lessons ?? 3} испытания в день и {config?.limits.chat ?? 5} сообщений собеседнику. Premium снимает оба предела. Оплата в рублях, доступ открывается только после подтверждённого платежа.
         </p>
         {user?.premium && (
           <div className="mt-4 glass p-3 text-sm text-gold2">

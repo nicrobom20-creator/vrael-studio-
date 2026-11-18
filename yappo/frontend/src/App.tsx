@@ -1,21 +1,22 @@
 import { AnimatePresence, motion } from "framer-motion";
-import type { ReactNode } from "react";
+import { lazy, Suspense, useEffect, type ReactNode } from "react";
 import { useLocation, useRoutes } from "react-router-dom";
+import { CityScene, cityOf } from "./components/CityScene";
 import { BottomNav } from "./components/Shell";
-import { CityScene } from "./components/CityScene";
-import { ChatScreen } from "./screens/ChatScreen";
-import { LeaderboardScreen } from "./screens/LeaderboardScreen";
-import { MapScreen } from "./screens/MapScreen";
-import { Onboarding } from "./screens/Onboarding";
-import { PremiumScreen } from "./screens/PremiumScreen";
-import { ProfileScreen } from "./screens/ProfileScreen";
-import { QuestsScreen } from "./screens/QuestsScreen";
-import { ReferralsScreen } from "./screens/ReferralsScreen";
-import { SettingsScreen } from "./screens/SettingsScreen";
-import { StoryScreen } from "./screens/StoryScreen";
-import { TrialScreen } from "./screens/TrialScreen";
 import { prefersReducedMotion } from "./lib/motion";
 import { useApp } from "./state";
+
+const MapScreen = lazy(() => import("./screens/MapScreen").then((m) => ({ default: m.MapScreen })));
+const Onboarding = lazy(() => import("./screens/Onboarding").then((m) => ({ default: m.Onboarding })));
+const ChatScreen = lazy(() => import("./screens/ChatScreen").then((m) => ({ default: m.ChatScreen })));
+const LeaderboardScreen = lazy(() => import("./screens/LeaderboardScreen").then((m) => ({ default: m.LeaderboardScreen })));
+const PremiumScreen = lazy(() => import("./screens/PremiumScreen").then((m) => ({ default: m.PremiumScreen })));
+const ProfileScreen = lazy(() => import("./screens/ProfileScreen").then((m) => ({ default: m.ProfileScreen })));
+const QuestsScreen = lazy(() => import("./screens/QuestsScreen").then((m) => ({ default: m.QuestsScreen })));
+const ReferralsScreen = lazy(() => import("./screens/ReferralsScreen").then((m) => ({ default: m.ReferralsScreen })));
+const SettingsScreen = lazy(() => import("./screens/SettingsScreen").then((m) => ({ default: m.SettingsScreen })));
+const StoryScreen = lazy(() => import("./screens/StoryScreen").then((m) => ({ default: m.StoryScreen })));
+const TrialScreen = lazy(() => import("./screens/TrialScreen").then((m) => ({ default: m.TrialScreen })));
 
 export function App() {
   const { ready, error, user, boot, toast } = useApp();
@@ -43,10 +44,17 @@ export function App() {
       </Splash>
     );
   }
-  if (!user?.onboarded) return <Onboarding />;
+  if (!user?.onboarded) {
+    return (
+      <Suspense fallback={<Splash label="Собираем острова…" />}>
+        <Onboarding />
+      </Suspense>
+    );
+  }
 
   return (
-    <div className="mx-auto min-h-dvh max-w-[480px] bg-ink">
+    <div className="mx-auto min-h-dvh max-w-[480px] overflow-x-hidden bg-ink">
+      <PreloadArt language={user.language} />
       <AnimatePresence mode="wait">
         <motion.div
           key={location.pathname}
@@ -55,7 +63,7 @@ export function App() {
           exit={prefersReducedMotion() ? { opacity: 1 } : { opacity: 0, y: -8 }}
           transition={{ duration: prefersReducedMotion() ? 0 : 0.28, ease: "easeOut" }}
         >
-          {element}
+          <Suspense fallback={<Splash label="Открываем…" />}>{element}</Suspense>
         </motion.div>
       </AnimatePresence>
       {!hideNav && <BottomNav />}
@@ -73,6 +81,19 @@ export function App() {
       </AnimatePresence>
     </div>
   );
+}
+
+function PreloadArt({ language }: { language: string }) {
+  useEffect(() => {
+    const city = cityOf(language);
+    const link = document.createElement("link");
+    link.rel = "preload";
+    link.as = "image";
+    link.href = `/art/${city}-540.webp`;
+    document.head.appendChild(link);
+    return () => link.remove();
+  }, [language]);
+  return null;
 }
 
 function Splash({ label, children }: { label: string; children?: ReactNode }) {

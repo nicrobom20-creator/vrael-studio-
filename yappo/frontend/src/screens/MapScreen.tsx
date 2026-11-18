@@ -37,7 +37,7 @@ export function MapScreen() {
       setUnlock(null);
       return;
     }
-    const run = window.setTimeout(() => setUnlock((value) => (value ? { ...value, leg: 1 } : value)), 420);
+    const run = window.setTimeout(() => setUnlock((value) => (value ? { ...value, leg: 1 } : value)), 900);
     const done = window.setTimeout(() => setUnlock(null), 1500);
     return () => {
       window.clearTimeout(run);
@@ -124,7 +124,13 @@ function ChapterBand({
     <section id={`chapter-${chapter.id}`} className="relative">
       <div className="relative w-full overflow-hidden" style={{ height: "calc(142vw * 1280 / 720)" }}>
         <div className="absolute left-1/2 top-0 h-full w-[142%] -translate-x-1/2">
-        <img src={art} alt="" className="absolute inset-0 h-full w-full object-cover" />
+        <img
+          src={art}
+          alt=""
+          decoding="async"
+          loading={chapter.index === 1 ? "eager" : "lazy"}
+          className="absolute inset-0 h-full w-full object-cover"
+        />
         <div className="pointer-events-none absolute inset-x-0 top-0 h-24 bg-gradient-to-b from-black/25 to-transparent" />
         <svg className="pointer-events-none absolute inset-0 z-10 h-full w-full" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden>
           <path d={d} fill="none" stroke="rgba(255, 214, 140, 0.4)" strokeWidth="7" strokeLinecap="round" strokeLinejoin="round" vectorEffect="non-scaling-stroke" />
@@ -223,7 +229,7 @@ function Node({ node, spot, breaking, onOpen }: { node: PathNode; spot: { x: num
       )}
       {live && (
         <span
-          className={`pointer-events-none absolute top-1/2 max-w-[92px] -translate-y-1/2 truncate rounded-full bg-black/55 px-2 py-0.5 text-[10px] text-gold2 backdrop-blur ${
+          className={`pointer-events-none absolute top-1/2 max-w-[132px] -translate-y-1/2 whitespace-normal text-left leading-tight rounded-full bg-black/55 px-2 py-0.5 text-[10px] text-gold2 backdrop-blur ${
             labelLeft ? "right-[118%]" : "left-[118%]"
           }`}
         >

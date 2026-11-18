@@ -282,11 +282,9 @@ export function TrialScreen() {
           <div className="mb-2 flex flex-col items-center">
             <MicButton live={listening} onClick={() => onVoice(step.phrase || "")} />
             <div className="mt-2 text-xs text-cream/80">Скажи вслух</div>
-            {heard && !phraseHit(heard, step.phrase || "") && (
-              <button className="mt-2 text-xs text-gold2 underline" onClick={advance}>
-                Засчитать повтор
-              </button>
-            )}
+            <button className="mt-2 text-xs text-gold2 underline" onClick={advance}>
+              {canListen() ? "Дальше без микрофона" : "Микрофона нет — дальше"}
+            </button>
           </div>
         ) : (
           <div className="mb-3 w-full">
@@ -344,7 +342,7 @@ function StepBody(props: {
     return (
       <div className="text-center">
         <button onClick={props.onPlay} className="text-xs text-gold2">▶ послушать</button>
-        <div className="font-display text-4xl">{step.word}</div>
+        <div className="break-words px-1 font-display text-4xl leading-tight">{step.word}</div>
         {step.reading && <div className="text-gold2">{step.reading}</div>}
         <div className="mt-1 text-cream/80">{step.translation}</div>
         {step.example && <div className="mt-2 text-sm italic text-cream/70">{step.example}</div>}
@@ -373,7 +371,7 @@ function StepBody(props: {
                 key={option}
                 disabled={props.checked}
                 onClick={() => props.onPick(optionIndex)}
-                className={`rounded-2xl border px-3 py-3 text-left ${
+                className={`break-words rounded-2xl border px-3 py-3 text-left ${
                   good ? "border-gold bg-gold/20" : bad ? "border-rose-300/70 bg-rose-900/30" : chosen ? "border-gold" : "border-white/10"
                 }`}
               >
@@ -429,16 +427,16 @@ function StepBody(props: {
         <div className="text-sm text-cream/70">{step.ru}</div>
         <div className="mt-3 min-h-14 rounded-2xl border border-dashed border-gold/40 p-2">
           <div className="flex flex-wrap gap-2">
-            {props.built.map((token) => (
-              <button key={token} onClick={() => props.onDrop(token)} className="rounded-full bg-gold px-3 py-1 text-sm text-ink">
+            {props.built.map((token, tokenIndex) => (
+              <button key={`${token}-${tokenIndex}`} onClick={() => props.onDrop(token)} className="max-w-full break-words rounded-full bg-gold px-3 py-1 text-sm text-ink">
                 {token}
               </button>
             ))}
           </div>
         </div>
         <div className="mt-3 flex flex-wrap gap-2">
-          {props.pool.map((token) => (
-            <button key={token} onClick={() => props.onTake(token)} className="rounded-full border border-white/15 px-3 py-1 text-sm">
+          {props.pool.map((token, tokenIndex) => (
+            <button key={`${token}-${tokenIndex}`} onClick={() => props.onTake(token)} className="max-w-full break-words rounded-full border border-white/15 px-3 py-1 text-sm">
               {token}
             </button>
           ))}
@@ -449,7 +447,7 @@ function StepBody(props: {
   return (
     <div className="text-center">
       <div className="text-xs uppercase tracking-[0.16em] text-gold2">Скажи вслух</div>
-      <div className="mt-1 font-display text-4xl">{step.phrase}</div>
+      <div className="mt-1 break-words px-1 font-display text-4xl leading-tight">{step.phrase}</div>
       <div className="text-cream/75">{step.translation}</div>
       {step.hint && <div className="mt-2 text-sm text-cream/60">{step.hint}</div>}
       {props.heard && <div className="mt-2 text-sm text-gold2">Слышу: {props.heard}</div>}

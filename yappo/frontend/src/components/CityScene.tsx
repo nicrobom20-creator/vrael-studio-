@@ -78,9 +78,9 @@ export function pathSpots(language: string, count: number) {
   });
 }
 
-export function CityScene({ language = "fr" }: { language?: string }) {
+export function CityScene({ language = "fr", eager = true }: { language?: string; eager?: boolean }) {
   const city = cityOf(language);
-  const src = `/art/${city}-720.webp`;
+  const src = `/art/${city}-540.webp`;
   const srcSet = `/art/${city}-360.webp 360w, /art/${city}-540.webp 540w, /art/${city}-720.webp 720w`;
   return (
     <div className="absolute inset-0 overflow-hidden bg-[#1c140f]">
@@ -89,6 +89,9 @@ export function CityScene({ language = "fr" }: { language?: string }) {
         srcSet={srcSet}
         sizes="100vw"
         alt=""
+        decoding="async"
+        fetchPriority={eager ? "high" : "low"}
+        loading={eager ? "eager" : "lazy"}
         className="absolute inset-0 h-full w-full object-cover"
       />
       <div className="pointer-events-none absolute inset-0 bg-gradient-to-b from-black/40 via-transparent to-black/35" />

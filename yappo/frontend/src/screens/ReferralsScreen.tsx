@@ -36,8 +36,8 @@ export function ReferralsScreen() {
           <>
             <button onClick={() => copy(info.link)} className="glass mt-5 w-full p-4 text-left">
               <div className="text-[11px] uppercase tracking-[0.16em] text-gold2">Личная ссылка</div>
-              <div className="mt-1 break-all text-sm">{info.link}</div>
-              <div className="mt-2 text-xs text-cream/55">Нажми, чтобы скопировать. Mini App: {info.app_link}</div>
+              <div className="mt-1 overflow-x-auto whitespace-nowrap text-sm">{info.link}</div>
+              <div className="mt-2 overflow-x-auto whitespace-nowrap text-xs text-cream/55">Нажми, чтобы скопировать. Mini App: {info.app_link}</div>
             </button>
             <div className="mt-3 grid grid-cols-2 gap-2 text-center">
               <Cell label="Пришли" value={String(info.invited)} />

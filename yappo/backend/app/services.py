@@ -810,9 +810,20 @@ async def start_checkout(session: Session, user: User, plan: str) -> dict:
     settings = get_settings()
     if plan not in {"month", "year"}:
         raise ServiceError(400, "Неизвестный тариф")
-    if not settings.rollypay_api_key:
-        raise ServiceError(503, "Платёжный ключ RollyPay не настроен. Добавь ROLLYPAY_API_KEY на сервере.")
     payment = create_local_payment(session, user, plan, settings)
+    if not settings.rollypay_api_key:
+        if not (settings.demo_mode and settings.rollypay_test):
+            raise ServiceError(503, "Платёжный ключ RollyPay не настроен. Добавь ROLLYPAY_API_KEY на сервере.")
+        payment.pay_url = "/premium?demo=1"
+        payment.payment_id = "demo_" + payment.order_id
+        session.commit()
+        return {
+            "pay_url": payment.pay_url,
+            "order_id": payment.order_id,
+            "test": True,
+            "amount": payment.amount,
+            "plan": payment.plan,
+        }
     session.commit()
     try:
         data = await create_rollypay_payment(payment, user, settings)

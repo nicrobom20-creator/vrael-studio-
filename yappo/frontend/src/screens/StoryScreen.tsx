@@ -21,6 +21,7 @@ export function StoryScreen() {
   const [heard, setHeard] = useState("");
   const [burst, setBurst] = useState(0);
   const [error, setError] = useState("");
+  const [done, setDone] = useState<{ xp: number; next: { id: string; kind: string } | null } | null>(null);
 
   useEffect(() => {
     api<Story>(`/api/stories/${id}`).then(setStory).catch((reason: Error) => setError(reason.message));
@@ -33,14 +34,14 @@ export function StoryScreen() {
 
   async function finish() {
     try {
-      const result = await api<{ user: User; next: { id: string; kind: string } | null }>(`/api/stories/${id}/complete`, {
+      const result = await api<{ user: User; xp_gained: number; next: { id: string; kind: string } | null }>(`/api/stories/${id}/complete`, {
         method: "POST",
       });
       setUser(result.user);
       markUnlock(id, result.next?.id);
       haptic("success");
-      if (result.next) navigate(result.next.kind === "story" ? `/story/${result.next.id}` : `/trial/${result.next.id}`);
-      else navigate("/");
+      chime("win");
+      setDone({ xp: result.xp_gained, next: result.next });
     } catch (reason) {
       notify(reason instanceof Error ? reason.message : "Не сохранилось");
     }
@@ -116,7 +117,7 @@ export function StoryScreen() {
             <div className="text-xs uppercase tracking-[0.16em] text-gold2">{user.mascot_name || "Спутник"}</div>
             {foreign && <div className="text-[11px] text-cream/60">{line.name || "Собеседник"} говорит</div>}
           </div>
-          <div className={`font-display text-[28px] leading-tight ${foreign ? "italic" : ""}`}>{line.text}</div>
+          <div className={`break-words font-display text-[28px] leading-tight ${foreign ? "italic" : ""}`}>{line.text}</div>
           {foreign && gloss?.speaker === "mascot" && (
             <div className="mt-2 text-sm text-cream/75">{gloss.text}</div>
           )}
@@ -134,6 +135,24 @@ export function StoryScreen() {
         </div>
         <div className="text-[11px] text-cream/70">{index + 1} / {story.lines.length}</div>
       </div>
+      {done && (
+        <div className="absolute inset-0 z-40 flex items-end bg-[#120e0b]/70 px-4 pb-8">
+          <div className="glass w-full p-5 text-center">
+            <div className="text-[11px] uppercase tracking-[0.18em] text-gold2">Сцена пройдена</div>
+            <div className="font-display text-5xl">+{done.xp} XP</div>
+            <button
+              className="gold-btn mt-4 h-12 w-full"
+              onClick={() => {
+                haptic("light");
+                if (!done.next) navigate("/");
+                else navigate(done.next.kind === "story" ? `/story/${done.next.id}` : `/trial/${done.next.id}`);
+              }}
+            >
+              {done.next ? "Дальше по тропе" : "На остров"}
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
