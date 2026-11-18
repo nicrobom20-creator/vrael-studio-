@@ -2,7 +2,7 @@ import { motion } from "framer-motion";
 import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { api, haptic } from "../api";
-import { CityScene, pathSpots } from "../components/CityScene";
+import { cityOf, pathSpots } from "../components/CityScene";
 import { Companion } from "../components/Companion";
 import { TopStats } from "../components/Shell";
 import { useApp } from "../state";
@@ -21,7 +21,11 @@ export function MapScreen() {
   useEffect(() => {
     if (!path) return;
     const current = path.chapters.find((chapter) => chapter.unlocked && !chapter.complete) || path.chapters[0];
-    document.getElementById(`chapter-${current.id}`)?.scrollIntoView({ block: "end" });
+    const node = document.getElementById(`node-${current.nodes.find((item) => item.status === "current")?.id || current.nodes[0].id}`);
+    const scroller = document.getElementById("map-scroller");
+    if (!node || !scroller) return;
+    const top = node.getBoundingClientRect().top - scroller.getBoundingClientRect().top + scroller.scrollTop;
+    scroller.scrollTop = Math.max(0, top - scroller.clientHeight * 0.78);
   }, [path?.language]);
 
   if (!user || !path) {
@@ -31,7 +35,7 @@ export function MapScreen() {
   const active = path.chapters.find((chapter) => chapter.unlocked && !chapter.complete) || path.chapters[path.chapters.length - 1];
 
   return (
-    <div ref={scroller} className="h-dvh overflow-y-auto overflow-x-hidden">
+    <div id="map-scroller" ref={scroller} className="h-dvh overflow-y-auto overflow-x-hidden">
       <div className="sticky top-0 z-40 bg-gradient-to-b from-[#120e0b]/80 to-transparent pb-2">
         <TopStats
           title={active.title}
@@ -69,34 +73,50 @@ function ChapterBand({
   onOpen: (node: PathNode) => void;
 }) {
   const spots = pathSpots(language, chapter.nodes.length);
-  const currentIndex = Math.max(0, chapter.nodes.findIndex((node) => node.status === "current"));
-  const current = chapter.nodes[currentIndex];
+  const current = chapter.nodes.find((node) => node.status === "current");
+  const currentIndex = current ? chapter.nodes.indexOf(current) : -1;
   const d = spots.map((spot, index) => `${index === 0 ? "M" : "L"} ${spot.x} ${spot.y}`).join(" ");
+  const city = cityOf(language);
+  const art = `/art/${city}-720.webp`;
 
   return (
-    <section id={`chapter-${chapter.id}`} className="relative h-[132vh] overflow-hidden">
-      <CityScene language={language} pathFrame />
-      <svg className="pointer-events-none absolute inset-0 z-10 h-full w-full" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden>
-        <path d={d} fill="none" stroke="rgba(255, 220, 150, 0.35)" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" />
-        <path d={d} fill="none" stroke="rgba(255, 244, 214, 0.9)" strokeWidth="0.55" strokeLinecap="round" strokeLinejoin="round" />
-      </svg>
-      {chapter.nodes.map((node, index) => (
-        <Node key={node.id} node={node} spot={spots[index]} onOpen={() => onOpen(node)} />
-      ))}
-      {chapter.unlocked && current && (
-        <motion.div
-          className="pointer-events-none absolute z-20 h-32 w-28"
-          animate={{
-            left: `${Math.max(0, spots[currentIndex].x - 22)}%`,
-            top: `${spots[currentIndex].y - 8}%`,
-          }}
-          transition={{ type: "spring", stiffness: 70, damping: 16 }}
-        >
-          <Companion mascot={mascot} pose="point" />
-        </motion.div>
-      )}
-      {current && current.status !== "locked" && (
-        <div className="absolute inset-x-3 bottom-[100px] z-30 flex items-center gap-2">
+    <section id={`chapter-${chapter.id}`} className="relative">
+      <div className="relative w-full overflow-hidden" style={{ height: "calc(142vw * 1280 / 720)" }}>
+        <div className="absolute left-1/2 top-0 h-full w-[142%] -translate-x-1/2">
+        <img src={art} alt="" className="absolute inset-0 h-full w-full object-cover" />
+        <div className="pointer-events-none absolute inset-x-0 top-0 h-24 bg-gradient-to-b from-black/25 to-transparent" />
+        <svg className="pointer-events-none absolute inset-0 z-10 h-full w-full" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden>
+          <path d={d} fill="none" stroke="rgba(255, 214, 140, 0.4)" strokeWidth="7" strokeLinecap="round" strokeLinejoin="round" vectorEffect="non-scaling-stroke" />
+          <path d={d} fill="none" stroke="rgba(255, 244, 214, 0.95)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" vectorEffect="non-scaling-stroke" />
+        </svg>
+        {chapter.nodes.map((node, index) => (
+          <Node key={node.id} node={node} spot={spots[index]} onOpen={() => onOpen(node)} />
+        ))}
+        {current && (
+          <motion.div
+            className="pointer-events-none absolute z-20 h-32 w-28"
+            animate={{
+              left: `${Math.max(0, spots[currentIndex].x - 22)}%`,
+              top: `${spots[currentIndex].y - 7}%`,
+            }}
+            transition={{ type: "spring", stiffness: 70, damping: 16 }}
+          >
+            <Companion mascot={mascot} pose="point" />
+          </motion.div>
+        )}
+        </div>
+      </div>
+      <div className="relative h-[46vh] overflow-hidden">
+        <img
+          src={art}
+          alt=""
+          className="absolute bottom-0 left-1/2 h-[155%] w-[142%] max-w-none -translate-x-1/2 object-cover object-bottom"
+          style={{ filter: "blur(8px) brightness(0.62) saturate(0.9)" }}
+        />
+        <div className="absolute inset-0 bg-gradient-to-b from-[#1a120e]/20 via-[#120e0b]/28 to-[#0b0907]/75" />
+      </div>
+      {current && (
+        <div className="fixed inset-x-3 bottom-[96px] z-30 flex items-center gap-2">
           <div className="glass min-w-0 flex-1 truncate px-3 py-2 text-xs text-cream/80">{line}</div>
           <button className="gold-btn h-10 shrink-0 px-4 text-sm" onClick={() => onOpen(current)}>
             {current.kind === "story" ? "К сцене" : "К вратам"}
@@ -124,7 +144,8 @@ function Node({ node, spot, onOpen }: { node: PathNode; spot: { x: number; y: nu
   return (
     <button
       onClick={onOpen}
-      className="absolute z-20 -translate-x-1/2 -translate-y-1/2"
+      id={live ? `node-${node.id}` : undefined}
+      className="absolute z-20 -translate-x-1/2 -translate-y-1/2 scroll-my-36"
       style={{ left: `${spot.x}%`, top: `${spot.y}%` }}
       aria-label={node.title}
     >
