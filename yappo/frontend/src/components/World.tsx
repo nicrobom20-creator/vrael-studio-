@@ -1,5 +1,8 @@
 import { motion } from "framer-motion";
 import type { ReactNode } from "react";
+import { CityScene } from "./CityScene";
+import { Companion } from "./Companion";
+import type { MascotId } from "../types";
 
 const WORDS: Record<string, string[]> = {
   en: ["hello", "listen", "speak", "discover", "please", "wonder"],
@@ -11,42 +14,6 @@ const WORDS: Record<string, string[]> = {
 
 export function wordsFor(language: string) {
   return WORDS[language] || WORDS.en;
-}
-
-export function WorldBackdrop({
-  src,
-  focus = "center",
-  scene = false,
-  children,
-}: {
-  src: string;
-  focus?: string;
-  scene?: boolean;
-  children?: ReactNode;
-}) {
-  return (
-    <div className="absolute inset-0 overflow-hidden">
-      <motion.img
-        src={src}
-        alt=""
-        className="absolute inset-0 h-full w-full object-cover"
-        style={{ objectPosition: scene ? "center 24%" : focus }}
-        initial={{ scale: 1.05 }}
-        animate={{ scale: 1.1, x: [0, -8, 0] }}
-        transition={{ duration: 18, repeat: Infinity, ease: "easeInOut" }}
-      />
-      <div
-        className="absolute inset-0"
-        style={{
-          background: scene
-            ? "linear-gradient(180deg, #0c0907 0%, rgba(12,9,7,.94) 8%, rgba(8,6,4,.28) 16%, rgba(8,6,4,.05) 34%, rgba(8,6,4,.2) 52%, rgba(12,9,7,.94) 72%, #0c0907 100%)"
-            : undefined,
-        }}
-      />
-      {!scene && <div className="vignette absolute inset-0" />}
-      {children}
-    </div>
-  );
 }
 
 export function Fireflies({ language }: { language: string }) {
@@ -112,20 +79,33 @@ export function MicButton({ live, onClick }: { live: boolean; onClick: () => voi
 
 export function Atmosphere({
   children,
-  art = "key",
-  focus = "center",
+  language = "world",
   padNav = true,
 }: {
   children: ReactNode;
-  art?: "key" | "gate";
-  focus?: string;
+  language?: string;
   padNav?: boolean;
+  art?: string;
+  focus?: string;
 }) {
   return (
     <div className={`relative min-h-dvh ${padNav ? "nav-safe" : ""}`}>
-      <WorldBackdrop src={art === "gate" ? "/art/trial-gate.jpg" : "/art/key-art.jpg"} focus={focus} scene={art === "gate"} />
+      <CityScene language={language} />
       <div className="relative z-10">{children}</div>
     </div>
+  );
+}
+
+export function LeadIn({ mascot }: { mascot: MascotId }) {
+  return (
+    <motion.div
+      className="pointer-events-none absolute bottom-[34%] z-20 w-28"
+      initial={{ x: "-30%" }}
+      animate={{ x: "78%" }}
+      transition={{ duration: 1.15, ease: "easeInOut" }}
+    >
+      <Companion mascot={mascot} pose="run" />
+    </motion.div>
   );
 }
 

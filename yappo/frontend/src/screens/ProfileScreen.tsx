@@ -10,7 +10,7 @@ export function ProfileScreen() {
   const mascot = (user.mascot || "parrot") as MascotId;
   const ratio = user.level_goal ? Math.min(100, (user.level_xp / user.level_goal) * 100) : 0;
   return (
-    <Atmosphere focus="50% 70%">
+    <Atmosphere language={user.language}>
       <div className="px-4 pt-[max(18px,env(safe-area-inset-top))]">
         <div className="glass flex items-center gap-3 p-4">
           <div className="h-24 w-24">

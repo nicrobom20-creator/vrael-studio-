@@ -2,9 +2,11 @@ import { motion } from "framer-motion";
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { api, haptic } from "../api";
+import { CityScene } from "../components/CityScene";
 import { Companion } from "../components/Companion";
+import { Guide } from "../components/Guide";
 import { TopStats } from "../components/Shell";
-import { MicButton, StarBurst, WorldBackdrop } from "../components/World";
+import { LeadIn, MicButton, StarBurst } from "../components/World";
 import { canListen, chime, listenOnce, phraseHit, speakAloud } from "../lib/speech";
 import { useApp } from "../state";
 import type { MascotId, Pose, Story, User } from "../types";
@@ -56,6 +58,7 @@ export function StoryScreen() {
     setHeard("");
     const glossShown = line.speaker === "npc" && story.lines[index + 1]?.speaker === "mascot";
     const nextIndex = index + (glossShown ? 2 : 1);
+    haptic("light");
     if (nextIndex >= story.lines.length) finish();
     else setIndex(nextIndex);
   }
@@ -96,7 +99,8 @@ export function StoryScreen() {
 
   return (
     <div className="relative min-h-dvh overflow-hidden">
-      <WorldBackdrop src="/art/trial-gate.jpg" scene />
+      <CityScene language={user.language} />
+      <LeadIn mascot={mascot} />
       <StarBurst token={burst} />
       <TopStats
         title={story.title}
@@ -114,10 +118,14 @@ export function StoryScreen() {
           className="glass mb-4 w-full p-4 text-left"
         >
           <div className="mb-3 flex items-center gap-3">
-            <div className="h-14 w-14">
-              <Companion mascot={mascot} pose={listening ? "point" : pose} />
+            <div className="h-16 w-16 shrink-0">
+              {foreign ? (
+                <Guide language={user.language} className="h-full w-full" />
+              ) : (
+                <Companion mascot={mascot} pose={listening ? "point" : pose} />
+              )}
             </div>
-            <div className="text-xs uppercase tracking-[0.16em] text-gold2">
+            <div className="min-w-0 truncate text-xs uppercase tracking-[0.16em] text-gold2">
               {foreign ? line.name || "Город" : user.mascot_name || "Спутник"}
             </div>
           </div>

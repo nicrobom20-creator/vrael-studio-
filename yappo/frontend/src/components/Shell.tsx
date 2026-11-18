@@ -77,23 +77,25 @@ export function TopStats({
   onBack?: () => void;
 }) {
   return (
-    <header className="relative z-20 grid grid-cols-[auto_1fr_auto] items-start gap-2 px-3 pt-[max(12px,env(safe-area-inset-top))]">
-      {onBack ? (
-        <button onClick={onBack} className="glass rounded-full px-3 py-2 text-sm" aria-label="Назад">
-          ←
-        </button>
-      ) : (
-        <div className="glass flex items-center gap-2 rounded-full px-3 py-1.5 text-sm">
-          <span className="font-display text-lg text-gold2">Yappo</span>
+    <header className="relative z-20 px-3 pt-[max(10px,env(safe-area-inset-top))]">
+      <div className="flex items-center justify-between gap-2">
+        {onBack ? (
+          <button onClick={onBack} className="glass shrink-0 rounded-full px-3 py-1.5 text-sm" aria-label="Назад">
+            ←
+          </button>
+        ) : (
+          <div className="glass shrink-0 rounded-full px-3 py-1 text-sm">
+            <span className="font-display text-lg leading-none text-gold2">Yappo</span>
+          </div>
+        )}
+        <div className="flex shrink-0 items-center gap-1.5">
+          <span className="glass whitespace-nowrap rounded-full px-2.5 py-1 text-xs text-gold2">✦ {xp}</span>
+          <span className="glass whitespace-nowrap rounded-full px-2.5 py-1 text-xs">🔥 {streak}</span>
         </div>
-      )}
-      <div className="pt-0.5 text-center">
-        <div className="font-display text-[17px] leading-tight text-cream">{title}</div>
-        <div className="text-[12px] text-cream/70">{subtitle}</div>
       </div>
-      <div className="flex flex-col items-end gap-1.5">
-        <span className="glass rounded-full px-2.5 py-1 text-xs text-gold2">✦ {xp} XP</span>
-        <span className="glass rounded-full px-2.5 py-1 text-xs">🔥 {streak}</span>
+      <div className="mt-2 min-w-0 text-center">
+        <div className="truncate font-display text-xl leading-tight text-cream">{title}</div>
+        <div className="truncate text-xs text-cream/70">{subtitle}</div>
       </div>
     </header>
   );

@@ -21,7 +21,7 @@ export function QuestsScreen() {
   }, []);
 
   return (
-    <Atmosphere focus="70% 40%">
+    <Atmosphere language="world">
       <div className="px-4 pt-[max(20px,env(safe-area-inset-top))]">
         <div className="text-[11px] uppercase tracking-[0.18em] text-gold2">Сегодня</div>
         <h1 className="font-display text-4xl">Испытания</h1>

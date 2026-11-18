@@ -29,7 +29,7 @@ export function PremiumScreen() {
   }
 
   return (
-    <Atmosphere art="gate" padNav={false}>
+    <Atmosphere language={user?.language || "world"} padNav={false}>
       <div className="min-h-dvh px-4 pb-8 pt-[max(18px,env(safe-area-inset-top))]">
         <button className="text-sm text-cream/75" onClick={() => navigate(-1)}>← назад</button>
         <div className="mt-6 text-[11px] uppercase tracking-[0.2em] text-gold2">Yappo Premium</div>

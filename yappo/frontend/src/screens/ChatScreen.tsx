@@ -81,7 +81,7 @@ export function ChatScreen() {
   const left = user?.usage.chat_limit == null ? null : Math.max(0, user.usage.chat_limit - user.usage.chat);
 
   return (
-    <Atmosphere>
+    <Atmosphere language={user?.language || "fr"}>
       <div className="flex h-dvh flex-col px-3 pt-[max(12px,env(safe-area-inset-top))]">
         <div className="glass flex items-center gap-3 p-3">
           <div className="h-12 w-12">

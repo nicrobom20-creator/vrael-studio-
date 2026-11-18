@@ -24,7 +24,7 @@ export function ReferralsScreen() {
   }
 
   return (
-    <Atmosphere padNav={false}>
+    <Atmosphere language="world" padNav={false}>
       <div className="min-h-dvh px-4 pb-10 pt-[max(18px,env(safe-area-inset-top))]">
         <button className="text-sm text-cream/75" onClick={() => navigate(-1)}>← профиль</button>
         <h1 className="mt-4 font-display text-5xl leading-none">Позови на остров.</h1>

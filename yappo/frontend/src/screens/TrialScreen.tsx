@@ -2,9 +2,10 @@ import { AnimatePresence, motion } from "framer-motion";
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { ApiError, api, haptic } from "../api";
+import { CityScene } from "../components/CityScene";
 import { Companion } from "../components/Companion";
 import { TopStats } from "../components/Shell";
-import { GoldButton, MicButton, StarBurst, WorldBackdrop } from "../components/World";
+import { GoldButton, LeadIn, MicButton, StarBurst } from "../components/World";
 import { canListen, chime, listenOnce, phraseHit, speakAloud } from "../lib/speech";
 import { useApp } from "../state";
 import type { Lesson, MascotId, Step, User } from "../types";
@@ -81,6 +82,7 @@ export function TrialScreen() {
       if (result.unlocked_achievements?.length) notify(result.unlocked_achievements[0].title);
       setBurst((value) => value + 1);
       chime("win");
+      haptic("success");
       setDone({ xp: result.xp_gained, next: result.next });
     } catch (error) {
       if (error instanceof ApiError && error.status === 429) setBlocked("limit");
@@ -173,7 +175,8 @@ export function TrialScreen() {
 
   return (
     <div className="relative min-h-dvh overflow-hidden">
-      <WorldBackdrop src="/art/trial-gate.jpg" scene />
+      <CityScene language={user.language} />
+      {!done && <LeadIn mascot={mascot} />}
       <StarBurst token={burst} />
       <TopStats
         title={done ? "Врата открыты" : lesson.title}
@@ -182,6 +185,38 @@ export function TrialScreen() {
         streak={user.streak}
         onBack={() => navigate("/")}
       />
+      {done && (
+        <motion.div
+          className="absolute inset-0 z-40 flex flex-col items-center justify-end bg-[#120e0b] px-4 pb-10"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+        >
+          <motion.div
+            className="mb-3 h-48 w-48"
+            initial={{ x: -160, y: 30 }}
+            animate={{ x: 0, y: 0 }}
+            transition={{ type: "spring", stiffness: 70, damping: 14 }}
+          >
+            <Companion mascot={mascot} pose="celebrate" />
+          </motion.div>
+          <div className="glass w-full p-5 text-center">
+            <div className="text-[11px] uppercase tracking-[0.18em] text-gold2">Врата открыты</div>
+            <div className="font-display text-5xl">+{done.xp} XP</div>
+            <p className="mt-2 text-sm text-cream/75">Спутник уже смотрит дальше по тропе.</p>
+            <div className="mt-4">
+              <GoldButton
+                onClick={() => {
+                  haptic("light");
+                  if (!done.next) navigate("/");
+                  else navigate(done.next.kind === "story" ? `/story/${done.next.id}` : `/trial/${done.next.id}`);
+                }}
+              >
+                {done.next ? "Дальше по тропе" : "На остров"}
+              </GoldButton>
+            </div>
+          </div>
+        </motion.div>
+      )}
       <div className="absolute inset-x-0 bottom-0 z-20 flex flex-col items-center px-3 pb-[max(16px,env(safe-area-inset-bottom))]">
         <AnimatePresence mode="wait">
           <motion.div
@@ -424,7 +459,7 @@ function StepBody(props: {
 function LimitNote({ text, onBack, onPremium }: { text: string; onBack: () => void; onPremium?: () => void }) {
   return (
     <div className="relative grid min-h-dvh place-items-center px-6">
-      <WorldBackdrop src="/art/key-art.jpg" />
+      <CityScene language="world" />
       <div className="glass relative z-10 max-w-sm p-5 text-center">
         <h1 className="font-display text-3xl">Врата закрыты до завтра</h1>
         <p className="mt-2 text-sm text-cream/75">{text}</p>

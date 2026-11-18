@@ -2,7 +2,7 @@ import { AnimatePresence, motion } from "framer-motion";
 import type { ReactNode } from "react";
 import { useLocation, useRoutes } from "react-router-dom";
 import { BottomNav } from "./components/Shell";
-import { WorldBackdrop } from "./components/World";
+import { CityScene } from "./components/CityScene";
 import { ChatScreen } from "./screens/ChatScreen";
 import { LeaderboardScreen } from "./screens/LeaderboardScreen";
 import { MapScreen } from "./screens/MapScreen";
@@ -77,7 +77,7 @@ export function App() {
 function Splash({ label, children }: { label: string; children?: ReactNode }) {
   return (
     <div className="relative grid min-h-dvh place-items-center px-6 text-center">
-      <WorldBackdrop src="/art/key-art.jpg" />
+      <CityScene language="world" />
       <div className="relative z-10">
         <div className="font-display text-6xl text-cream">Yappo</div>
         <p className="mt-2 font-display text-xl italic text-gold2">{label}</p>

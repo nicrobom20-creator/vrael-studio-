@@ -2,7 +2,8 @@ import { motion } from "framer-motion";
 import { useState } from "react";
 import { api } from "../api";
 import { Companion } from "../components/Companion";
-import { GoldButton, WorldBackdrop } from "../components/World";
+import { CityScene } from "../components/CityScene";
+import { GoldButton } from "../components/World";
 import { useApp } from "../state";
 import type { MascotId, User } from "../types";
 
@@ -53,7 +54,7 @@ export function Onboarding() {
 
   return (
     <div className="relative min-h-dvh overflow-hidden">
-      <WorldBackdrop src="/art/key-art.jpg" focus="center 62%" />
+      <CityScene language={step === 0 ? "world" : language} />
       <div className="relative z-10 flex min-h-dvh flex-col px-4 pb-6 pt-[max(18px,env(safe-area-inset-top))]">
         <div className="glass inline-flex w-fit items-baseline gap-3 rounded-full px-4 py-2">
           <span className="font-display text-3xl leading-none">Yappo</span>

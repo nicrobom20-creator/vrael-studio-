@@ -129,7 +129,7 @@ frontend/public/rive/cat.riv
 
 Контракт Rive: state machine `Mascot`, числовой вход `pose` — 0 idle, 1 wave, 2 point, 3 run, 4 jump, 5 celebrate, 6 think. Если файла нет или он не открылся, остаётся запасная анимация.
 
-Ключевые кадры мира лежат в `frontend/public/art/`.
+Города нарисованы слоями SVG (Лондон, Мадрид, Берлин, Париж, Пекин) без чужого текста на фоне.
 
 ## Админ
 
