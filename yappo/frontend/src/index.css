@@ -1,0 +1,190 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  color-scheme: dark;
+  --gold: #e7c98a;
+  --gold-2: #f8e7c0;
+  --ink: #120e0b;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  background: var(--ink);
+  color: #f6efe2;
+  font-family: Manrope, sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+button,
+input,
+select {
+  font-family: inherit;
+}
+
+button {
+  -webkit-tap-highlight-color: transparent;
+}
+
+.glass {
+  background: linear-gradient(180deg, rgba(24, 17, 12, 0.92), rgba(10, 8, 6, 0.94));
+  border: 1px solid rgba(231, 201, 138, 0.38);
+  box-shadow:
+    0 18px 50px rgba(0, 0, 0, 0.45),
+    inset 0 1px 0 rgba(255, 236, 206, 0.2);
+  backdrop-filter: blur(18px);
+  border-radius: 24px;
+}
+
+.gold-btn {
+  background: linear-gradient(180deg, #f6e6bf 0%, #d7b56d 48%, #b8893e 100%);
+  color: #2a1c0a;
+  font-weight: 700;
+  border-radius: 999px;
+  box-shadow: 0 10px 28px rgba(198, 150, 70, 0.35);
+}
+
+.gold-btn:disabled {
+  opacity: 0.45;
+  box-shadow: none;
+}
+
+.gold-btn:active:not(:disabled) {
+  transform: translateY(1px) scale(0.99);
+}
+
+.vignette {
+  background:
+    radial-gradient(ellipse at center, transparent 30%, rgba(8, 6, 4, 0.55) 100%),
+    linear-gradient(180deg, rgba(8, 6, 4, 0.35) 0%, transparent 18%, transparent 48%, rgba(8, 6, 4, 0.78) 100%);
+}
+
+.firefly {
+  position: absolute;
+  color: rgba(248, 231, 192, 0.86);
+  font-family: "Cormorant Garamond", serif;
+  font-style: italic;
+  text-shadow: 0 0 12px rgba(231, 201, 138, 0.85);
+  animation: drift linear infinite;
+  letter-spacing: 0.02em;
+}
+
+@keyframes drift {
+  0% { transform: translateY(8px); opacity: 0.15; }
+  20% { opacity: 0.9; }
+  80% { opacity: 0.75; }
+  100% { transform: translateY(-36px); opacity: 0.1; }
+}
+
+.orb {
+  width: 54px;
+  height: 54px;
+  border-radius: 999px;
+  display: grid;
+  place-items: center;
+  background: radial-gradient(circle at 40% 35%, rgba(255, 244, 214, 0.95), rgba(198, 150, 70, 0.35) 42%, rgba(20, 14, 10, 0.85) 70%);
+  border: 1px solid rgba(231, 201, 138, 0.55);
+  box-shadow: inset 0 0 12px rgba(255, 236, 200, 0.35);
+}
+
+.orb-live {
+  animation: pulse 2.2s ease-in-out infinite;
+  box-shadow:
+    0 0 0 6px rgba(231, 201, 138, 0.16),
+    0 0 28px rgba(231, 201, 138, 0.75);
+}
+
+@keyframes pulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.06); }
+}
+
+.mic {
+  width: 86px;
+  height: 86px;
+  border-radius: 999px;
+  display: grid;
+  place-items: center;
+  background: radial-gradient(circle at 50% 38%, #3a3126, #0d0b09 68%);
+  border: 1px solid rgba(231, 201, 138, 0.45);
+  box-shadow:
+    0 0 0 7px rgba(176, 140, 255, 0.18),
+    0 0 36px rgba(206, 168, 255, 0.55),
+    inset 0 0 16px rgba(255, 230, 190, 0.08);
+}
+
+.mic.live {
+  box-shadow:
+    0 0 0 8px rgba(231, 201, 138, 0.28),
+    0 0 42px rgba(231, 201, 138, 0.85);
+}
+
+.companion-stage svg {
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+}
+
+.companion-stage .arm {
+  transform-box: fill-box;
+  transform-origin: center bottom;
+}
+
+.pose-idle .companion-stage svg { animation: breathe 3.6s ease-in-out infinite; }
+.pose-think .companion-stage svg { animation: think 3.2s ease-in-out infinite; }
+.pose-wave .arm { animation: wave 1.05s ease-in-out infinite; }
+.pose-point .arm { transform: rotate(-42deg); }
+.pose-run { animation: runbob 0.46s ease-in-out infinite; }
+.pose-jump { animation: jump 0.75s ease; }
+.pose-celebrate { animation: cheer 0.9s ease; }
+
+@keyframes breathe {
+  0%, 100% { transform: translateY(0) scale(1); }
+  50% { transform: translateY(-4px) scale(1.015); }
+}
+@keyframes think {
+  0%, 100% { transform: rotate(-2deg); }
+  50% { transform: rotate(3deg) translateY(-2px); }
+}
+@keyframes wave {
+  0%, 100% { transform: rotate(12deg); }
+  50% { transform: rotate(-32deg); }
+}
+@keyframes runbob {
+  0%, 100% { transform: translateY(0) rotate(-2deg); }
+  50% { transform: translateY(-10px) rotate(2deg); }
+}
+@keyframes jump {
+  0% { transform: translateY(6px) scale(0.98); }
+  40% { transform: translateY(-26px) scale(1.04); }
+  100% { transform: translateY(0) scale(1); }
+}
+@keyframes cheer {
+  0% { transform: scale(0.94); }
+  40% { transform: translateY(-12px) scale(1.08); }
+  100% { transform: scale(1); }
+}
+
+.nav-safe {
+  padding-bottom: calc(84px + env(safe-area-inset-bottom));
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .firefly,
+  .orb-live,
+  .pose-idle .companion-stage svg,
+  .pose-think .companion-stage svg,
+  .pose-wave .arm,
+  .pose-run,
+  .pose-jump,
+  .pose-celebrate {
+    animation: none !important;
+  }
+}
