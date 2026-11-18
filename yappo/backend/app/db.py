@@ -16,6 +16,8 @@ class Base(DeclarativeBase):
 
 def _make_engine():
     url = get_settings().database_url
+    if url.startswith("postgres://"):
+        url = "postgresql://" + url[len("postgres://"):]
     kwargs: dict = {"future": True}
     if url.startswith("sqlite"):
         kwargs["connect_args"] = {"check_same_thread": False}

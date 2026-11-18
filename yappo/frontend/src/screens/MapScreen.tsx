@@ -5,6 +5,7 @@ import { api, haptic } from "../api";
 import { cityOf, pathSpots } from "../components/CityScene";
 import { Companion } from "../components/Companion";
 import { TopStats } from "../components/Shell";
+import { prefersReducedMotion, takeUnlock } from "../lib/motion";
 import { useApp } from "../state";
 import type { Chapter, MascotId, PathData, PathNode } from "../types";
 
@@ -12,21 +13,37 @@ export function MapScreen() {
   const { user, notify } = useApp();
   const navigate = useNavigate();
   const [path, setPath] = useState<PathData | null>(null);
+  const [unlock, setUnlock] = useState<{ from: string; to: string; leg: 0 | 1 } | null>(null);
   const scroller = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    api<PathData>("/api/path").then(setPath).catch((error: Error) => notify(error.message));
+    api<PathData>("/api/path").then((data) => {
+      setPath(data);
+      const pending = takeUnlock();
+      if (pending) setUnlock({ ...pending, leg: 0 });
+    }).catch((error: Error) => notify(error.message));
   }, [user?.language]);
 
   useEffect(() => {
     if (!path) return;
-    const current = path.chapters.find((chapter) => chapter.unlocked && !chapter.complete) || path.chapters[0];
-    const node = document.getElementById(`node-${current.nodes.find((item) => item.status === "current")?.id || current.nodes[0].id}`);
-    const scroller = document.getElementById("map-scroller");
-    if (!node || !scroller) return;
-    const top = node.getBoundingClientRect().top - scroller.getBoundingClientRect().top + scroller.scrollTop;
-    scroller.scrollTop = Math.max(0, top - scroller.clientHeight * 0.78);
-  }, [path?.language]);
+    const frame = window.requestAnimationFrame(() => settleAboveCta());
+    return () => window.cancelAnimationFrame(frame);
+  }, [path, unlock?.leg]);
+
+  useEffect(() => {
+    if (!unlock) return;
+    haptic("success");
+    if (prefersReducedMotion()) {
+      setUnlock(null);
+      return;
+    }
+    const run = window.setTimeout(() => setUnlock((value) => (value ? { ...value, leg: 1 } : value)), 420);
+    const done = window.setTimeout(() => setUnlock(null), 1500);
+    return () => {
+      window.clearTimeout(run);
+      window.clearTimeout(done);
+    };
+  }, [unlock?.from]);
 
   if (!user || !path) {
     return <div className="grid min-h-dvh place-items-center text-cream/70">Собираем острова…</div>;
@@ -51,6 +68,7 @@ export function MapScreen() {
           language={user.language}
           mascot={mascot}
           line={chapter.id === active.id ? path.mascot_line : chapter.subtitle}
+          unlock={unlock}
           onOpen={(node) => openNode(node, navigate, notify)}
         />
       ))}
@@ -59,22 +77,45 @@ export function MapScreen() {
   );
 }
 
+function settleAboveCta() {
+  const scroller = document.getElementById("map-scroller");
+  const node = document.getElementById("node-current");
+  const cta = document.getElementById("map-cta");
+  const companion = document.querySelector("[data-companion='current']");
+  if (!scroller || !node) return;
+  const limit = (cta?.getBoundingClientRect().top ?? window.innerHeight - 160) - 64;
+  const bottoms = [node.getBoundingClientRect().bottom];
+  if (companion) {
+    bottoms.push(companion.getBoundingClientRect().bottom);
+    companion.querySelectorAll("img").forEach((img) => bottoms.push(img.getBoundingClientRect().bottom));
+  }
+  const overflow = Math.max(...bottoms) - limit;
+  if (overflow > 4) scroller.scrollTop += overflow;
+}
+
 function ChapterBand({
   chapter,
   language,
   mascot,
   line,
+  unlock,
   onOpen,
 }: {
   chapter: Chapter;
   language: string;
   mascot: MascotId;
   line: string;
+  unlock: { from: string; to: string; leg: 0 | 1 } | null;
   onOpen: (node: PathNode) => void;
 }) {
   const spots = pathSpots(language, chapter.nodes.length);
   const current = chapter.nodes.find((node) => node.status === "current");
   const currentIndex = current ? chapter.nodes.indexOf(current) : -1;
+  const fromIndex = unlock ? chapter.nodes.findIndex((node) => node.id === unlock.from) : -1;
+  const toIndex = unlock ? chapter.nodes.findIndex((node) => node.id === unlock.to) : -1;
+  const travel = fromIndex >= 0 && toIndex >= 0;
+  const companionIndex = travel ? (unlock?.leg === 0 ? fromIndex : toIndex) : currentIndex;
+  const companionSpot = companionIndex >= 0 ? spots[companionIndex] : null;
   const d = spots.map((spot, index) => `${index === 0 ? "M" : "L"} ${spot.x} ${spot.y}`).join(" ");
   const city = cityOf(language);
   const art = `/art/${city}-720.webp`;
@@ -90,18 +131,33 @@ function ChapterBand({
           <path d={d} fill="none" stroke="rgba(255, 244, 214, 0.95)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" vectorEffect="non-scaling-stroke" />
         </svg>
         {chapter.nodes.map((node, index) => (
-          <Node key={node.id} node={node} spot={spots[index]} onOpen={() => onOpen(node)} />
+          <Node
+            key={node.id}
+            node={node}
+            spot={spots[index]}
+            breaking={unlock?.to === node.id && unlock.leg === 0}
+            onOpen={() => onOpen(node)}
+          />
         ))}
-        {current && (
+        {unlock?.to && toIndex >= 0 && unlock.leg === 0 && (
+          <span
+            className="pointer-events-none absolute z-30 -translate-x-1/2 -translate-y-1/2 text-gold2"
+            style={{ left: `${spots[toIndex].x}%`, top: `${spots[toIndex].y}%` }}
+          >
+            ✦
+          </span>
+        )}
+        {companionSpot && (
           <motion.div
+            data-companion="current"
             className="pointer-events-none absolute z-20 h-32 w-28"
             animate={{
-              left: `${Math.max(0, spots[currentIndex].x - 22)}%`,
-              top: `${spots[currentIndex].y - 7}%`,
+              left: `${Math.max(0, companionSpot.x - 22)}%`,
+              top: `${companionSpot.y - 7}%`,
             }}
-            transition={{ type: "spring", stiffness: 70, damping: 16 }}
+            transition={prefersReducedMotion() ? { duration: 0 } : { type: "spring", stiffness: travel ? 50 : 70, damping: 16 }}
           >
-            <Companion mascot={mascot} pose="point" />
+            <Companion mascot={mascot} pose={travel && unlock?.leg === 1 ? "run" : "point"} />
           </motion.div>
         )}
         </div>
@@ -116,7 +172,7 @@ function ChapterBand({
         <div className="absolute inset-0 bg-gradient-to-b from-[#1a120e]/20 via-[#120e0b]/28 to-[#0b0907]/75" />
       </div>
       {current && (
-        <div className="fixed inset-x-3 bottom-[96px] z-30 flex items-center gap-2">
+        <div id="map-cta" className="fixed inset-x-3 bottom-[96px] z-30 flex items-center gap-2">
           <div className="glass min-w-0 flex-1 truncate px-3 py-2 text-xs text-cream/80">{line}</div>
           <button className="gold-btn h-10 shrink-0 px-4 text-sm" onClick={() => onOpen(current)}>
             {current.kind === "story" ? "К сцене" : "К вратам"}
@@ -137,14 +193,14 @@ function openNode(node: PathNode, navigate: (path: string) => void, notify: (mes
   navigate(node.kind === "story" ? `/story/${node.id}` : `/trial/${node.id}`);
 }
 
-function Node({ node, spot, onOpen }: { node: PathNode; spot: { x: number; y: number }; onOpen: () => void }) {
+function Node({ node, spot, breaking, onOpen }: { node: PathNode; spot: { x: number; y: number }; breaking?: boolean; onOpen: () => void }) {
   const live = node.status === "current";
   const done = node.status === "done";
   const labelLeft = spot.x > 62;
   return (
     <button
       onClick={onOpen}
-      id={live ? `node-${node.id}` : undefined}
+      id={live ? "node-current" : undefined}
       className="absolute z-20 -translate-x-1/2 -translate-y-1/2 scroll-my-36"
       style={{ left: `${spot.x}%`, top: `${spot.y}%` }}
       aria-label={node.title}
@@ -160,6 +216,11 @@ function Node({ node, spot, onOpen }: { node: PathNode; spot: { x: number; y: nu
       >
         {done ? "✓" : live ? "✦" : <Lock />}
       </span>
+      {breaking && (
+        <span className="lock-break pointer-events-none absolute inset-0 grid place-items-center text-gold2">
+          <Lock />
+        </span>
+      )}
       {live && (
         <span
           className={`pointer-events-none absolute top-1/2 max-w-[92px] -translate-y-1/2 truncate rounded-full bg-black/55 px-2 py-0.5 text-[10px] text-gold2 backdrop-blur ${

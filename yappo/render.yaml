@@ -1,0 +1,36 @@
+services:
+  - type: web
+    name: yappo
+    runtime: docker
+    dockerfilePath: ./Dockerfile
+    dockerContext: .
+    healthCheckPath: /health
+    envVars:
+      - key: BOT_MODE
+        value: webhook
+      - key: DEMO_MODE
+        value: "false"
+      - key: DATABASE_URL
+        value: sqlite:////data/yappo.db
+      - key: BOT_TOKEN
+        sync: false
+      - key: APP_SECRET
+        generateValue: true
+      - key: WEBAPP_URL
+        sync: false
+      - key: PUBLIC_BASE_URL
+        sync: false
+      - key: ADMIN_TELEGRAM_ID
+        value: "0"
+      - key: ROLLYPAY_API_KEY
+        sync: false
+      - key: ROLLYPAY_SIGNING_SECRET
+        sync: false
+      - key: ROLLYPAY_TEST
+        value: "true"
+      - key: LLM_API_KEY
+        sync: false
+    disk:
+      name: yappo-data
+      mountPath: /data
+      sizeGB: 1

@@ -6,6 +6,7 @@ import { CityScene } from "../components/CityScene";
 import { Companion } from "../components/Companion";
 import { TopStats } from "../components/Shell";
 import { GoldButton, MicButton, StarBurst } from "../components/World";
+import { markUnlock } from "../lib/motion";
 import { canListen, chime, listenOnce, phraseHit, speakAloud } from "../lib/speech";
 import { useApp } from "../state";
 import type { Lesson, MascotId, Step, User } from "../types";
@@ -79,6 +80,7 @@ export function TrialScreen() {
         body: JSON.stringify({ mistakes }),
       });
       setUser(result.user);
+      markUnlock(id, result.next?.id);
       if (result.unlocked_achievements?.length) notify(result.unlocked_achievements[0].title);
       setBurst((value) => value + 1);
       chime("win");

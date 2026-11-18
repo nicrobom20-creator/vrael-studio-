@@ -8,7 +8,7 @@ from pathlib import Path
 
 from fastapi import Depends, FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.staticfiles import StaticFiles
+from fastapi.responses import FileResponse
 from pydantic import BaseModel, Field
 from sqlalchemy.orm import Session
 
@@ -95,6 +95,28 @@ def _token(user: User) -> str:
     return sign_session(user.id, get_settings().app_secret)
 
 
+async def _configure_bot() -> None:
+    """Menu button opens the Mini App. Webhook mode registers /webhooks/telegram."""
+    settings = get_settings()
+    if not settings.bot_token:
+        return
+    try:
+        from app.bot import get_bot
+
+        bot = get_bot()
+        url = settings.webapp_url.strip().rstrip("/")
+        if url.startswith("https://"):
+            from aiogram.types import MenuButtonWebApp, WebAppInfo
+
+            await bot.set_chat_menu_button(menu_button=MenuButtonWebApp(text="Yappo", web_app=WebAppInfo(url=url)))
+        public = settings.public_base_url.strip().rstrip("/")
+        if settings.bot_mode == "webhook" and public.startswith("https://"):
+            await bot.set_webhook(f"{public}/webhooks/telegram")
+            logger.info("telegram webhook set")
+    except Exception:
+        logger.exception("bot setup")
+
+
 async def _reminder_loop(stop: asyncio.Event) -> None:
     from app.bot import dispatch_reminders, get_bot
 
@@ -122,6 +144,7 @@ async def lifespan(app: FastAPI):
     settings = get_settings()
     if settings.bot_token and not __import__("os").environ.get("YAPPO_TESTING"):
         task = asyncio.create_task(_reminder_loop(stop))
+        asyncio.create_task(_configure_bot())
     yield
     stop.set()
     if task:
@@ -322,7 +345,18 @@ def create_app() -> FastAPI:
 
     static_dir = settings.static_dir
     if static_dir and Path(static_dir).is_dir():
-        app.mount("/", StaticFiles(directory=static_dir, html=True), name="static")
+        root = Path(static_dir).resolve()
+
+        @app.get("/{full_path:path}")
+        def spa(full_path: str):
+            candidate = (root / full_path).resolve()
+            if candidate.is_file() and (candidate == root or root in candidate.parents):
+                return FileResponse(candidate)
+            index = root / "index.html"
+            if index.is_file():
+                return FileResponse(index)
+            raise HTTPException(status_code=404, detail="Not found")
+
     return app
 
 

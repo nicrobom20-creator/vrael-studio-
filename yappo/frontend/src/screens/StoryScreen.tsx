@@ -6,6 +6,7 @@ import { CityScene } from "../components/CityScene";
 import { Companion } from "../components/Companion";
 import { TopStats } from "../components/Shell";
 import { MicButton, StarBurst } from "../components/World";
+import { markUnlock } from "../lib/motion";
 import { canListen, chime, listenOnce, phraseHit, speakAloud } from "../lib/speech";
 import { useApp } from "../state";
 import type { MascotId, Story, User } from "../types";
@@ -36,6 +37,8 @@ export function StoryScreen() {
         method: "POST",
       });
       setUser(result.user);
+      markUnlock(id, result.next?.id);
+      haptic("success");
       if (result.next) navigate(result.next.kind === "story" ? `/story/${result.next.id}` : `/trial/${result.next.id}`);
       else navigate("/");
     } catch (reason) {

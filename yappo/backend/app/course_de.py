@@ -73,6 +73,15 @@ def chapters():
                     speak("Danke", "Спасибо", "Можно теплее: Danke schön."),
                     speak("Auf Wiedersehen", "До свидания", "С друзьями чаще говорят Tschüss."),
                 ]),
+                story(f"{c1}-boss", c1, "Заказ у стойки", [
+                    line("mascot", "Последняя сцена главы. Лена за стойкой. Говори спокойно, я рядом.", "point"),
+                    line("npc", "Hallo! Was darf es sein?", "happy", NPC),
+                    line("mascot", "Hallo — привет. Was darf es sein? — что будете? Скажи: einen Kaffee, bitte.", "think"),
+                    line("npc", "Kommt sofort. Sonst noch etwas?", "happy", NPC),
+                    line("mascot", "Sonst noch etwas? — что-нибудь ещё? Если нет: nein, danke.", "think"),
+                    line("npc", "Bitte schön. Einen schönen Tag noch!", "cheer", NPC),
+                    line("mascot", "Bitte schön — вот, пожалуйста. Einen schönen Tag — хорошего дня. Первая глава твоя.", "cheer"),
+                ]),
             ],
         ),
         chapter(

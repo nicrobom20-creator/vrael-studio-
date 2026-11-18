@@ -70,6 +70,15 @@ def chapters():
                     speak("Gracias", "Спасибо", "Гра-си-ас, ударение на «си» не ставь: ГРА-сьяс."),
                     speak("Adiós", "До свидания", "Ударение на последний слог."),
                 ]),
+                story(f"{c1}-boss", c1, "Заказ у стойки", [
+                    line("mascot", "Последняя сцена главы. Лусия за стойкой. Отвечай коротко, я подскажу.", "point"),
+                    line("npc", "¡Hola! ¿Qué te pongo?", "happy", NPC),
+                    line("mascot", "Hola — привет. ¿Qué te pongo? — что налить? Можно: un café, por favor.", "think"),
+                    line("npc", "Marchando. ¿Algo más?", "happy", NPC),
+                    line("mascot", "¿Algo más? — что-нибудь ещё? Если хватит: no, gracias.", "think"),
+                    line("npc", "Aquí tienes. ¡Hasta luego!", "cheer", NPC),
+                    line("mascot", "Aquí tienes — держи. Hasta luego — до скорого. Первая глава твоя.", "cheer"),
+                ]),
             ],
         ),
         chapter(

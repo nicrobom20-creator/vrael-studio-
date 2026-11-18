@@ -74,7 +74,7 @@ async def cmd_start(message: Message, command: CommandObject) -> None:
             "Открой приложение, выбери язык и спутника."
         )
         if joined:
-            text += "\n\nТебя пригласил друг: вам обоим уже начислили бонусный XP."
+            text += "\n\nТебя пригласил друг: тебе и другу уже начислили бонусный XP."
         await message.answer(text, reply_markup=open_keyboard())
     finally:
         session.close()

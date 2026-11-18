@@ -8,6 +8,7 @@ class Settings(BaseSettings):
 
     bot_token: str = ""
     bot_username: str = "YappoLang_Bot"
+    bot_mode: str = "webhook"
     webapp_url: str = "http://localhost:5173"
     public_base_url: str = "http://localhost:8000"
     admin_telegram_id: int = 0

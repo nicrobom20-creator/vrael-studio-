@@ -69,6 +69,15 @@ def chapters():
                     speak("Merci", "Спасибо", "Ударение на второй слог: мер-СИ."),
                     speak("Au revoir", "До свидания", "Revoir — «снова увидеть»."),
                 ]),
+                story(f"{c1}-boss", c1, "Заказ у стойки", [
+                    line("mascot", "Последняя сцена главы. Камиль за стойкой. Отвечай спокойно, я подскажу.", "point"),
+                    line("npc", "Bonjour ! Vous désirez ?", "happy", NPC),
+                    line("mascot", "Bonjour — здравствуйте. Vous désirez? — что будете? Можно: un café, s'il vous plaît.", "think"),
+                    line("npc", "Très bien. Et avec ceci ?", "happy", NPC),
+                    line("mascot", "Et avec ceci? — и к этому ещё что-нибудь? Если хватит, скажи: non, merci.", "think"),
+                    line("npc", "Voilà. Au revoir et bonne journée !", "cheer", NPC),
+                    line("mascot", "Voilà — вот, держи. Au revoir — до свидания. Первая глава твоя.", "cheer"),
+                ]),
             ],
         ),
         chapter(

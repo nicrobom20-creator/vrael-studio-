@@ -14,6 +14,7 @@ import { ReferralsScreen } from "./screens/ReferralsScreen";
 import { SettingsScreen } from "./screens/SettingsScreen";
 import { StoryScreen } from "./screens/StoryScreen";
 import { TrialScreen } from "./screens/TrialScreen";
+import { prefersReducedMotion } from "./lib/motion";
 import { useApp } from "./state";
 
 export function App() {
@@ -49,10 +50,10 @@ export function App() {
       <AnimatePresence mode="wait">
         <motion.div
           key={location.pathname}
-          initial={{ opacity: 0, y: 10 }}
+          initial={prefersReducedMotion() ? false : { opacity: 0, y: 12 }}
           animate={{ opacity: 1, y: 0 }}
-          exit={{ opacity: 0, y: -8 }}
-          transition={{ duration: 0.28, ease: "easeOut" }}
+          exit={prefersReducedMotion() ? { opacity: 1 } : { opacity: 0, y: -8 }}
+          transition={{ duration: prefersReducedMotion() ? 0 : 0.28, ease: "easeOut" }}
         >
           {element}
         </motion.div>

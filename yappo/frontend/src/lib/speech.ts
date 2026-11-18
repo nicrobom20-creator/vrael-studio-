@@ -17,13 +17,36 @@ export function phraseHit(heard: string, target: string): boolean {
   return hits / need.length >= 0.6;
 }
 
+function voiceFor(lang: string): SpeechSynthesisVoice | null {
+  const voices = window.speechSynthesis?.getVoices?.() || [];
+  const wanted = (lang || "en-GB").toLowerCase();
+  const exact = voices.find((voice) => voice.lang.toLowerCase() === wanted);
+  if (exact) return exact;
+  const prefix = wanted.slice(0, 2);
+  return voices.find((voice) => voice.lang.toLowerCase().startsWith(prefix)) || null;
+}
+
 export function speakAloud(text: string, lang: string) {
   if (!("speechSynthesis" in window) || !text) return;
-  const utterance = new SpeechSynthesisUtterance(text);
-  utterance.lang = lang || "en-GB";
-  utterance.rate = 0.92;
-  window.speechSynthesis.cancel();
-  window.speechSynthesis.speak(utterance);
+  const speak = () => {
+    const utterance = new SpeechSynthesisUtterance(text);
+    utterance.lang = lang || "en-GB";
+    utterance.rate = 0.92;
+    const voice = voiceFor(utterance.lang);
+    if (voice) utterance.voice = voice;
+    window.speechSynthesis.cancel();
+    window.speechSynthesis.speak(utterance);
+  };
+  if (window.speechSynthesis.getVoices().length) {
+    speak();
+    return;
+  }
+  const ready = () => {
+    window.speechSynthesis.removeEventListener("voiceschanged", ready);
+    speak();
+  };
+  window.speechSynthesis.addEventListener("voiceschanged", ready);
+  window.speechSynthesis.getVoices();
 }
 
 type Rec = {
