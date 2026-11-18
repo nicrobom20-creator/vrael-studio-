@@ -8,7 +8,7 @@ from pathlib import Path
 
 from fastapi import Depends, FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import FileResponse
+from fastapi.responses import FileResponse, RedirectResponse
 from pydantic import BaseModel, Field
 from sqlalchemy.orm import Session
 
@@ -110,6 +110,11 @@ async def _configure_bot() -> None:
         button = menu_button(url)
         if button is not None:
             await bot.set_chat_menu_button(menu_button=button)
+        from app.bot import BOT_DESCRIPTION, PUBLIC_COMMANDS
+
+        await bot.set_my_commands(PUBLIC_COMMANDS)
+        await bot.set_my_description(description=BOT_DESCRIPTION)
+        await bot.set_my_short_description(short_description="Язык в Telegram. Поддержка: @vraelstudio")
         public = settings.public_base_url.strip().rstrip("/")
         if settings.bot_mode == "webhook" and public.startswith("https://"):
             await bot.set_webhook(f"{public}/webhooks/telegram")
@@ -165,6 +170,10 @@ def create_app() -> FastAPI:
     @app.get("/health")
     def health():
         return {"ok": True, "service": "yappo"}
+
+    @app.api_route("/support", methods=["GET", "HEAD"], include_in_schema=False)
+    def support_redirect():
+        return RedirectResponse("https://t.me/vraelstudio", status_code=307)
 
     @app.get("/api/public")
     def public():

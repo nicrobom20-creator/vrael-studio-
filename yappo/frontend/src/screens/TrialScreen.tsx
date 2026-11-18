@@ -6,6 +6,7 @@ import { CityScene } from "../components/CityScene";
 import { Companion } from "../components/Companion";
 import { TopStats } from "../components/Shell";
 import { GoldButton, MicButton, StarBurst } from "../components/World";
+import { ConsentLine } from "./LegalScreen";
 import { markUnlock } from "../lib/motion";
 import { canListen, chime, listenOnce, phraseHit, speakAloud } from "../lib/speech";
 import { useApp } from "../state";
@@ -512,8 +513,9 @@ function LimitNote({ text, onBack, onPremium }: { text: string; onBack: () => vo
           </div>
           <div className="mt-4 grid gap-2">
             <GoldButton onClick={onPremium ? pay : onBack} disabled={busy}>
-              {busy ? "Создаём счёт…" : "Перейти к оплате"}
+              {busy ? "Создаём счёт…" : "Оплатить"}
             </GoldButton>
+            <ConsentLine />
             <button onClick={onBack} className="text-sm text-gold2">Вернуться на карту</button>
           </div>
         </div>

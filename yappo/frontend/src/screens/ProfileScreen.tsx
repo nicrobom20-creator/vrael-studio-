@@ -1,4 +1,5 @@
 import { Link } from "react-router-dom";
+import { openLegal } from "./LegalScreen";
 import { Companion } from "../components/Companion";
 import { Atmosphere } from "../components/World";
 import { useApp } from "../state";
@@ -51,6 +52,11 @@ export function ProfileScreen() {
           <Link className="glass p-3" to="/board">Рейтинг</Link>
           <Link className="glass p-3" to="/settings">Напоминания</Link>
           <Link className="glass p-3" to="/quests">Квесты дня</Link>
+        </div>
+        <div className="mt-4 flex flex-wrap gap-x-4 gap-y-1 text-xs text-cream/60">
+          <button type="button" className="underline" onClick={() => openLegal("/privacy")}>Политика</button>
+          <button type="button" className="underline" onClick={() => openLegal("/terms")}>Соглашение</button>
+          <button type="button" className="underline" onClick={() => openLegal("/support")}>Поддержка</button>
         </div>
         <h2 className="mt-6 font-display text-3xl">Знаки пути</h2>
         <div className="mt-3 grid grid-cols-2 gap-2 pb-4">

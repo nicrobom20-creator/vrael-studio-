@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { followCheckout } from "../api";
+import { ConsentLine, openLegal } from "./LegalScreen";
 import { Atmosphere, GoldButton } from "../components/World";
 import { useApp } from "../state";
 
@@ -60,10 +61,11 @@ export function PremiumScreen() {
           <li>Спутник, серия и сюжет остаются с тобой.</li>
         </ul>
         <div className="mt-6">
-          <GoldButton onClick={pay} disabled={busy}>{busy ? "Создаём счёт…" : "Перейти к оплате"}</GoldButton>
+          <GoldButton onClick={pay} disabled={busy}>{busy ? "Создаём счёт…" : "Оплатить"}</GoldButton>
         </div>
-        <p className="mt-3 text-center text-[11px] text-cream/45">
-          RollyPay · СБП. Тестовый режим не списывает деньги, если касса в песочнице.
+        <ConsentLine />
+        <p className="mt-3 text-center text-[11px] text-cream/55">
+          <button type="button" className="underline" onClick={() => openLegal("/support")}>Поддержка</button>
         </p>
       </div>
     </Atmosphere>

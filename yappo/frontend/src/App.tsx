@@ -18,6 +18,8 @@ const ReferralsScreen = lazy(() => import("./screens/ReferralsScreen").then((m) 
 const SettingsScreen = lazy(() => import("./screens/SettingsScreen").then((m) => ({ default: m.SettingsScreen })));
 const StoryScreen = lazy(() => import("./screens/StoryScreen").then((m) => ({ default: m.StoryScreen })));
 const TrialScreen = lazy(() => import("./screens/TrialScreen").then((m) => ({ default: m.TrialScreen })));
+const PrivacyPage = lazy(() => import("./screens/LegalScreen").then((m) => ({ default: m.PrivacyPage })));
+const TermsPage = lazy(() => import("./screens/LegalScreen").then((m) => ({ default: m.TermsPage })));
 
 export function App() {
   const { ready, error, user, boot, toast } = useApp();
@@ -36,6 +38,19 @@ export function App() {
     { path: "/settings", element: <SettingsScreen /> },
     { path: "/board", element: <LeaderboardScreen /> },
   ]);
+
+  if (location.pathname === "/support") {
+    window.location.replace("https://t.me/vraelstudio");
+    return null;
+  }
+  if (location.pathname === "/privacy" || location.pathname === "/terms") {
+    const Page = location.pathname === "/privacy" ? PrivacyPage : TermsPage;
+    return (
+      <Suspense fallback={<Splash label="Открываем…" />}>
+        <Page />
+      </Suspense>
+    );
+  }
 
   if (!ready) return <Splash label="Собираем карту…" />;
   if (!user) {

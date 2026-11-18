@@ -26,3 +26,6 @@ def test_missing_riv_head_is_404_and_spa_still_serves_html(tmp_path, monkeypatch
         assert "Yappo" in page.text
         head = client.head("/")
         assert head.status_code == 200
+        support = client.get("/support", follow_redirects=False)
+        assert support.status_code == 307
+        assert support.headers["location"] == "https://t.me/vraelstudio"

@@ -119,6 +119,10 @@ def test_menu_button_and_start_keyboard_require_https(monkeypatch):
     assert button.web_app.url == "https://yappo-8jvt.onrender.com"
     assert menu_button("http://localhost:5173") is None
     keyboard = open_keyboard()
-    assert keyboard.inline_keyboard[0][0].text == "Открыть Yappo"
+    labels = [button.text for row in keyboard.inline_keyboard for button in row]
+    assert labels[0] == "Открыть Yappo"
+    assert "Политика конфиденциальности" in labels
+    assert "Пользовательское соглашение" in labels
+    assert "Поддержка" in labels
     assert keyboard.inline_keyboard[0][0].web_app is not None
     get_settings.cache_clear()

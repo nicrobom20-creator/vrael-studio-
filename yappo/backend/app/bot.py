@@ -4,7 +4,7 @@ import logging
 
 from aiogram import Bot, Dispatcher, Router
 from aiogram.filters import Command, CommandObject, CommandStart
-from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup, Message, WebAppInfo
+from aiogram.types import BotCommand, InlineKeyboardButton, InlineKeyboardMarkup, Message, WebAppInfo
 from sqlalchemy.orm import Session
 
 from app.config import get_settings
@@ -44,17 +44,40 @@ def menu_button(url: str):
     return MenuButtonWebApp(text="Yappo", web_app=WebAppInfo(url=clean))
 
 
-def open_keyboard() -> InlineKeyboardMarkup | None:
+SUPPORT_URL = "https://t.me/vraelstudio"
+PUBLIC_COMMANDS = [
+    BotCommand(command="start", description="Открыть Yappo"),
+    BotCommand(command="privacy", description="Политика конфиденциальности"),
+    BotCommand(command="terms", description="Пользовательское соглашение"),
+    BotCommand(command="support", description="Поддержка"),
+    BotCommand(command="help", description="Как пользоваться"),
+]
+BOT_DESCRIPTION = "Язык в Telegram: сцены, испытания и разговор. Поддержка: @vraelstudio"
+
+
+def _public_base() -> str:
+    settings = get_settings()
+    return (settings.public_base_url or settings.webapp_url or "").strip().rstrip("/")
+
+
+def info_keyboard() -> InlineKeyboardMarkup:
+    base = _public_base()
+    rows: list[list[InlineKeyboardButton]] = []
     url = get_settings().webapp_url.strip()
-    if not url:
-        return None
     if url.startswith("https://"):
-        button = InlineKeyboardButton(text="Открыть Yappo", web_app=WebAppInfo(url=url))
+        rows.append([InlineKeyboardButton(text="Открыть Yappo", web_app=WebAppInfo(url=url))])
     elif url.startswith("http://"):
-        button = InlineKeyboardButton(text="Открыть Yappo", url=url)
-    else:
-        return None
-    return InlineKeyboardMarkup(inline_keyboard=[[button]])
+        rows.append([InlineKeyboardButton(text="Открыть Yappo", url=url)])
+    if base.startswith("http"):
+        rows.append([InlineKeyboardButton(text="Политика конфиденциальности", url=f"{base}/privacy")])
+        rows.append([InlineKeyboardButton(text="Пользовательское соглашение", url=f"{base}/terms")])
+    rows.append([InlineKeyboardButton(text="Поддержка", url=SUPPORT_URL)])
+    return InlineKeyboardMarkup(inline_keyboard=rows)
+
+
+def open_keyboard() -> InlineKeyboardMarkup | None:
+    keyboard = info_keyboard()
+    return keyboard if keyboard.inline_keyboard else None
 
 
 def _session() -> Session:
@@ -85,7 +108,7 @@ async def cmd_start(message: Message, command: CommandObject) -> None:
         )
         if joined:
             text += "\n\nТебя пригласил друг: тебе и другу уже начислили бонусный XP."
-        await message.answer(text, reply_markup=open_keyboard())
+        await message.answer(text, reply_markup=info_keyboard())
     finally:
         session.close()
 
@@ -95,9 +118,28 @@ async def cmd_help(message: Message) -> None:
     await message.answer(
         "Yappo учит язык маленькими шагами.\n"
         "/start — открыть приложение\n"
+        "/privacy — политика конфиденциальности\n"
+        "/terms — пользовательское соглашение\n"
+        "/support — поддержка @vraelstudio\n"
         "Напоминание придёт в выбранное время, если за день не было занятия.\n"
-        "Ссылку для друга найдёшь в приложении, в разделе «Друзья»."
+        "Ссылку для друга найдёшь в приложении, в разделе «Друзья».",
+        reply_markup=info_keyboard(),
     )
+
+
+@router.message(Command("privacy"))
+async def cmd_privacy(message: Message) -> None:
+    await message.answer("Политика конфиденциальности.", reply_markup=info_keyboard())
+
+
+@router.message(Command("terms"))
+async def cmd_terms(message: Message) -> None:
+    await message.answer("Пользовательское соглашение.", reply_markup=info_keyboard())
+
+
+@router.message(Command("support"))
+async def cmd_support(message: Message) -> None:
+    await message.answer("Поддержка: @vraelstudio", reply_markup=info_keyboard())
 
 
 @router.message(Command("stats"))
