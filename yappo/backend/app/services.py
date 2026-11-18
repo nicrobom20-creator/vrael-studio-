@@ -665,6 +665,7 @@ async def send_chat(
         history=clean_history,
         user_text=text.strip(),
         mascot_name=mascot_name,
+        mascot_id=user.mascot or "parrot",
     )
     badges = []
     item = _unlock(session, user, "chat", now_n)

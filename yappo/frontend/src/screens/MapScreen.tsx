@@ -46,7 +46,7 @@ export function MapScreen() {
   }, [unlock?.from]);
 
   if (!user || !path) {
-    return <div className="grid min-h-dvh place-items-center text-cream/70">Собираем острова…</div>;
+    return <div className="grid min-h-dvh place-items-center text-cream/70">Собираем карту…</div>;
   }
   const mascot = (user.mascot || "parrot") as MascotId;
   const active = path.chapters.find((chapter) => chapter.unlocked && !chapter.complete) || path.chapters[path.chapters.length - 1];

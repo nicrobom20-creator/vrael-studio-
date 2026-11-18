@@ -13,7 +13,8 @@ export class ApiError extends Error {
   }
 }
 
-const base = import.meta.env.VITE_API_URL || "";
+// VITE_API_URL is inlined at build time. Empty means same origin (one service).
+const base = (import.meta.env.VITE_API_URL || "").replace(/\/$/, "");
 
 export async function api<T>(path: string, init: RequestInit = {}): Promise<T> {
   const token = localStorage.getItem("yappo_token");

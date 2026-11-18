@@ -64,7 +64,7 @@ export function Onboarding() {
         <motion.div key={step} initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} className="glass p-4">
           {step === 0 && (
             <div>
-              <h1 className="font-display text-3xl">Пять островов. Один спутник.</h1>
+              <h1 className="font-display text-3xl">Пять городов. Один спутник.</h1>
               <p className="mt-2 text-sm leading-relaxed text-cream/80">
                 Лондон, Мадрид, Берлин, Париж и Пекин. Выбери язык — и спутник проведёт тебя через врата испытаний.
               </p>

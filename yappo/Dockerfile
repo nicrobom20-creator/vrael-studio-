@@ -3,6 +3,7 @@ WORKDIR /web
 COPY frontend/package.json frontend/package-lock.json ./
 RUN npm ci
 COPY frontend ./
+# VITE_API_URL не задаём: собранный сайт ходит на /api этого же сервиса.
 RUN npm run build
 
 FROM python:3.12-slim

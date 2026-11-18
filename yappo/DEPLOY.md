@@ -1,6 +1,8 @@
 # Как выложить Yappo
 
-Два сервиса: сайт Mini App и сервер с ботом. Токен бота и ключи оплаты в репозиторий не клади.
+Токен бота и ключи оплаты в репозиторий не клади.
+
+Самый короткий путь — один сервис Render. Образ сам собирает фронтенд и отдаёт его с того же адреса, что и API. `VITE_API_URL` при этой сборке не задавай: приложение ходит на `/api` того же сайта. После деплоя поставь `WEBAPP_URL` и `PUBLIC_BASE_URL` равными адресу сервиса, с `https://` и без слэша в конце.
 
 ## 1. Бот
 
@@ -15,8 +17,8 @@
 2. На [render.com](https://render.com) нажми New → Blueprint и укажи репозиторий. Файл `yappo/render.yaml` описывает сервис. Если Render смотрит в корень портфолио, в настройках сервиса поставь Root Directory: `yappo`.
 3. В Environment впиши:
    - `BOT_TOKEN` — токен из BotFather
-   - `WEBAPP_URL` — адрес сайта из шага 3, с `https://`
-   - `PUBLIC_BASE_URL` — адрес самого Render, с `https://`, без слэша в конце
+   - `WEBAPP_URL` и `PUBLIC_BASE_URL` — один и тот же адрес Render, с `https://`, без слэша в конце
+   - `LLM_PROVIDER` — `openai` или `gemini`. Для Gemini нужен `GEMINI_API_KEY` (модель по умолчанию `gemini-2.0-flash`, другая flash-модель — в `GEMINI_MODEL`)
    - `APP_SECRET` — длинная случайная строка
    - `DEMO_MODE` — `false` на бою
    - `BOT_MODE` — `webhook`
@@ -31,8 +33,8 @@
 1. New site → Import from Git.
 2. Base directory: `yappo/frontend`.
 3. Build command: `npm run build`. Publish directory: `dist`. Файл `netlify.toml` уже отдаёт все адреса на `index.html`.
-4. Environment: `VITE_API_URL` = `PUBLIC_BASE_URL` сервера, без слэша в конце.
-5. Опубликуй сайт и вставь его адрес в `WEBAPP_URL` на Render. Перезапусти сервер, чтобы кнопка меню взяла новый адрес.
+4. Environment: `VITE_API_URL` = адрес API, без слэша в конце. Vite вшивает его в сборку. Пустое значение оставь только если сайт и API на одном адресе.
+5. Опубликуй сайт и вставь его адрес в `WEBAPP_URL` на Render. `PUBLIC_BASE_URL` остаётся адресом API. Перезапусти сервер, чтобы кнопка меню взяла новый адрес.
 
 ## 4. Проверка
 

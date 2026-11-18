@@ -36,7 +36,7 @@ export function App() {
     { path: "/board", element: <LeaderboardScreen /> },
   ]);
 
-  if (!ready) return <Splash label="Собираем острова…" />;
+  if (!ready) return <Splash label="Собираем карту…" />;
   if (error && !user) {
     return (
       <Splash label={error}>
@@ -46,7 +46,7 @@ export function App() {
   }
   if (!user?.onboarded) {
     return (
-      <Suspense fallback={<Splash label="Собираем острова…" />}>
+      <Suspense fallback={<Splash label="Собираем карту…" />}>
         <Onboarding />
       </Suspense>
     );

@@ -82,7 +82,7 @@ export function StoryScreen() {
       <div className="grid min-h-dvh place-items-center px-6 text-center">
         <div>
           <p>{error}</p>
-          <button className="mt-4 text-gold2" onClick={() => navigate("/")}>На остров</button>
+          <button className="mt-4 text-gold2" onClick={() => navigate("/")}>На карту</button>
         </div>
       </div>
     );
@@ -148,7 +148,7 @@ export function StoryScreen() {
                 else navigate(done.next.kind === "story" ? `/story/${done.next.id}` : `/trial/${done.next.id}`);
               }}
             >
-              {done.next ? "Дальше по тропе" : "На остров"}
+              {done.next ? "Дальше по тропе" : "На карту"}
             </button>
           </div>
         </div>

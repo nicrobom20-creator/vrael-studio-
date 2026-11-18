@@ -212,7 +212,7 @@ export function TrialScreen() {
                   else navigate(done.next.kind === "story" ? `/story/${done.next.id}` : `/trial/${done.next.id}`);
                 }}
               >
-                {done.next ? "Дальше по тропе" : "На остров"}
+                {done.next ? "Дальше по тропе" : "На карту"}
               </GoldButton>
             </div>
           </div>
@@ -275,7 +275,7 @@ export function TrialScreen() {
                 else navigate(done.next.kind === "story" ? `/story/${done.next.id}` : `/trial/${done.next.id}`);
               }}
             >
-              {done.next ? "Дальше по тропе" : "На остров"}
+              {done.next ? "Дальше по тропе" : "На карту"}
             </GoldButton>
           </div>
         ) : step.type === "speak" ? (
@@ -456,19 +456,135 @@ function StepBody(props: {
 }
 
 function LimitNote({ text, onBack, onPremium }: { text: string; onBack: () => void; onPremium?: () => void }) {
+  const { user, config, notify } = useApp();
+  const navigate = useNavigate();
+  const [plan, setPlan] = useState<"month" | "year">("year");
+  const [busy, setBusy] = useState(false);
+  const [left, setLeft] = useState(() => formatReset(user?.timezone || "Europe/Moscow"));
+  const month = price(config?.prices.month, "199");
+  const year = price(config?.prices.year, "1999");
+  const save = yearSaving(month, year);
+
+  useEffect(() => {
+    const tick = () => setLeft(formatReset(user?.timezone || "Europe/Moscow"));
+    tick();
+    const timer = window.setInterval(tick, 30000);
+    return () => window.clearInterval(timer);
+  }, [user?.timezone]);
+
+  async function pay() {
+    setBusy(true);
+    try {
+      const result = await api<{ pay_url: string; test: boolean }>("/api/billing/checkout", {
+        method: "POST",
+        body: JSON.stringify({ plan }),
+      });
+      if (result.pay_url.startsWith("/")) {
+        navigate(result.pay_url);
+        notify(result.test ? "Тестовый счёт создан. Доступ откроется после подтверждения оплаты." : "Переходим к оплате");
+        return;
+      }
+      if (window.Telegram?.WebApp?.openLink) window.Telegram.WebApp.openLink(result.pay_url);
+      else window.location.href = result.pay_url;
+    } catch (reason) {
+      notify(reason instanceof Error ? reason.message : "Платёж не создан");
+    } finally {
+      setBusy(false);
+    }
+  }
+
   return (
-    <div className="relative grid min-h-dvh place-items-center px-6">
-      <CityScene language="world" />
-      <div className="glass relative z-10 max-w-sm p-5 text-center">
-        <h1 className="font-display text-3xl">Врата закрыты до завтра</h1>
-        <p className="mt-2 text-sm text-cream/75">{text}</p>
-        <div className="mt-4 grid gap-2">
-          {onPremium && <GoldButton onClick={onPremium}>Открыть Premium</GoldButton>}
-          <button onClick={onBack} className="text-sm text-gold2">Вернуться на остров</button>
+    <div className="relative grid min-h-dvh place-items-end px-4 pb-8">
+      <CityScene language={user?.language || "world"} />
+      <div className="relative z-10 w-full max-w-sm">
+        <div className="pointer-events-none absolute -top-28 left-1 h-36 w-32 -rotate-6">
+          <Companion mascot={(user?.mascot || "parrot") as MascotId} pose="idle" className="h-full w-full" />
+        </div>
+        <div className="glass p-5 text-center">
+          <h1 className="font-display text-3xl leading-tight">Врата закрыты до завтра</h1>
+          <p className="mt-2 text-sm text-cream/75">{text}</p>
+          <p className="mt-2 text-xs text-gold2">сброс лимита через {left}</p>
+          <div className="mt-4 grid gap-2 text-left">
+            <PayPlan
+              active={plan === "month"}
+              title="Месяц"
+              price={`${month} ₽/мес`}
+              onClick={() => setPlan("month")}
+            />
+            <PayPlan
+              active={plan === "year"}
+              title="Год"
+              price={`${year} ₽/год`}
+              badge={save > 0 ? `выгода ${save}%` : undefined}
+              onClick={() => setPlan("year")}
+            />
+          </div>
+          <div className="mt-4 grid gap-2">
+            <GoldButton onClick={onPremium ? pay : onBack} disabled={busy}>
+              {busy ? "Создаём счёт…" : "Перейти к оплате"}
+            </GoldButton>
+            <button onClick={onBack} className="text-sm text-gold2">Вернуться на карту</button>
+          </div>
         </div>
       </div>
     </div>
   );
+}
+
+function PayPlan({ active, title, price, badge, onClick }: { active: boolean; title: string; price: string; badge?: string; onClick: () => void }) {
+  return (
+    <button onClick={onClick} className={`relative rounded-2xl border px-3 py-3 ${active ? "border-gold bg-gold/10" : "border-white/10"}`}>
+      <div className="flex items-center justify-between gap-2">
+        <span className="font-display text-xl">{title}</span>
+        <span className="text-sm text-gold2">{price}</span>
+      </div>
+      {badge && (
+        <span className="absolute -top-2 right-3 rounded-full bg-gradient-to-b from-[#f6e6bf] to-[#b8893e] px-2 py-0.5 text-[10px] font-semibold text-[#2a1c0a]">
+          {badge}
+        </span>
+      )}
+    </button>
+  );
+}
+
+function price(value: string | undefined, fallback: string) {
+  const number = Number(value);
+  return Number.isFinite(number) && number > 0 ? String(Math.round(number)) : fallback;
+}
+
+function yearSaving(month: string, year: string) {
+  const full = Number(month) * 12;
+  const yearly = Number(year);
+  if (!full || !yearly) return 0;
+  return Math.max(0, Math.round((1 - yearly / full) * 100));
+}
+
+function formatReset(timeZone: string) {
+  const now = new Date();
+  let hour = 0;
+  let minute = 0;
+  let second = 0;
+  try {
+    const parts = new Intl.DateTimeFormat("en-US", {
+      timeZone,
+      hour: "2-digit",
+      minute: "2-digit",
+      second: "2-digit",
+      hourCycle: "h23",
+    }).formatToParts(now);
+    const read = (type: string) => Number(parts.find((part) => part.type === type)?.value || 0);
+    hour = read("hour") % 24;
+    minute = read("minute");
+    second = read("second");
+  } catch {
+    hour = now.getHours();
+    minute = now.getMinutes();
+    second = now.getSeconds();
+  }
+  const left = 24 * 3600 - (hour * 3600 + minute * 60 + second);
+  const h = Math.floor(left / 3600);
+  const m = Math.floor((left % 3600) / 60);
+  return `${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")}`;
 }
 
 function shuffle<T>(items: T[]): T[] {
