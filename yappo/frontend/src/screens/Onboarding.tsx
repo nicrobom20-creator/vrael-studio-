@@ -1,6 +1,6 @@
 import { motion } from "framer-motion";
 import { useState } from "react";
-import { api } from "../api";
+import { ApiError, api, OPEN_IN_BOT } from "../api";
 import { Companion } from "../components/Companion";
 import { CityScene } from "../components/CityScene";
 import { GoldButton } from "../components/World";
@@ -30,9 +30,11 @@ export function Onboarding() {
   const detected = Intl.DateTimeFormat().resolvedOptions().timeZone || "Europe/Moscow";
   const [zone, setZone] = useState(ZONES.includes(detected) ? detected : "Europe/Moscow");
   const [busy, setBusy] = useState(false);
+  const [problem, setProblem] = useState("");
 
   async function finish() {
     setBusy(true);
+    setProblem("");
     try {
       const user = await api<User>("/api/onboarding", {
         method: "POST",
@@ -46,7 +48,12 @@ export function Onboarding() {
       });
       setUser(user);
     } catch (error) {
-      notify(error instanceof Error ? error.message : "Не удалось сохранить");
+      const status = error instanceof ApiError ? error.status : 0;
+      const message = status === 401 || status === 404
+        ? OPEN_IN_BOT
+        : error instanceof Error ? error.message : "Не удалось сохранить";
+      setProblem(message);
+      notify(message);
     } finally {
       setBusy(false);
     }
@@ -160,6 +167,7 @@ export function Onboarding() {
               </label>
               <div className="mt-4">
                 <GoldButton onClick={finish} disabled={busy}>{busy ? "Открываем врата…" : "Начать путь"}</GoldButton>
+                {problem && <p className="mt-3 text-sm text-gold2">{problem}</p>}
               </div>
             </div>
           )}

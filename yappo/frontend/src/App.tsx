@@ -3,6 +3,7 @@ import { lazy, Suspense, useEffect, type ReactNode } from "react";
 import { useLocation, useRoutes } from "react-router-dom";
 import { CityScene, cityOf } from "./components/CityScene";
 import { BottomNav } from "./components/Shell";
+import { OPEN_IN_BOT } from "./api";
 import { prefersReducedMotion } from "./lib/motion";
 import { useApp } from "./state";
 
@@ -37,14 +38,14 @@ export function App() {
   ]);
 
   if (!ready) return <Splash label="Собираем карту…" />;
-  if (error && !user) {
+  if (!user) {
     return (
-      <Splash label={error}>
-        <button className="gold-btn mt-4 h-11 px-6" onClick={() => boot()}>Ещё раз</button>
+      <Splash label={error || OPEN_IN_BOT}>
+        <button className="gold-btn mt-4 h-11 px-6" onClick={() => void boot()}>Ещё раз</button>
       </Splash>
     );
   }
-  if (!user?.onboarded) {
+  if (!user.onboarded) {
     return (
       <Suspense fallback={<Splash label="Собираем карту…" />}>
         <Onboarding />

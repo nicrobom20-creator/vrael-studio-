@@ -1,5 +1,5 @@
 import { createContext, useContext, useEffect, useMemo, useState, type ReactNode } from "react";
-import { api, deviceId, readStartParam } from "./api";
+import { api, deviceId, OPEN_IN_BOT, readInitData, readStartParam } from "./api";
 import type { PublicConfig, User } from "./types";
 
 interface AppState {
@@ -30,27 +30,43 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
 
   async function boot() {
     setError("");
-    const webApp = window.Telegram?.WebApp;
-    webApp?.ready();
-    webApp?.expand();
-    webApp?.setHeaderColor?.("#120E0B");
-    webApp?.setBackgroundColor?.("#120E0B");
-    const pub = await api<PublicConfig>("/api/public");
-    setConfig(pub);
-    const initData = webApp?.initData;
-    const start = readStartParam();
-    const auth = initData
-      ? await api<{ token: string; user: User }>("/api/auth/telegram", {
-          method: "POST",
-          body: JSON.stringify({ init_data: initData }),
-        })
-      : await api<{ token: string; user: User }>("/api/auth/demo", {
+    try {
+      const webApp = window.Telegram?.WebApp;
+      webApp?.ready();
+      webApp?.expand();
+      webApp?.setHeaderColor?.("#120E0B");
+      webApp?.setBackgroundColor?.("#120E0B");
+      const pub = await api<PublicConfig>("/api/public");
+      setConfig(pub);
+      const initData = readInitData();
+      const start = readStartParam();
+      let auth: { token: string; user: User };
+      if (initData) {
+        try {
+          auth = await api("/api/auth/telegram", {
+            method: "POST",
+            body: JSON.stringify({ init_data: initData }),
+          });
+        } catch {
+          throw new Error(OPEN_IN_BOT);
+        }
+      } else if (pub.demo) {
+        auth = await api("/api/auth/demo", {
           method: "POST",
           body: JSON.stringify({ device_id: deviceId(), start_param: start }),
         });
-    localStorage.setItem("yappo_token", auth.token);
-    setUser(auth.user);
-    setReady(true);
+      } else {
+        throw new Error(OPEN_IN_BOT);
+      }
+      localStorage.setItem("yappo_token", auth.token);
+      setUser(auth.user);
+      setReady(true);
+    } catch (reason) {
+      localStorage.removeItem("yappo_token");
+      setUser(null);
+      setError(reason instanceof Error && reason.message ? reason.message : OPEN_IN_BOT);
+      setReady(true);
+    }
   }
 
   async function refresh() {
@@ -59,10 +75,7 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
   }
 
   useEffect(() => {
-    boot().catch((reason: Error) => {
-      setError(reason.message || "Нет связи с сервером");
-      setReady(true);
-    });
+    void boot();
   }, []);
 
   const value = useMemo(

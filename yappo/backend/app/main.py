@@ -347,11 +347,15 @@ def create_app() -> FastAPI:
     if static_dir and Path(static_dir).is_dir():
         root = Path(static_dir).resolve()
 
-        @app.get("/{full_path:path}")
+        asset_suffixes = {".riv", ".webp", ".png", ".jpg", ".jpeg", ".js", ".css", ".svg", ".map", ".json", ".woff", ".woff2"}
+
+        @app.api_route("/{full_path:path}", methods=["GET", "HEAD"])
         def spa(full_path: str):
             candidate = (root / full_path).resolve()
             if candidate.is_file() and (candidate == root or root in candidate.parents):
                 return FileResponse(candidate)
+            if Path(full_path).suffix.lower() in asset_suffixes:
+                raise HTTPException(status_code=404, detail="Not found")
             index = root / "index.html"
             if index.is_file():
                 return FileResponse(index)

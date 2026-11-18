@@ -37,11 +37,23 @@ export function deviceId(): string {
   return value;
 }
 
+export const OPEN_IN_BOT = "Открой Yappo через кнопку в боте @YappoLang_Bot";
+
+export function readInitData(): string {
+  const fromSdk = window.Telegram?.WebApp?.initData?.trim();
+  if (fromSdk) return fromSdk;
+  const hash = window.location.hash.replace(/^#/, "");
+  const fromHash = new URLSearchParams(hash).get("tgWebAppData");
+  if (fromHash) return fromHash;
+  return new URLSearchParams(window.location.search).get("tgWebAppData") || "";
+}
+
 export function readStartParam(): string {
   const fromTelegram = window.Telegram?.WebApp?.initDataUnsafe?.start_param;
   if (fromTelegram) return fromTelegram;
+  const hash = new URLSearchParams(window.location.hash.replace(/^#/, ""));
   const query = new URLSearchParams(window.location.search);
-  return query.get("startapp") || query.get("tgWebAppStartParam") || "";
+  return hash.get("tgWebAppStartParam") || query.get("startapp") || query.get("tgWebAppStartParam") || "";
 }
 
 export function haptic(kind: "light" | "success" | "error") {
