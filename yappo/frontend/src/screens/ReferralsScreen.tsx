@@ -29,8 +29,8 @@ export function ReferralsScreen() {
         <button className="text-sm text-cream/75" onClick={() => navigate(-1)}>← профиль</button>
         <h1 className="mt-4 font-display text-5xl leading-none">Позови на остров.</h1>
         <p className="mt-3 text-sm leading-relaxed text-cream/75">
-          Когда друг заходит по ссылке, вы оба получаете {info?.join_xp ?? 50} XP.
-          Если он оплачивает Premium, тебе добавляется {info?.premium_days ?? 7} дней — один раз за каждого.
+          Когда друг заходит по твоей ссылке, ты и друг получаете по {info?.join_xp ?? 50} XP.
+          Если друг оплачивает Premium, тебе добавляется {info?.premium_days ?? 7} дней — один раз за каждого.
         </p>
         {info && (
           <>

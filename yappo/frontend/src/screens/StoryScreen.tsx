@@ -5,18 +5,10 @@ import { api, haptic } from "../api";
 import { CityScene } from "../components/CityScene";
 import { Companion } from "../components/Companion";
 import { TopStats } from "../components/Shell";
-import { LeadIn, MicButton, StarBurst } from "../components/World";
+import { MicButton, StarBurst } from "../components/World";
 import { canListen, chime, listenOnce, phraseHit, speakAloud } from "../lib/speech";
 import { useApp } from "../state";
-import type { MascotId, Pose, Story, User } from "../types";
-
-const POSE: Record<string, Pose> = {
-  wave: "wave",
-  think: "think",
-  cheer: "celebrate",
-  point: "point",
-  happy: "idle",
-};
+import type { MascotId, Story, User } from "../types";
 
 export function StoryScreen() {
   const { id = "" } = useParams();
@@ -37,7 +29,6 @@ export function StoryScreen() {
   const mascot = (user.mascot || "parrot") as MascotId;
   const line = story?.lines[index];
   const gloss = line?.speaker === "npc" ? story?.lines[index + 1] : undefined;
-  const pose = POSE[line?.emotion || "happy"] || "idle";
 
   async function finish() {
     try {
@@ -99,8 +90,10 @@ export function StoryScreen() {
   return (
     <div className="relative min-h-dvh overflow-hidden">
       <CityScene language={user.language} />
-      <LeadIn mascot={mascot} />
       <StarBurst token={burst} />
+      <div className="pointer-events-none absolute bottom-[34%] left-1 z-20 h-44 w-36">
+        <Companion mascot={mascot} pose="point" />
+      </div>
       <TopStats
         title={story.title}
         subtitle={`${user.city} · Уровень ${user.level}`}
@@ -116,16 +109,9 @@ export function StoryScreen() {
           onClick={next}
           className="glass mb-4 w-full p-4 text-left"
         >
-          <div className="mb-3 flex items-center gap-3">
-            <div className="-mt-8 h-20 w-20 shrink-0">
-              <Companion mascot={mascot} pose={foreign || listening ? "point" : pose} />
-            </div>
-            <div className="min-w-0">
-              <div className="truncate text-xs uppercase tracking-[0.16em] text-gold2">
-                {user.mascot_name || "Спутник"}
-              </div>
-              {foreign && <div className="truncate text-[11px] text-cream/60">передаёт: {line.name || "город"}</div>}
-            </div>
+          <div className="mb-2">
+            <div className="text-xs uppercase tracking-[0.16em] text-gold2">{user.mascot_name || "Спутник"}</div>
+            {foreign && <div className="text-[11px] text-cream/60">{line.name || "Собеседник"} говорит</div>}
           </div>
           <div className={`font-display text-[28px] leading-tight ${foreign ? "italic" : ""}`}>{line.text}</div>
           {foreign && gloss?.speaker === "mascot" && (

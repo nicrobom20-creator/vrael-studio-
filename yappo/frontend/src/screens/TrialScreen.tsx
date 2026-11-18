@@ -5,7 +5,7 @@ import { ApiError, api, haptic } from "../api";
 import { CityScene } from "../components/CityScene";
 import { Companion } from "../components/Companion";
 import { TopStats } from "../components/Shell";
-import { GoldButton, LeadIn, MicButton, StarBurst } from "../components/World";
+import { GoldButton, MicButton, StarBurst } from "../components/World";
 import { canListen, chime, listenOnce, phraseHit, speakAloud } from "../lib/speech";
 import { useApp } from "../state";
 import type { Lesson, MascotId, Step, User } from "../types";
@@ -176,7 +176,6 @@ export function TrialScreen() {
   return (
     <div className="relative min-h-dvh overflow-hidden">
       <CityScene language={user.language} />
-      {!done && <LeadIn mascot={mascot} />}
       <StarBurst token={burst} />
       <TopStats
         title={done ? "Врата открыты" : lesson.title}

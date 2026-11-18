@@ -13,7 +13,7 @@ def vocab(word, translation, example, example_ru, reading=""):
     }
 
 
-def choice(prompt, options, answer, explain, sub="Выберите правильный вариант"):
+def choice(prompt, options, answer, explain, sub="Выбери правильный вариант"):
     return {
         "type": "choice",
         "prompt": prompt,

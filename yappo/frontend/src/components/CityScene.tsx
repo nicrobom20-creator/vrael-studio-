@@ -13,57 +13,56 @@ export function cityOf(language: string) {
   return CITY[language] || "paris";
 }
 
-/** Hand-traced on the painted cobbles, bottom (start) to top (later trials). */
+/**
+ * Percent positions inside a chapter band whose background is the painting
+ * anchored to the bottom and 158% tall, so only the cobbled path is in frame.
+ * First point is the start of the path (foreground), last is farther up the stones.
+ */
 export const PATHS: Record<string, { x: number; y: number }[]> = {
   paris: [
-    { x: 49, y: 78 },
-    { x: 58, y: 69 },
-    { x: 44, y: 61 },
-    { x: 60, y: 53 },
-    { x: 50, y: 45 },
-    { x: 57, y: 37 },
-    { x: 49, y: 29 },
-    { x: 54, y: 22 },
+    { x: 48, y: 70 },
+    { x: 56, y: 65 },
+    { x: 46, y: 60 },
+    { x: 57, y: 55 },
+    { x: 50, y: 50 },
+    { x: 56, y: 45 },
+    { x: 49, y: 40 },
   ],
   london: [
-    { x: 50, y: 78 },
-    { x: 60, y: 70 },
-    { x: 70, y: 62 },
-    { x: 64, y: 54 },
-    { x: 72, y: 46 },
-    { x: 66, y: 38 },
-    { x: 58, y: 30 },
-    { x: 52, y: 23 },
+    { x: 54, y: 70 },
+    { x: 62, y: 65 },
+    { x: 70, y: 60 },
+    { x: 64, y: 55 },
+    { x: 72, y: 50 },
+    { x: 66, y: 45 },
+    { x: 58, y: 40 },
   ],
   madrid: [
-    { x: 47, y: 80 },
-    { x: 40, y: 70 },
-    { x: 48, y: 62 },
-    { x: 56, y: 54 },
-    { x: 50, y: 46 },
-    { x: 47, y: 38 },
-    { x: 51, y: 30 },
-    { x: 49, y: 23 },
+    { x: 46, y: 70 },
+    { x: 42, y: 65 },
+    { x: 48, y: 60 },
+    { x: 55, y: 55 },
+    { x: 50, y: 50 },
+    { x: 46, y: 45 },
+    { x: 51, y: 40 },
   ],
   berlin: [
-    { x: 40, y: 80 },
-    { x: 50, y: 71 },
-    { x: 58, y: 63 },
-    { x: 54, y: 55 },
-    { x: 46, y: 47 },
-    { x: 52, y: 39 },
-    { x: 57, y: 31 },
-    { x: 60, y: 24 },
+    { x: 44, y: 70 },
+    { x: 50, y: 65 },
+    { x: 57, y: 60 },
+    { x: 53, y: 55 },
+    { x: 48, y: 50 },
+    { x: 55, y: 45 },
+    { x: 60, y: 40 },
   ],
   beijing: [
-    { x: 50, y: 80 },
-    { x: 46, y: 70 },
-    { x: 54, y: 62 },
-    { x: 48, y: 54 },
-    { x: 52, y: 46 },
-    { x: 47, y: 38 },
-    { x: 51, y: 30 },
-    { x: 49, y: 23 },
+    { x: 50, y: 70 },
+    { x: 46, y: 65 },
+    { x: 54, y: 60 },
+    { x: 48, y: 55 },
+    { x: 52, y: 50 },
+    { x: 47, y: 45 },
+    { x: 51, y: 40 },
   ],
 };
 
@@ -82,27 +81,30 @@ export function pathSpots(language: string, count: number) {
   });
 }
 
-export function CityScene({ language = "fr" }: { language?: string }) {
+export function CityScene({ language = "fr", pathFrame = false }: { language?: string; pathFrame?: boolean }) {
   const city = cityOf(language);
+  const src = `/art/${city}-720.webp`;
+  const srcSet = `/art/${city}-360.webp 360w, /art/${city}-540.webp 540w, /art/${city}-720.webp 720w`;
   return (
     <div className="absolute inset-0 overflow-hidden bg-[#1c140f]">
-      <motion.img
-        src={`/art/${city}-720.webp`}
-        srcSet={`/art/${city}-360.webp 360w, /art/${city}-540.webp 540w, /art/${city}-720.webp 720w`}
+      <img
+        src={src}
+        srcSet={srcSet}
         sizes="100vw"
         alt=""
-        className="absolute inset-0 h-[108%] w-full max-w-none object-cover"
-        initial={{ scale: 1.04, y: 0 }}
-        animate={{ scale: 1.08, y: [0, -10, 0] }}
-        transition={{ duration: 24, repeat: Infinity, ease: "easeInOut" }}
+        className={
+          pathFrame
+            ? "absolute bottom-0 left-1/2 h-[162%] w-auto max-w-none -translate-x-1/2"
+            : "absolute inset-0 h-full w-full object-cover"
+        }
       />
-      <div className="pointer-events-none absolute inset-0 bg-gradient-to-b from-black/45 via-black/5 to-black/50" />
+      <div className="pointer-events-none absolute inset-0 bg-gradient-to-b from-black/40 via-transparent to-black/35" />
       <motion.div
-        className="pointer-events-none absolute inset-x-0 top-0 h-40 bg-gradient-to-b from-white/10 to-transparent"
-        animate={{ opacity: [0.15, 0.35, 0.15] }}
-        transition={{ duration: 9, repeat: Infinity, ease: "easeInOut" }}
+        className="pointer-events-none absolute inset-x-0 top-[18%] h-24 bg-gradient-to-b from-white/10 to-transparent"
+        animate={{ opacity: [0.12, 0.28, 0.12], y: [0, 12, 0] }}
+        transition={{ duration: 14, repeat: Infinity, ease: "easeInOut" }}
       />
-      <div className="pointer-events-none absolute inset-x-0 bottom-0 h-48 bg-gradient-to-t from-[#120e0b]/80 to-transparent" />
+      <div className="pointer-events-none absolute inset-x-0 bottom-0 h-28 bg-gradient-to-t from-[#120e0b]/70 to-transparent" />
     </div>
   );
 }
