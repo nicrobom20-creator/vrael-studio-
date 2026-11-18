@@ -1,0 +1,15 @@
+services:
+  yappo:
+    build: .
+    ports:
+      - "8000:8000"
+    env_file: .env
+    environment:
+      DATABASE_URL: sqlite:////data/yappo.db
+      STATIC_DIR: /app/static
+    volumes:
+      - yappo-data:/data
+    restart: unless-stopped
+
+volumes:
+  yappo-data:

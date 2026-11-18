@@ -1,0 +1,129 @@
+from datetime import date, datetime
+
+from sqlalchemy import (
+    BigInteger,
+    Boolean,
+    Date,
+    DateTime,
+    ForeignKey,
+    Integer,
+    String,
+    Text,
+    UniqueConstraint,
+)
+from sqlalchemy.orm import Mapped, mapped_column
+
+from app.db import Base
+
+
+def utcnow() -> datetime:
+    return datetime.utcnow()
+
+
+class User(Base):
+    __tablename__ = "users"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    telegram_id: Mapped[int] = mapped_column(BigInteger, unique=True, index=True)
+    username: Mapped[str] = mapped_column(String(64), default="")
+    first_name: Mapped[str] = mapped_column(String(128), default="")
+    language: Mapped[str] = mapped_column(String(8), default="")
+    mascot: Mapped[str] = mapped_column(String(16), default="")
+    timezone: Mapped[str] = mapped_column(String(64), default="Europe/Moscow")
+    reminder_time: Mapped[str] = mapped_column(String(5), default="")
+    daily_goal: Mapped[int] = mapped_column(Integer, default=15)
+    xp: Mapped[int] = mapped_column(Integer, default=0)
+    streak: Mapped[int] = mapped_column(Integer, default=0)
+    last_study_date: Mapped[date | None] = mapped_column(Date, nullable=True)
+    last_study_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
+    last_reminder_date: Mapped[date | None] = mapped_column(Date, nullable=True)
+    premium_until: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
+    referral_code: Mapped[str] = mapped_column(String(16), unique=True, index=True)
+    referred_by_id: Mapped[int | None] = mapped_column(ForeignKey("users.id"), nullable=True)
+    onboarded: Mapped[bool] = mapped_column(Boolean, default=False)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=utcnow)
+
+
+class Progress(Base):
+    __tablename__ = "progress"
+    __table_args__ = (UniqueConstraint("user_id", "node_id"),)
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    user_id: Mapped[int] = mapped_column(ForeignKey("users.id"), index=True)
+    node_id: Mapped[str] = mapped_column(String(64))
+    mistakes: Mapped[int] = mapped_column(Integer, default=0)
+    xp: Mapped[int] = mapped_column(Integer, default=0)
+    completed_at: Mapped[datetime] = mapped_column(DateTime, default=utcnow)
+
+
+class UsageDay(Base):
+    __tablename__ = "usage_days"
+    __table_args__ = (UniqueConstraint("user_id", "day"),)
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    user_id: Mapped[int] = mapped_column(ForeignKey("users.id"), index=True)
+    day: Mapped[date] = mapped_column(Date, index=True)
+    lessons: Mapped[int] = mapped_column(Integer, default=0)
+    chats: Mapped[int] = mapped_column(Integer, default=0)
+
+
+class XpEvent(Base):
+    __tablename__ = "xp_events"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    user_id: Mapped[int] = mapped_column(ForeignKey("users.id"), index=True)
+    amount: Mapped[int] = mapped_column(Integer)
+    reason: Mapped[str] = mapped_column(String(64))
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=utcnow, index=True)
+
+
+class Achievement(Base):
+    __tablename__ = "achievements"
+    __table_args__ = (UniqueConstraint("user_id", "code"),)
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    user_id: Mapped[int] = mapped_column(ForeignKey("users.id"), index=True)
+    code: Mapped[str] = mapped_column(String(32))
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=utcnow)
+
+
+class Payment(Base):
+    __tablename__ = "payments"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    user_id: Mapped[int] = mapped_column(ForeignKey("users.id"), index=True)
+    order_id: Mapped[str] = mapped_column(String(80), unique=True, index=True)
+    plan: Mapped[str] = mapped_column(String(16))
+    amount: Mapped[str] = mapped_column(String(16))
+    currency: Mapped[str] = mapped_column(String(8), default="RUB")
+    status: Mapped[str] = mapped_column(String(16), default="pending")
+    payment_id: Mapped[str] = mapped_column(String(80), default="")
+    pay_url: Mapped[str] = mapped_column(Text, default="")
+    is_test: Mapped[bool] = mapped_column(Boolean, default=False)
+    days: Mapped[int] = mapped_column(Integer, default=30)
+    premium_applied: Mapped[bool] = mapped_column(Boolean, default=False)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=utcnow)
+    paid_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
+
+
+class PaymentEvent(Base):
+    __tablename__ = "payment_events"
+    __table_args__ = (UniqueConstraint("dedupe_key"),)
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    dedupe_key: Mapped[str] = mapped_column(String(160))
+    order_id: Mapped[str] = mapped_column(String(80), index=True)
+    event_type: Mapped[str] = mapped_column(String(40))
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=utcnow)
+
+
+class ReferralReward(Base):
+    __tablename__ = "referral_rewards"
+    __table_args__ = (UniqueConstraint("referrer_id", "referee_id", "kind"),)
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    referrer_id: Mapped[int] = mapped_column(ForeignKey("users.id"), index=True)
+    referee_id: Mapped[int] = mapped_column(ForeignKey("users.id"), index=True)
+    kind: Mapped[str] = mapped_column(String(32))
+    amount: Mapped[int] = mapped_column(Integer)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=utcnow)
