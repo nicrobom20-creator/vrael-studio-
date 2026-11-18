@@ -1,7 +1,7 @@
 import { AnimatePresence, motion } from "framer-motion";
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { ApiError, api, haptic } from "../api";
+import { ApiError, api, followCheckout, haptic } from "../api";
 import { CityScene } from "../components/CityScene";
 import { Companion } from "../components/Companion";
 import { TopStats } from "../components/Shell";
@@ -475,17 +475,8 @@ function LimitNote({ text, onBack, onPremium }: { text: string; onBack: () => vo
   async function pay() {
     setBusy(true);
     try {
-      const result = await api<{ pay_url: string; test: boolean }>("/api/billing/checkout", {
-        method: "POST",
-        body: JSON.stringify({ plan }),
-      });
-      if (result.pay_url.startsWith("/")) {
-        navigate(result.pay_url);
-        notify(result.test ? "Тестовый счёт создан. Доступ откроется после подтверждения оплаты." : "Переходим к оплате");
-        return;
-      }
-      if (window.Telegram?.WebApp?.openLink) window.Telegram.WebApp.openLink(result.pay_url);
-      else window.location.href = result.pay_url;
+      const message = await followCheckout(plan, navigate);
+      if (message) notify(message);
     } catch (reason) {
       notify(reason instanceof Error ? reason.message : "Платёж не создан");
     } finally {

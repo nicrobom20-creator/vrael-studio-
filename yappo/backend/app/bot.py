@@ -34,6 +34,16 @@ def get_dispatcher() -> Dispatcher:
     return _dp
 
 
+def menu_button(url: str):
+    """Chat menu button. Only https can open a Mini App."""
+    from aiogram.types import MenuButtonWebApp
+
+    clean = (url or "").strip()
+    if not clean.startswith("https://"):
+        return None
+    return MenuButtonWebApp(text="Yappo", web_app=WebAppInfo(url=clean))
+
+
 def open_keyboard() -> InlineKeyboardMarkup | None:
     url = get_settings().webapp_url.strip()
     if not url:

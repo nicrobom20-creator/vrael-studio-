@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { api } from "../api";
+import { followCheckout } from "../api";
 import { Atmosphere, GoldButton } from "../components/World";
 import { useApp } from "../state";
 
@@ -15,17 +15,8 @@ export function PremiumScreen() {
   async function pay() {
     setBusy(true);
     try {
-      const result = await api<{ pay_url: string; test: boolean; order_id: string }>("/api/billing/checkout", {
-        method: "POST",
-        body: JSON.stringify({ plan }),
-      });
-      if (result.pay_url.startsWith("/")) {
-        navigate(result.pay_url);
-        notify(result.test ? "Тестовый счёт создан. Доступ откроется после подтверждения оплаты." : "Переходим к оплате");
-        return;
-      }
-      if (window.Telegram?.WebApp?.openLink) window.Telegram.WebApp.openLink(result.pay_url);
-      else window.location.href = result.pay_url;
+      const message = await followCheckout(plan, navigate);
+      if (message) notify(message);
     } catch (reason) {
       notify(reason instanceof Error ? reason.message : "Платёж не создан");
     } finally {

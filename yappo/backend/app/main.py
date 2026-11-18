@@ -104,11 +104,12 @@ async def _configure_bot() -> None:
         from app.bot import get_bot
 
         bot = get_bot()
-        url = settings.webapp_url.strip().rstrip("/")
-        if url.startswith("https://"):
-            from aiogram.types import MenuButtonWebApp, WebAppInfo
+        from app.bot import menu_button
 
-            await bot.set_chat_menu_button(menu_button=MenuButtonWebApp(text="Yappo", web_app=WebAppInfo(url=url)))
+        url = settings.webapp_url.strip().rstrip("/")
+        button = menu_button(url)
+        if button is not None:
+            await bot.set_chat_menu_button(menu_button=button)
         public = settings.public_base_url.strip().rstrip("/")
         if settings.bot_mode == "webhook" and public.startswith("https://"):
             await bot.set_webhook(f"{public}/webhooks/telegram")
@@ -354,6 +355,8 @@ def create_app() -> FastAPI:
             candidate = (root / full_path).resolve()
             if candidate.is_file() and (candidate == root or root in candidate.parents):
                 return FileResponse(candidate)
+            if full_path.startswith("api/") or full_path.startswith("webhooks/"):
+                raise HTTPException(status_code=404, detail="Not found")
             if Path(full_path).suffix.lower() in asset_suffixes:
                 raise HTTPException(status_code=404, detail="Not found")
             index = root / "index.html"

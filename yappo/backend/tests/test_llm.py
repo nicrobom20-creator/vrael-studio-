@@ -66,3 +66,23 @@ def test_gemini_uses_flash_and_companion_persona(monkeypatch):
     assert "gemini-3.1-flash-lite:generateContent" in _Client.url
     assert "Рыжик" in _Client.payload["systemInstruction"]["parts"][0]["text"]
     assert _Client.headers["x-goog-api-key"] == "test-key"
+
+
+def test_gemini_http_error_falls_back_to_demo(monkeypatch):
+    class _Down(_Client):
+        async def post(self, url, json=None, headers=None):
+            raise httpx.ConnectError("gemini down")
+
+    monkeypatch.setattr(httpx, "AsyncClient", _Down)
+    settings = Settings(llm_provider="gemini", gemini_api_key="test-key", llm_api_key="")
+    result = asyncio.run(chat_reply(
+        settings,
+        language="en",
+        scene_id="cafe",
+        history=[],
+        user_text="Hello",
+        mascot_name="Яппо",
+        mascot_id="parrot",
+    ))
+    assert result["source"] == "fallback"
+    assert result["reply"]
