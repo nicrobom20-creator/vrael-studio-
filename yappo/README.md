@@ -88,10 +88,10 @@ LLM_API_KEY=
 LLM_BASE_URL=https://api.openai.com/v1
 LLM_MODEL=gpt-4o-mini
 GEMINI_API_KEY=
-GEMINI_MODEL=gemini-2.0-flash
+GEMINI_MODEL=gemini-3.1-flash-lite
 ```
 
-`LLM_PROVIDER=openai` — любой OpenAI-совместимый `POST /chat/completions`. `LLM_PROVIDER=gemini` и `GEMINI_API_KEY` — Gemini (`gemini-2.0-flash`, другую flash-модель укажите в `GEMINI_MODEL`). Тон ответа берётся у спутника ученика. Реплика на изучаемом языке, подсказка и поправка по-русски. Без ключа сцены всё равно играются: учебные реплики на месте.
+`LLM_PROVIDER=openai` — любой OpenAI-совместимый `POST /chat/completions`. `LLM_PROVIDER=gemini` и `GEMINI_API_KEY` — Gemini (`gemini-3.1-flash-lite`, другую модель укажите в `GEMINI_MODEL`). Тон ответа берётся у спутника ученика. Реплика на изучаемом языке, подсказка и поправка по-русски. Без ключа сцены всё равно играются: учебные реплики на месте.
 
 ## Напоминания
 

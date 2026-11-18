@@ -18,7 +18,7 @@
 3. В Environment впиши:
    - `BOT_TOKEN` — токен из BotFather
    - `WEBAPP_URL` и `PUBLIC_BASE_URL` — один и тот же адрес Render, с `https://`, без слэша в конце
-   - `LLM_PROVIDER` — `openai` или `gemini`. Для Gemini нужен `GEMINI_API_KEY` (модель по умолчанию `gemini-2.0-flash`, другая flash-модель — в `GEMINI_MODEL`)
+   - `LLM_PROVIDER` — `openai` или `gemini`. Для Gemini нужен `GEMINI_API_KEY` (модель по умолчанию `gemini-3.1-flash-lite`, другая модель — в `GEMINI_MODEL`)
    - `APP_SECRET` — длинная случайная строка
    - `DEMO_MODE` — `false` на бою
    - `BOT_MODE` — `webhook`

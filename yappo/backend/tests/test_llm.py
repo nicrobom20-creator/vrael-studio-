@@ -48,7 +48,7 @@ def test_gemini_uses_flash_and_companion_persona(monkeypatch):
     settings = Settings(
         llm_provider="gemini",
         gemini_api_key="test-key",
-        gemini_model="gemini-2.0-flash",
+        gemini_model="gemini-3.1-flash-lite",
         llm_api_key="",
     )
     result = asyncio.run(chat_reply(
@@ -63,6 +63,6 @@ def test_gemini_uses_flash_and_companion_persona(monkeypatch):
     assert result["source"] == "llm"
     assert result["reply"] == "Hello!"
     assert result["hint_ru"] == "Скажи hello."
-    assert "gemini-2.0-flash:generateContent" in _Client.url
+    assert "gemini-3.1-flash-lite:generateContent" in _Client.url
     assert "Рыжик" in _Client.payload["systemInstruction"]["parts"][0]["text"]
     assert _Client.headers["x-goog-api-key"] == "test-key"
