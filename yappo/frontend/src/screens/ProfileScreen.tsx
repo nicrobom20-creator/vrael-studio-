@@ -54,6 +54,7 @@ export function ProfileScreen() {
           <Link className="glass p-3" to="/quests">Квесты дня</Link>
         </div>
         <div className="mt-4 flex flex-wrap gap-x-4 gap-y-1 text-xs text-cream/60">
+          <button type="button" className="underline" onClick={() => openLegal("/pricing")}>Тарифы</button>
           <button type="button" className="underline" onClick={() => openLegal("/privacy")}>Политика</button>
           <button type="button" className="underline" onClick={() => openLegal("/terms")}>Соглашение</button>
           <button type="button" className="underline" onClick={() => openLegal("/support")}>Поддержка</button>

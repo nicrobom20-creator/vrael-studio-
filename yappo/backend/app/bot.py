@@ -47,6 +47,7 @@ def menu_button(url: str):
 SUPPORT_URL = "https://t.me/vraelstudio"
 PUBLIC_COMMANDS = [
     BotCommand(command="start", description="Открыть Yappo"),
+    BotCommand(command="pricing", description="Тарифы"),
     BotCommand(command="privacy", description="Политика конфиденциальности"),
     BotCommand(command="terms", description="Пользовательское соглашение"),
     BotCommand(command="support", description="Поддержка"),
@@ -69,6 +70,7 @@ def info_keyboard() -> InlineKeyboardMarkup:
     elif url.startswith("http://"):
         rows.append([InlineKeyboardButton(text="Открыть Yappo", url=url)])
     if base.startswith("http"):
+        rows.append([InlineKeyboardButton(text="Тарифы", url=f"{base}/pricing")])
         rows.append([InlineKeyboardButton(text="Политика конфиденциальности", url=f"{base}/privacy")])
         rows.append([InlineKeyboardButton(text="Пользовательское соглашение", url=f"{base}/terms")])
     rows.append([InlineKeyboardButton(text="Поддержка", url=SUPPORT_URL)])
@@ -118,6 +120,7 @@ async def cmd_help(message: Message) -> None:
     await message.answer(
         "Yappo учит язык маленькими шагами.\n"
         "/start — открыть приложение\n"
+        "/pricing — тарифы\n"
         "/privacy — политика конфиденциальности\n"
         "/terms — пользовательское соглашение\n"
         "/support — поддержка @vraelstudio\n"
@@ -125,6 +128,35 @@ async def cmd_help(message: Message) -> None:
         "Ссылку для друга найдёшь в приложении, в разделе «Друзья».",
         reply_markup=info_keyboard(),
     )
+
+
+def pricing_text() -> str:
+    settings = get_settings()
+    month = int(float(settings.premium_month_rub))
+    year = int(float(settings.premium_year_rub))
+    full = float(settings.premium_month_rub) * 12
+    saving = round((1 - float(settings.premium_year_rub) / full) * 100) if full else 0
+    base = _public_base()
+    link = f"{base}/pricing" if base.startswith("http") else "/pricing"
+    return (
+        "Тарифы Yappo\n\n"
+        f"Бесплатно — 0 ₽: {settings.free_lessons_per_day} урока в день, "
+        f"{settings.free_chat_messages_per_day} сообщений AI-собеседнику в день, "
+        "все 5 языков, карта и персонажи.\n\n"
+        f"Yappo Premium на месяц — {month} ₽ за {settings.premium_month_days} дней: "
+        "безлимитные уроки и AI-собеседник, все квесты и сюжет, без ограничений.\n\n"
+        f"Yappo Premium на год — {year} ₽ за {settings.premium_year_days} дней "
+        f"(выгоднее ~{saving}%).\n\n"
+        "Разовая оплата за период, без автопродления. "
+        "Оплата картой или СБП через RollyPay. Доступ открывается сразу после оплаты.\n"
+        f"Подробно: {link}\n"
+        "Возврат и вопросы: @vraelstudio"
+    )
+
+
+@router.message(Command("pricing"))
+async def cmd_pricing(message: Message) -> None:
+    await message.answer(pricing_text(), reply_markup=info_keyboard())
 
 
 @router.message(Command("privacy"))

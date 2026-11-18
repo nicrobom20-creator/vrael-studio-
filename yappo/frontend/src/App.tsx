@@ -20,6 +20,7 @@ const StoryScreen = lazy(() => import("./screens/StoryScreen").then((m) => ({ de
 const TrialScreen = lazy(() => import("./screens/TrialScreen").then((m) => ({ default: m.TrialScreen })));
 const PrivacyPage = lazy(() => import("./screens/LegalScreen").then((m) => ({ default: m.PrivacyPage })));
 const TermsPage = lazy(() => import("./screens/LegalScreen").then((m) => ({ default: m.TermsPage })));
+const PricingPage = lazy(() => import("./screens/LegalScreen").then((m) => ({ default: m.PricingPage })));
 
 export function App() {
   const { ready, error, user, boot, toast } = useApp();
@@ -43,8 +44,8 @@ export function App() {
     window.location.replace("https://t.me/vraelstudio");
     return null;
   }
-  if (location.pathname === "/privacy" || location.pathname === "/terms") {
-    const Page = location.pathname === "/privacy" ? PrivacyPage : TermsPage;
+  if (location.pathname === "/privacy" || location.pathname === "/terms" || location.pathname === "/pricing" || location.pathname === "/tariffs") {
+    const Page = location.pathname === "/privacy" ? PrivacyPage : location.pathname === "/terms" ? TermsPage : PricingPage;
     return (
       <Suspense fallback={<Splash label="Открываем…" />}>
         <Page />

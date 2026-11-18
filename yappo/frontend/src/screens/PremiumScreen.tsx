@@ -65,6 +65,8 @@ export function PremiumScreen() {
         </div>
         <ConsentLine />
         <p className="mt-3 text-center text-[11px] text-cream/55">
+          <button type="button" className="underline" onClick={() => openLegal("/pricing")}>Тарифы</button>
+          {" · "}
           <button type="button" className="underline" onClick={() => openLegal("/support")}>Поддержка</button>
         </p>
       </div>

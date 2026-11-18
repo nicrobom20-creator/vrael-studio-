@@ -6,7 +6,7 @@ import { CityScene } from "../components/CityScene";
 import { Companion } from "../components/Companion";
 import { TopStats } from "../components/Shell";
 import { GoldButton, MicButton, StarBurst } from "../components/World";
-import { ConsentLine } from "./LegalScreen";
+import { ConsentLine, openLegal } from "./LegalScreen";
 import { markUnlock } from "../lib/motion";
 import { canListen, chime, listenOnce, phraseHit, speakAloud } from "../lib/speech";
 import { useApp } from "../state";
@@ -516,6 +516,7 @@ function LimitNote({ text, onBack, onPremium }: { text: string; onBack: () => vo
               {busy ? "Создаём счёт…" : "Оплатить"}
             </GoldButton>
             <ConsentLine />
+            <button type="button" className="text-[11px] text-cream/55 underline" onClick={() => openLegal("/pricing")}>Тарифы</button>
             <button onClick={onBack} className="text-sm text-gold2">Вернуться на карту</button>
           </div>
         </div>

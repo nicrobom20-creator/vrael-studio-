@@ -44,7 +44,7 @@ export function TermsPage() {
         <p>Yappo — это Telegram-бот @YappoLang_Bot и Mini App для изучения языка: сцены, испытания и разговор. Открывая бота, пользуясь приложением или оплачивая Premium, ты принимаешь эти условия. Если не согласен — не пользуйся сервисом.</p>
       </Section>
       <Section title="2. Что входит">
-        <p>Бесплатно: 3 испытания и 5 сообщений ИИ-собеседнику в день. Premium: без этих дневных лимитов. Срок и цена указаны до оплаты: 199 ₽ за 30 дней или 1999 ₽ за 365 дней. Оплата через RollyPay. Автопродления нет: это разовая оплата выбранного периода, без списания в следующем месяце или году, пока ты сам не оплатишь снова.</p>
+        <p>Бесплатно: 3 урока и 5 сообщений ИИ-собеседнику в день. Premium: без этих дневных лимитов. Срок и цена указаны до оплаты и на странице тарифов: 199 ₽ за 30 дней или 1999 ₽ за 365 дней. Оплата через RollyPay. Автопродления нет: это разовая оплата выбранного периода, без списания в следующем месяце или году, пока ты сам не оплатишь снова. Полный список тарифов — на странице <a href="/pricing">«Тарифы»</a>.</p>
       </Section>
       <Section title="3. Доступ">
         <p>После подтверждённой оплаты Premium открывается на оплаченный срок. Интернет и Telegram ты обеспечиваешь сам. Сервис может ненадолго останавливаться на обновление.</p>
@@ -73,7 +73,54 @@ function LegalShell({ title, children }: { title: string; children: ReactNode })
       <article className="mt-6 space-y-4 text-sm leading-relaxed text-cream/85 [&_a]:text-gold2 [&_a]:underline [&_h2]:mt-6 [&_h2]:font-display [&_h2]:text-2xl [&_h2]:text-cream [&_ul]:list-disc [&_ul]:space-y-1 [&_ul]:pl-5">
         {children}
       </article>
+      <LegalFooter />
     </main>
+  );
+}
+
+export function PricingPage() {
+  return (
+    <LegalShell title="Тарифы">
+      <p>Цены сервиса Yappo. Бот @YappoLang_Bot и Mini App. Оплата разовая за выбранный период, без автопродления.</p>
+      <Section title="Бесплатно — 0 ₽">
+        <ul>
+          <li>3 урока в день;</li>
+          <li>5 сообщений AI-собеседнику в день;</li>
+          <li>все 5 языков, карта и персонажи.</li>
+        </ul>
+      </Section>
+      <Section title="Yappo Premium на месяц — 199 ₽ за 30 дней">
+        <ul>
+          <li>безлимитные уроки и AI-собеседник;</li>
+          <li>все квесты и сюжет, без дневных ограничений.</li>
+        </ul>
+      </Section>
+      <Section title="Yappo Premium на год — 1999 ₽ за 365 дней">
+        <p>Выгоднее примерно на 16% по сравнению с двенадцатью месяцами по 199 ₽.</p>
+        <ul>
+          <li>безлимитные уроки и AI-собеседник;</li>
+          <li>все квесты и сюжет, без дневных ограничений.</li>
+        </ul>
+      </Section>
+      <Section title="Как оплатить">
+        <p>Оплата картой или через СБП, платёж проводит RollyPay. Доступ открывается сразу после оплаты. Номер карты Yappo не хранит.</p>
+        <p>Возврат и вопросы — поддержка <a href={SUPPORT}>@vraelstudio</a>. Условия — в <a href="/terms">пользовательском соглашении</a> и <a href="/privacy">политике конфиденциальности</a>.</p>
+      </Section>
+    </LegalShell>
+  );
+}
+
+export function LegalFooter() {
+  return (
+    <nav className="mt-10 flex flex-wrap items-center gap-x-2 gap-y-2 border-t border-white/10 pt-4 text-xs text-gold2 [&_a]:underline">
+      <a href="/pricing">Тарифы</a>
+      <span aria-hidden>·</span>
+      <a href="/terms">Соглашение</a>
+      <span aria-hidden>·</span>
+      <a href="/privacy">Политика</a>
+      <span aria-hidden>·</span>
+      <a href={SUPPORT}>Поддержка</a>
+    </nav>
   );
 }
 

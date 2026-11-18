@@ -121,8 +121,18 @@ def test_menu_button_and_start_keyboard_require_https(monkeypatch):
     keyboard = open_keyboard()
     labels = [button.text for row in keyboard.inline_keyboard for button in row]
     assert labels[0] == "Открыть Yappo"
+    assert "Тарифы" in labels
     assert "Политика конфиденциальности" in labels
     assert "Пользовательское соглашение" in labels
     assert "Поддержка" in labels
     assert keyboard.inline_keyboard[0][0].web_app is not None
+    from app.bot import pricing_text
+
+    text = pricing_text()
+    assert "199 ₽ за 30 дней" in text
+    assert "1999 ₽ за 365 дней" in text
+    assert "3 урока в день" in text
+    assert "5 сообщений" in text
+    assert "/pricing" in text
+    assert "~16%" in text
     get_settings.cache_clear()
