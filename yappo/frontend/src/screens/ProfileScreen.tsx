@@ -54,6 +54,9 @@ export function ProfileScreen() {
           <Link className="glass p-3" to="/settings">Напоминания</Link>
           <Link className="glass p-3" to="/quests">Квесты дня</Link>
         </div>
+        {user.access && (
+          <Link className="gold-btn mt-4 grid h-11 place-items-center text-sm" to="/admin">Админ-панель</Link>
+        )}
         <div className="mt-4 flex flex-wrap gap-x-4 gap-y-1 text-xs text-cream/60">
           <button type="button" className="underline" onClick={() => openLegal("/pricing")}>Тарифы</button>
           <button type="button" className="underline" onClick={() => openLegal("/privacy")}>Политика</button>

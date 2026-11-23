@@ -21,6 +21,7 @@ const TrialScreen = lazy(() => import("./screens/TrialScreen").then((m) => ({ de
 const PrivacyPage = lazy(() => import("./screens/LegalScreen").then((m) => ({ default: m.PrivacyPage })));
 const TermsPage = lazy(() => import("./screens/LegalScreen").then((m) => ({ default: m.TermsPage })));
 const PricingPage = lazy(() => import("./screens/LegalScreen").then((m) => ({ default: m.PricingPage })));
+const AdminScreen = lazy(() => import("./screens/AdminScreen").then((m) => ({ default: m.AdminScreen })));
 
 export function App() {
   const { ready, error, user, boot, toast } = useApp();
@@ -38,6 +39,7 @@ export function App() {
     { path: "/friends", element: <ReferralsScreen /> },
     { path: "/settings", element: <SettingsScreen /> },
     { path: "/board", element: <LeaderboardScreen /> },
+    { path: "/admin", element: <AdminScreen /> },
   ]);
 
   if (location.pathname === "/support") {
