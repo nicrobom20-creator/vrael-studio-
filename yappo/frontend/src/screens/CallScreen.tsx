@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Companion } from "../components/Companion";
+import { CallFace } from "../components/CallFace";
 import { GoldButton, MicButton } from "../components/World";
 import { beginSpeech, openInBrowser, phraseHit, speakAloud } from "../lib/speech";
 import { gentleLine, praiseLine } from "../lib/praise";
@@ -50,8 +50,6 @@ export function CallScreen() {
   const mascot = (user.mascot || "parrot") as MascotId;
   const place = SCENES[scene];
   const turn = place.turns[index];
-  const pose: Pose = done ? "celebrate" : listening ? "point" : mood;
-
   function reset(nextScene: number) {
     setScene(nextScene);
     setIndex(0);
@@ -99,8 +97,8 @@ export function CallScreen() {
           </button>
         ))}
       </div>
-      <div className="relative mx-auto mt-4 h-48 w-40">
-        <Companion mascot={mascot} pose={pose} outfit={user.outfit} />
+      <div className="relative mx-auto mt-4 h-48 w-44">
+        <CallFace mascot={mascot} talking={listening || Boolean(turn)} happy={done || mood === "celebrate"} />
         {listening && (
           <div className="pointer-events-none absolute bottom-0 left-1/2 flex -translate-x-1/2 gap-1">
             <span className="call-bar" />
