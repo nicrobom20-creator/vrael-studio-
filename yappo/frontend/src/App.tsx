@@ -23,11 +23,12 @@ const TermsPage = lazy(() => import("./screens/LegalScreen").then((m) => ({ defa
 const PricingPage = lazy(() => import("./screens/LegalScreen").then((m) => ({ default: m.PricingPage })));
 const AdminScreen = lazy(() => import("./screens/AdminScreen").then((m) => ({ default: m.AdminScreen })));
 const ShopScreen = lazy(() => import("./screens/ShopScreen").then((m) => ({ default: m.ShopScreen })));
+const CallScreen = lazy(() => import("./screens/CallScreen").then((m) => ({ default: m.CallScreen })));
 
 export function App() {
   const { ready, error, user, boot, toast } = useApp();
   const location = useLocation();
-  const hideNav = /^\/(trial|story|premium|friends|settings|board|admin)/.test(location.pathname);
+  const hideNav = /^\/(trial|story|premium|friends|settings|board|admin|call)/.test(location.pathname);
 
   const element = useRoutes([
     { path: "/", element: <MapScreen /> },
@@ -42,6 +43,7 @@ export function App() {
     { path: "/board", element: <LeaderboardScreen /> },
     { path: "/admin", element: <AdminScreen /> },
     { path: "/shop", element: <ShopScreen /> },
+    { path: "/call", element: <CallScreen /> },
   ]);
 
   if (location.pathname === "/support") {

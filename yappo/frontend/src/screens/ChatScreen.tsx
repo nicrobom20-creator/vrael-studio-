@@ -24,6 +24,7 @@ export function ChatScreen() {
   const [source, setSource] = useState("");
   const scroller = useRef<HTMLDivElement>(null);
   const mascot = user?.mascot || "parrot";
+  const outfit = user?.outfit || "";
   const scene = scenes.find((item) => item.id === sceneId);
 
   useEffect(() => {
@@ -85,11 +86,12 @@ export function ChatScreen() {
       <div className="flex h-dvh flex-col px-3 pt-[max(12px,env(safe-area-inset-top))]">
         <div className="glass flex items-center gap-3 p-3">
           <div className="h-12 w-12">
-            <Companion mascot={mascot} pose="wave" />
+            <Companion mascot={mascot} pose="wave" outfit={outfit} />
           </div>
           <div className="min-w-0 flex-1">
             <div className="font-display text-xl leading-none">{scene?.title || "Разговор"}</div>
             <div className="truncate text-xs text-cream/65">{scene?.blurb}</div>
+            <button type="button" className="mt-1 text-xs text-gold2 underline" onClick={() => navigate("/call")}>Позвонить</button>
           </div>
           <div className="text-right text-[11px] text-gold2">
             {left == null ? "без лимита" : `${left} сообщ.`}
