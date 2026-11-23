@@ -33,6 +33,7 @@ export function MapScreen() {
   const [unlock, setUnlock] = useState<{ from: string; to: string; leg: 0 | 1 | 2 } | null>(null);
   const scroller = useRef<HTMLDivElement>(null);
   const light = useRef<HTMLDivElement>(null);
+  const sky = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     api<PathData>("/api/path").then((data) => {
@@ -50,10 +51,14 @@ export function MapScreen() {
       cancelAnimationFrame(frame);
       frame = requestAnimationFrame(() => {
         const glow = light.current;
+        const veil = sky.current;
         if (!glow) return;
         const max = el.scrollHeight - el.clientHeight || 1;
         const progress = el.scrollTop / max;
         glow.style.transform = `translate3d(${(progress - 0.5) * 80}px, ${progress * 28}vh, 0)`;
+        if (veil && !prefersReducedMotion()) {
+          veil.style.transform = `translate3d(0, ${progress * -48}px, 0)`;
+        }
       });
     };
     el.addEventListener("scroll", onScroll, { passive: true });
@@ -104,6 +109,7 @@ export function MapScreen() {
       onPointerDown={() => startAmbient()}
     >
       <div ref={light} className="hero-light" />
+      <div ref={sky} className="hero-sky" />
       <div className="pointer-events-none absolute inset-0 overflow-hidden">
         <span className="mote" style={{ left: "18%" }} />
         <span className="mote mote-b" style={{ left: "70%" }} />
