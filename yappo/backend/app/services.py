@@ -481,6 +481,8 @@ def path_payload(session: Session, user: User) -> dict:
         lesson_done = 0
         for node in chapter["nodes"]:
             status = node_status(flat, index_of[node["id"]], done)
+            if chapter.get("premium") and not is_premium(user) and status != "done":
+                status = "locked"
             if node["kind"] == "lesson":
                 lesson_total += 1
                 if status == "done":
@@ -502,7 +504,8 @@ def path_payload(session: Session, user: User) -> dict:
             "quest_title": chapter["quest_title"],
             "quest_text": chapter["quest_text"],
             "reward_xp": chapter["reward_xp"],
-            "unlocked": unlocked,
+            "premium": bool(chapter.get("premium")),
+            "unlocked": unlocked and not (chapter.get("premium") and not is_premium(user)),
             "complete": all(node["status"] == "done" for node in nodes),
             "lessons_done": lesson_done,
             "lessons_total": lesson_total,
@@ -512,12 +515,19 @@ def path_payload(session: Session, user: User) -> dict:
     return {"language": meta, "mascot_line": mascot["map_line"], "chapters": chapters}
 
 
+def _city_locked(user: User, node: dict) -> bool:
+    chapter = chapter_by_id(node["chapter_id"])
+    return bool(chapter and chapter.get("premium") and not is_premium(user))
+
+
 def lesson_payload(session: Session, user: User, lesson_id: str) -> dict:
     node = get_node(lesson_id)
     if node is None or node["kind"] != "lesson" or node["language"] != user.language:
         raise ServiceError(404, "Урок не найден")
     if not is_playable(lesson_id, _done(session, user.id)):
         raise ServiceError(403, "Этот урок ещё закрыт")
+    if _city_locked(user, node):
+        raise ServiceError(403, "Этот город открыт с Premium")
     meta = language_meta(user.language)
     return {
         "id": node["id"],
@@ -536,6 +546,8 @@ def story_payload(session: Session, user: User, story_id: str) -> dict:
         raise ServiceError(404, "Сцена не найдена")
     if not is_playable(story_id, _done(session, user.id)):
         raise ServiceError(403, "Эта сцена ещё закрыта")
+    if _city_locked(user, node):
+        raise ServiceError(403, "Этот город открыт с Premium")
     return {"id": node["id"], "title": node["title"], "lines": node["lines"], "xp": node["xp"]}
 
 

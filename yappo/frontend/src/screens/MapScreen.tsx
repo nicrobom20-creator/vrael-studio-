@@ -10,11 +10,12 @@ import { sfx, startAmbient } from "../lib/sound";
 import { useApp } from "../state";
 import type { Chapter, MascotId, PathData, PathNode } from "../types";
 
-const JOURNEY = ["london", "newyork", "sydney"];
+const JOURNEY = ["london", "newyork", "sydney", "rome"];
 const CITY_NAME: Record<string, string> = {
   london: "Лондон",
   newyork: "Нью-Йорк",
   sydney: "Сидней",
+  rome: "Рим",
   paris: "Париж",
   madrid: "Мадрид",
   berlin: "Берлин",
@@ -209,7 +210,7 @@ function ChapterBand({
           className="absolute inset-0 h-full w-full object-cover"
         />
         <div className="pointer-events-none absolute left-3 top-3 z-20 rounded-full bg-black/45 px-3 py-1 text-[11px] text-gold2 backdrop-blur">
-          {CITY_NAME[city] || city}
+          {CITY_NAME[city] || city}{chapter.premium ? " · Premium" : ""}
         </div>
         <svg className="pointer-events-none absolute inset-0 z-10 h-full w-full" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden>
           <path d={d} fill="none" stroke="rgba(255, 214, 140, 0.4)" strokeWidth="7" strokeLinecap="round" strokeLinejoin="round" vectorEffect="non-scaling-stroke" />

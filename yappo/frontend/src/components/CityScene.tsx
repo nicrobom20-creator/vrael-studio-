@@ -27,6 +27,14 @@ export const PATHS: Record<string, { x: number; y: number }[]> = {
     { x: 62, y: 34 },
     { x: 72, y: 24 },
   ],
+  rome: [
+    { x: 50, y: 94 },
+    { x: 56, y: 80 },
+    { x: 60, y: 66 },
+    { x: 58, y: 52 },
+    { x: 64, y: 38 },
+    { x: 70, y: 24 },
+  ],
   london: [
     { x: 54, y: 94 },
     { x: 58, y: 82 },

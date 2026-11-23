@@ -110,7 +110,7 @@ def story(node_id, chapter_id, title, lines):
     }
 
 
-def chapter(node_id, index, title, subtitle, quest_title, quest_text, nodes, reward_xp=40):
+def chapter(node_id, index, title, subtitle, quest_title, quest_text, nodes, reward_xp=40, premium=False):
     return {
         "id": node_id,
         "index": index,
@@ -119,6 +119,7 @@ def chapter(node_id, index, title, subtitle, quest_title, quest_text, nodes, rew
         "quest_title": quest_title,
         "quest_text": quest_text,
         "reward_xp": reward_xp,
+        "premium": premium,
         "nodes": nodes,
     }
 

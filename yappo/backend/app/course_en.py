@@ -197,6 +197,41 @@ def chapters():
                 ]),
             ],
         ),
+        chapter(
+            "en-4", 4, "Рим",
+            "Город только для Premium",
+            "Пройди форум",
+            "Рим открыт, пока действует Premium.",
+            [
+                story("en-4-story", "en-4", "У арки", [
+                    line("mascot", "Это Рим. Сюда пускают только с Premium.", "wave"),
+                    line("npc", "Buongiorno! Welcome to Rome.", "happy", "Лука"),
+                    line("mascot", "Welcome to Rome — добро пожаловать в Рим. Скажем hello и пойдём дальше.", "cheer"),
+                ]),
+                lesson("en-4-vocab", "en-4", "Первые слова Рима", "vocabulary", [
+                    vocab("Welcome", "Добро пожаловать", "Welcome to Rome.", "Добро пожаловать в Рим."),
+                    vocab("Beautiful", "Красивый", "Rome is beautiful.", "Рим красивый."),
+                    choice("Как сказать «красивый»?", ["beautiful", "busy", "bread", "bridge"], 0, "Beautiful — красивый."),
+                ]),
+                lesson("en-4-choice", "en-4", "На площади", "choice", [
+                    choice("«Добро пожаловать»", ["Welcome", "Goodbye", "Ticket", "Water"], 0, "Welcome — добро пожаловать."),
+                    choice("«Рим красивый»", ["Rome is beautiful.", "Rome is closed.", "I am a map.", "Two tickets, please."], 0, "Rome is beautiful."),
+                    choice("«Где фонтан?»", ["Where is the fountain?", "Where is the tea?", "How much is Rome?", "See you later."], 0, "Where is the fountain? — Где фонтан?"),
+                ]),
+                lesson("en-4-build", "en-4", "Фразы гостя", "build", [
+                    build("Добро пожаловать в Рим", ["Welcome", "to Rome."], ["goodbye", "ticket"]),
+                    build("Рим красивый", ["Rome is", "beautiful."], ["closed", "sorry"]),
+                    build("Где фонтан?", ["Where is", "the fountain?"], ["the tea", "please"]),
+                ]),
+                lesson("en-4-listen", "en-4", "Услышь площадь", "listen", [
+                    listen("Welcome to Rome.", ["Добро пожаловать в Рим", "До свидания", "Где чай", "Сколько стоит"], 0, "Welcome to Rome."),
+                    listen("Rome is beautiful.", ["Рим красивый", "Рим закрыт", "Я из Рима", "Два билета"], 0, "Rome is beautiful."),
+                    speak("Welcome to Rome.", "Добро пожаловать в Рим", "Welcome звучит тепло."),
+                ]),
+            ],
+            reward_xp=60,
+            premium=True,
+        ),
     ]
 
 

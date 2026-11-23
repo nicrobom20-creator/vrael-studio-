@@ -106,6 +106,7 @@ export interface Chapter {
   quest_title: string;
   quest_text: string;
   reward_xp: number;
+  premium?: boolean;
   unlocked: boolean;
   complete: boolean;
   lessons_done: number;
