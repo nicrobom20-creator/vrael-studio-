@@ -34,6 +34,7 @@ export function ProfileScreen() {
         <Link className="choice-btn mt-2 grid py-3 text-center text-sm" to="/league">Лига недели</Link>
         <Link className="choice-btn mt-2 grid py-3 text-center text-sm" to="/duel">Дуэль</Link>
         <Link className="choice-btn mt-2 grid py-3 text-center text-sm" to="/chest">Сундук дня</Link>
+        <Link className="choice-btn mt-2 grid py-3 text-center text-sm" to="/certificate">Грамота</Link>
         <div className="mt-3 grid grid-cols-3 gap-2 text-center">
           <Stat label="Серия" value={`${user.streak}`} />
           <Stat label="Опыт" value={`${user.xp}`} />
