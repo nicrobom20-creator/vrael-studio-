@@ -55,6 +55,8 @@ class User(Base):
     kids_mode: Mapped[bool] = mapped_column(Boolean, default=False)
     boost_freeze: Mapped[int] = mapped_column(Integer, default=0)
     boost_double: Mapped[int] = mapped_column(Integer, default=0)
+    look_name: Mapped[str] = mapped_column(String(32), default="")
+    look_tint: Mapped[str] = mapped_column(String(16), default="")
     created_at: Mapped[datetime] = mapped_column(DateTime, default=utcnow)
 
 

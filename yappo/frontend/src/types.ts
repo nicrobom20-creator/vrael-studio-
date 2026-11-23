@@ -83,6 +83,7 @@ export interface User {
   outfit: string;
   pet: { code: string; title: string };
   kids_mode: boolean;
+  look: { name: string; tint: string };
   boosts: { freeze: number; double: number };
   access: StaffAccess | null;
   usage: Usage;

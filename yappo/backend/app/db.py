@@ -82,6 +82,8 @@ def _migrate_users(engine) -> None:
         "kids_mode": kids,
         "boost_freeze": "INTEGER NOT NULL DEFAULT 0",
         "boost_double": "INTEGER NOT NULL DEFAULT 0",
+        "look_name": "VARCHAR(32) DEFAULT ''",
+        "look_tint": "VARCHAR(16) DEFAULT ''",
     }
     with engine.begin() as conn:
         for name, ddl in columns.items():

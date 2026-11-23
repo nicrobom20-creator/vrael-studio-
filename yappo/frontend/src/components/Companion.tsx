@@ -23,6 +23,7 @@ export function Companion({
   rivSrc,
   outfit = "",
   pet = "sprout",
+  tint = "",
 }: {
   mascot: MascotId;
   pose?: Pose;
@@ -30,6 +31,7 @@ export function Companion({
   rivSrc?: string;
   outfit?: string;
   pet?: string;
+  tint?: string;
 }) {
   const src = rivSrc || "";
   const [mode, setMode] = useState<"art" | "rive">(src && cache.get(src) ? "rive" : "art");
@@ -74,12 +76,18 @@ export function Companion({
       </Suspense>
     );
   }
-  return <Painted mascot={mascot} pose={pose} className={className} outfit={outfit} pet={pet} />;
+  return <Painted mascot={mascot} pose={pose} className={className} outfit={outfit} pet={pet} tint={tint} />;
 }
 
 const PET_SCALE: Record<string, number> = { sprout: 0.82, cub: 0.92, grown: 1, elder: 1.08 };
 
-function Painted({ mascot, pose, className, outfit = "", pet = "sprout" }: { mascot: MascotId; pose: Pose; className: string; outfit?: string; pet?: string }) {
+const TINT: Record<string, string> = {
+  gold: "sepia(0.45) saturate(1.5)",
+  rose: "hue-rotate(-25deg) saturate(1.25)",
+  sea: "hue-rotate(150deg) saturate(0.85)",
+};
+
+function Painted({ mascot, pose, className, outfit = "", pet = "sprout", tint = "" }: { mascot: MascotId; pose: Pose; className: string; outfit?: string; pet?: string; tint?: string }) {
   const shot = SHOT[pose];
   const celebrate = shot === "celebrate";
   const leading = pose === "point" || pose === "run";
@@ -90,6 +98,7 @@ function Painted({ mascot, pose, className, outfit = "", pet = "sprout" }: { mas
       alt=""
       draggable={false}
       className="h-full w-full object-contain drop-shadow-[0_10px_16px_rgba(0,0,0,0.45)]"
+      style={tint && TINT[tint] ? { filter: TINT[tint] } : undefined}
       initial={leading ? { x: 28, opacity: 0 } : celebrate ? { y: 16, scale: 0.92 } : { y: 0 }}
       animate={
         celebrate

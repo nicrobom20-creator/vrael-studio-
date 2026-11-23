@@ -15,13 +15,13 @@ export function ProfileScreen() {
       <div className="px-4 pt-[max(18px,env(safe-area-inset-top))]">
         <div className="glass flex items-center gap-3 p-4">
           <div className="h-24 w-24">
-            <Companion mascot={mascot} pose="celebrate" outfit={user.outfit} pet={user.pet?.code} />
+            <Companion mascot={mascot} pose="celebrate" outfit={user.outfit} pet={user.pet?.code} tint={user.look?.tint} />
           </div>
           <div className="min-w-0 flex-1">
             <div className="font-display text-3xl leading-none">{user.name}</div>
             <div className="mt-1 text-sm text-gold2">{user.mascot_name} · {user.language_name}</div>
             {user.public_id && <div className="mt-1 text-[11px] text-cream/60">Аккаунт {user.public_id}</div>}
-            {user.pet && <div className="mt-1 text-[11px] text-cream/70">Питомец: {user.pet.title}</div>}
+            {user.pet && <div className="mt-1 text-[11px] text-cream/70">Питомец: {user.pet.title}{user.look?.name ? ` · ${user.look.name}` : ""}</div>}
             <div className="mt-2 text-xs text-cream/70">Уровень {user.level}</div>
             <div className="mt-1 h-1.5 overflow-hidden rounded-full bg-white/10">
               <div className="h-full bg-gradient-to-r from-[#f6e6bf] to-[#b8893e]" style={{ width: `${ratio}%` }} />
@@ -35,6 +35,7 @@ export function ProfileScreen() {
         <Link className="choice-btn mt-2 grid py-3 text-center text-sm" to="/duel">Дуэль</Link>
         <Link className="choice-btn mt-2 grid py-3 text-center text-sm" to="/chest">Сундук дня</Link>
         <Link className="choice-btn mt-2 grid py-3 text-center text-sm" to="/certificate">Грамота</Link>
+        <Link className="choice-btn mt-2 grid py-3 text-center text-sm" to="/creator">Образ</Link>
         <div className="mt-3 grid grid-cols-3 gap-2 text-center">
           <Stat label="Серия" value={`${user.streak}`} />
           <Stat label="Опыт" value={`${user.xp}`} />

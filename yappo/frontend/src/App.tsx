@@ -29,6 +29,7 @@ const LeagueScreen = lazy(() => import("./screens/LeagueScreen").then((m) => ({ 
 const DuelScreen = lazy(() => import("./screens/DuelScreen").then((m) => ({ default: m.DuelScreen })));
 const ChestScreen = lazy(() => import("./screens/ChestScreen").then((m) => ({ default: m.ChestScreen })));
 const CertificateScreen = lazy(() => import("./screens/CertificateScreen").then((m) => ({ default: m.CertificateScreen })));
+const CreatorScreen = lazy(() => import("./screens/CreatorScreen").then((m) => ({ default: m.CreatorScreen })));
 
 export function App() {
   const { ready, error, user, boot, toast } = useApp();
@@ -54,6 +55,7 @@ export function App() {
     { path: "/duel", element: <DuelScreen /> },
     { path: "/chest", element: <ChestScreen /> },
     { path: "/certificate", element: <CertificateScreen /> },
+    { path: "/creator", element: <CreatorScreen /> },
   ]);
 
   if (location.pathname === "/support") {

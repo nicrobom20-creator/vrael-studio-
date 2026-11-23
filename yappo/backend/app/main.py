@@ -86,6 +86,8 @@ class ProfileIn(BaseModel):
     languages: list[str] | None = None
     placement_level: str | None = None
     kids_mode: bool | None = None
+    look_name: str | None = None
+    look_tint: str | None = None
 
 
 class AccountIn(BaseModel):

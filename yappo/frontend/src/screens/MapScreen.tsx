@@ -133,6 +133,7 @@ export function MapScreen() {
           joined={index > 0}
           mascot={mascot}
           pet={user.pet?.code}
+          tint={user.look?.tint}
           line={chapter.id === active.id ? path.mascot_line : chapter.subtitle}
           unlock={unlock}
           onOpen={(node) => openNode(node, navigate, notify)}
@@ -169,6 +170,7 @@ function ChapterBand({
   joined,
   mascot,
   pet,
+  tint,
   line,
   unlock,
   onOpen,
@@ -178,6 +180,7 @@ function ChapterBand({
   joined: boolean;
   mascot: MascotId;
   pet?: string;
+  tint?: string;
   line: string;
   unlock: { from: string; to: string; leg: 0 | 1 | 2 } | null;
   onOpen: (node: PathNode) => void;
@@ -232,7 +235,7 @@ function ChapterBand({
             animate={{ left: `${Math.max(0, companionSpot.x - 22)}%`, top: `${companionSpot.y - 7}%` }}
             transition={prefersReducedMotion() ? { duration: 0 } : { type: "spring", stiffness: travel ? 46 : 70, damping: 16 }}
           >
-            <Companion mascot={mascot} pose={pose} pet={pet} />
+            <Companion mascot={mascot} pose={pose} pet={pet} tint={tint} />
           </motion.div>
         )}
       </div>

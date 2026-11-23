@@ -13,3 +13,7 @@ def test_kids_mode_is_saved_on_the_profile(client):
     })
     assert saved.status_code == 200, saved.text
     assert saved.json()["kids_mode"] is True
+    look = client.patch("/api/settings", headers=headers, json={"look_tint": "rose", "look_name": "Роза"})
+    assert look.status_code == 200, look.text
+    assert look.json()["look"]["tint"] == "rose"
+    assert look.json()["look"]["name"] == "Роза"

@@ -204,6 +204,7 @@ def serialize_user(session: Session, user: User, now: datetime | None = None) ->
         "boosts": {"freeze": user.boost_freeze or 0, "double": user.boost_double or 0},
         "pet": pet_view(user.xp),
         "kids_mode": bool(user.kids_mode),
+        "look": {"name": user.look_name or "", "tint": user.look_tint or ""},
         "access": _access_view(session, user),
         "usage": usage_view(session, user, now_n),
         "achievements": achievements,
@@ -427,6 +428,14 @@ def _apply_profile(user: User, data: dict, *, require: bool) -> None:
         user.placement_level = placement
     if "kids_mode" in data and data.get("kids_mode") is not None:
         user.kids_mode = bool(data["kids_mode"])
+    look_name = data.get("look_name", None)
+    if look_name is not None:
+        user.look_name = str(look_name).strip()[:32]
+    look_tint = data.get("look_tint", None)
+    if look_tint is not None:
+        if look_tint not in {"", "gold", "rose", "sea"}:
+            raise ServiceError(400, "Такого оттенка нет")
+        user.look_tint = look_tint
     if reminder is not None:
         if reminder and not _CLOCK.match(reminder):
             raise ServiceError(400, "Время в формате ЧЧ:ММ")
