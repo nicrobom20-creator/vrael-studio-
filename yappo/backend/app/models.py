@@ -49,6 +49,18 @@ class User(Base):
     study_goal: Mapped[str] = mapped_column(String(32), default="")
     placement_level: Mapped[str] = mapped_column(String(32), default="")
     trial_used: Mapped[bool] = mapped_column(Boolean, default=False)
+    coins: Mapped[int] = mapped_column(Integer, default=0)
+    equipped: Mapped[str] = mapped_column(String(32), default="")
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=utcnow)
+
+
+class OwnedItem(Base):
+    __tablename__ = "owned_items"
+    __table_args__ = (UniqueConstraint("user_id", "item_id"),)
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    user_id: Mapped[int] = mapped_column(ForeignKey("users.id"), index=True)
+    item_id: Mapped[str] = mapped_column(String(32))
     created_at: Mapped[datetime] = mapped_column(DateTime, default=utcnow)
 
 

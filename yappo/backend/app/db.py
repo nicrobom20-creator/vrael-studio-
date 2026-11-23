@@ -75,6 +75,8 @@ def _migrate_users(engine) -> None:
         "study_goal": "VARCHAR(32) DEFAULT ''",
         "placement_level": "VARCHAR(32) DEFAULT ''",
         "trial_used": trial,
+        "coins": "INTEGER NOT NULL DEFAULT 0",
+        "equipped": "VARCHAR(32) DEFAULT ''",
     }
     with engine.begin() as conn:
         for name, ddl in columns.items():

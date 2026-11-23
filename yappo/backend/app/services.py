@@ -199,6 +199,8 @@ def serialize_user(session: Session, user: User, now: datetime | None = None) ->
         "languages": [code for code in (user.languages or "").split(",") if code],
         "placement_level": user.placement_level or "",
         "trial_used": bool(user.trial_used),
+        "coins": user.coins or 0,
+        "outfit": user.equipped or "",
         "access": _access_view(session, user),
         "usage": usage_view(session, user, now_n),
         "achievements": achievements,
@@ -636,6 +638,7 @@ def complete_lesson(session: Session, user: User, lesson_id: str, mistakes: int,
             user_id=user.id, node_id=lesson_id, mistakes=mistakes, xp=gained, completed_at=now_n,
         ))
         already = False
+        user.coins = (user.coins or 0) + 8
     else:
         gained = 5
         already = True

@@ -15,7 +15,7 @@ export function ProfileScreen() {
       <div className="px-4 pt-[max(18px,env(safe-area-inset-top))]">
         <div className="glass flex items-center gap-3 p-4">
           <div className="h-24 w-24">
-            <Companion mascot={mascot} pose="celebrate" />
+            <Companion mascot={mascot} pose="celebrate" outfit={user.outfit} />
           </div>
           <div className="min-w-0 flex-1">
             <div className="font-display text-3xl leading-none">{user.name}</div>
@@ -28,6 +28,7 @@ export function ProfileScreen() {
             <div className="mt-1 text-[11px] text-cream/55">{user.level_xp} / {user.level_goal} XP</div>
           </div>
         </div>
+        <Link className="gold-btn mt-3 grid h-11 place-items-center text-sm" to="/shop">Гардероб · {user.coins} монет</Link>
         <div className="mt-3 grid grid-cols-3 gap-2 text-center">
           <Stat label="Серия" value={`${user.streak}`} />
           <Stat label="Опыт" value={`${user.xp}`} />

@@ -33,6 +33,7 @@ from app.models import User
 from app.payments import apply_payment_event
 from app.practice import grade_placement, placement_questions
 from app.security import read_session, signature_is_fresh, sign_session, verify_rollypay_signature, verify_telegram_init_data
+from app.wardrobe import buy_item, equip_item, shop_payload
 from app.services import (
     ServiceError,
     complete_lesson,
@@ -94,6 +95,10 @@ class LoginIn(BaseModel):
 
 class PlacementIn(BaseModel):
     answers: dict[str, str] = Field(default_factory=dict)
+
+
+class ShopIn(BaseModel):
+    item_id: str = ""
 
 
 class CompleteIn(BaseModel):
@@ -352,6 +357,30 @@ def create_app() -> FastAPI:
         except ServiceError as error:
             _raise(error)
         return serialize_user(session, user)
+
+    @app.get("/api/shop")
+    def shop(user: User = Depends(current_user), session: Session = Depends(get_session)):
+        return shop_payload(session, user)
+
+    @app.post("/api/shop/buy")
+    def shop_buy(body: ShopIn, user: User = Depends(current_user), session: Session = Depends(get_session)):
+        try:
+            payload = buy_item(session, user, body.item_id)
+            session.commit()
+        except ServiceError as error:
+            _raise(error)
+        payload["user"] = serialize_user(session, user)
+        return payload
+
+    @app.post("/api/shop/equip")
+    def shop_equip(body: ShopIn, user: User = Depends(current_user), session: Session = Depends(get_session)):
+        try:
+            payload = equip_item(session, user, body.item_id)
+            session.commit()
+        except ServiceError as error:
+            _raise(error)
+        payload["user"] = serialize_user(session, user)
+        return payload
 
     @app.get("/api/me")
     def me(user: User = Depends(current_user), session: Session = Depends(get_session)):

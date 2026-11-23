@@ -79,6 +79,8 @@ export interface User {
   languages: string[];
   placement_level: string;
   trial_used: boolean;
+  coins: number;
+  outfit: string;
   access: StaffAccess | null;
   usage: Usage;
   achievements: Achievement[];
