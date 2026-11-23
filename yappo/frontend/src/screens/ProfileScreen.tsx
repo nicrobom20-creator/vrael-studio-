@@ -15,12 +15,13 @@ export function ProfileScreen() {
       <div className="px-4 pt-[max(18px,env(safe-area-inset-top))]">
         <div className="glass flex items-center gap-3 p-4">
           <div className="h-24 w-24">
-            <Companion mascot={mascot} pose="celebrate" outfit={user.outfit} />
+            <Companion mascot={mascot} pose="celebrate" outfit={user.outfit} pet={user.pet?.code} />
           </div>
           <div className="min-w-0 flex-1">
             <div className="font-display text-3xl leading-none">{user.name}</div>
             <div className="mt-1 text-sm text-gold2">{user.mascot_name} · {user.language_name}</div>
             {user.public_id && <div className="mt-1 text-[11px] text-cream/60">Аккаунт {user.public_id}</div>}
+            {user.pet && <div className="mt-1 text-[11px] text-cream/70">Питомец: {user.pet.title}</div>}
             <div className="mt-2 text-xs text-cream/70">Уровень {user.level}</div>
             <div className="mt-1 h-1.5 overflow-hidden rounded-full bg-white/10">
               <div className="h-full bg-gradient-to-r from-[#f6e6bf] to-[#b8893e]" style={{ width: `${ratio}%` }} />

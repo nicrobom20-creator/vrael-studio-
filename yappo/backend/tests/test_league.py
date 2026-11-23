@@ -8,5 +8,6 @@ def test_new_learner_starts_in_bronze(client):
     assert league.status_code == 200, league.text
     body = league.json()
     assert body["code"] == "bronze"
+    assert created.json()["user"]["pet"]["code"] == "sprout"
     assert body["title"] == "Бронза"
     assert any(row["you"] for row in body["board"])

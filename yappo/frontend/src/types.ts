@@ -81,6 +81,7 @@ export interface User {
   trial_used: boolean;
   coins: number;
   outfit: string;
+  pet: { code: string; title: string };
   access: StaffAccess | null;
   usage: Usage;
   achievements: Achievement[];

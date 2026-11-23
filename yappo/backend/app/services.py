@@ -201,10 +201,21 @@ def serialize_user(session: Session, user: User, now: datetime | None = None) ->
         "trial_used": bool(user.trial_used),
         "coins": user.coins or 0,
         "outfit": user.equipped or "",
+        "pet": pet_view(user.xp),
         "access": _access_view(session, user),
         "usage": usage_view(session, user, now_n),
         "achievements": achievements,
     }
+
+
+def pet_view(xp: int) -> dict:
+    if xp >= 500:
+        return {"code": "elder", "title": "Взрослый"}
+    if xp >= 200:
+        return {"code": "grown", "title": "Подросток"}
+    if xp >= 50:
+        return {"code": "cub", "title": "Малыш"}
+    return {"code": "sprout", "title": "Кроха"}
 
 
 def _access_view(session: Session, user: User) -> dict | None:

@@ -22,12 +22,14 @@ export function Companion({
   className = "",
   rivSrc,
   outfit = "",
+  pet = "sprout",
 }: {
   mascot: MascotId;
   pose?: Pose;
   className?: string;
   rivSrc?: string;
   outfit?: string;
+  pet?: string;
 }) {
   const src = rivSrc || "";
   const [mode, setMode] = useState<"art" | "rive">(src && cache.get(src) ? "rive" : "art");
@@ -72,15 +74,17 @@ export function Companion({
       </Suspense>
     );
   }
-  return <Painted mascot={mascot} pose={pose} className={className} outfit={outfit} />;
+  return <Painted mascot={mascot} pose={pose} className={className} outfit={outfit} pet={pet} />;
 }
 
-function Painted({ mascot, pose, className, outfit = "" }: { mascot: MascotId; pose: Pose; className: string; outfit?: string }) {
+const PET_SCALE: Record<string, number> = { sprout: 0.82, cub: 0.92, grown: 1, elder: 1.08 };
+
+function Painted({ mascot, pose, className, outfit = "", pet = "sprout" }: { mascot: MascotId; pose: Pose; className: string; outfit?: string; pet?: string }) {
   const shot = SHOT[pose];
   const celebrate = shot === "celebrate";
   const leading = pose === "point" || pose === "run";
   return (
-    <div className={`relative h-full w-full ${className}`}>
+    <div className={`relative h-full w-full ${className}`} style={{ transform: `scale(${PET_SCALE[pet] || 1})`, transformOrigin: "center bottom" }}>
     <motion.img
       src={`/mascots/${mascot}-${shot}.webp`}
       alt=""
