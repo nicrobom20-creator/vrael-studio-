@@ -34,6 +34,7 @@ export function TrialScreen() {
   const [combo, setCombo] = useState(0);
   const [hearts, setHearts] = useState(5);
   const [praise, setPraise] = useState("");
+  const [clock, setClock] = useState(0);
   const [burst, setBurst] = useState(0);
   const [done, setDone] = useState<{ xp: number; next?: { id: string; kind: string; title: string } | null } | null>(null);
 
@@ -71,6 +72,24 @@ export function TrialScreen() {
     }
     if (step?.type === "vocab" || step?.type === "listen") {
       speakAloud(step.tts || step.word || "", lesson?.tts || "en-GB");
+    }
+    if (step?.type === "speed") {
+      const total = step.seconds || 8;
+      setClock(total);
+      const timer = window.setInterval(() => {
+        setClock((value) => {
+          if (value <= 1) {
+            window.clearInterval(timer);
+            setChecked(true);
+            setMistakes((count) => count + 1);
+            setCombo(0);
+            setPraise("Время вышло");
+            return 0;
+          }
+          return value - 1;
+        });
+      }, 1000);
+      return () => window.clearInterval(timer);
     }
   }, [index, lesson?.id]);
 
@@ -242,6 +261,33 @@ export function TrialScreen() {
                 <div className="font-display text-3xl">+{done.xp} XP</div>
                 <p className="mt-1 text-sm text-cream/75">Спутник уже смотрит на следующие врата.</p>
               </div>
+            ) : step.type === "speed" ? (
+              <div>
+                <div className="mb-2 text-center text-sm text-gold2">{clock} с</div>
+                <StepBody
+                  step={step}
+                  picked={picked}
+                  checked={checked}
+                  onPick={setPicked}
+                  matched={matched}
+                  leftPick={leftPick}
+                  onLeft={setLeftPick}
+                  rightOrder={rightOrder}
+                  onRight={onMatchRight}
+                  built={built}
+                  pool={pool}
+                  onTake={(token) => {
+                    setPool((items) => items.filter((item) => item !== token));
+                    setBuilt((items) => [...items, token]);
+                  }}
+                  onDrop={(token) => {
+                    setBuilt((items) => items.filter((item) => item !== token));
+                    setPool((items) => [...items, token]);
+                  }}
+                  heard={heard}
+                  onPlay={() => speakAloud(step.tts || step.word || step.phrase || "", lesson.tts)}
+                />
+              </div>
             ) : step.type === "build" ? (
               <SentenceGame
                 step={step}
@@ -314,10 +360,10 @@ export function TrialScreen() {
           </div>
         ) : step.type === "build" ? null : (
           <div className="mb-3 w-full">
-            {(step.type === "choice" || step.type === "gap") && !checked && (
+            {(step.type === "choice" || step.type === "gap" || step.type === "speed") && !checked && (
               <GoldButton disabled={picked == null} onClick={checkChoice}>Проверить</GoldButton>
             )}
-            {(step.type === "choice" || step.type === "gap") && checked && <GoldButton onClick={advance}>Дальше</GoldButton>}
+            {(step.type === "choice" || step.type === "gap" || step.type === "speed") && checked && <GoldButton onClick={advance}>Дальше</GoldButton>}
             {step.type === "vocab" && <GoldButton onClick={advance}>Запомнил</GoldButton>}
             {step.type === "listen" && !checked && (
               <GoldButton disabled={picked == null} onClick={checkChoice}>Проверить</GoldButton>
@@ -374,7 +420,7 @@ function StepBody(props: {
       </div>
     );
   }
-  if (step.type === "choice" || step.type === "listen" || step.type === "gap") {
+  if (step.type === "choice" || step.type === "listen" || step.type === "gap" || step.type === "speed") {
     return (
       <div>
         <div className="flex items-start justify-between gap-3">
@@ -609,7 +655,7 @@ function shuffleChoices(lesson: Lesson): Lesson {
   return {
     ...lesson,
     steps: lesson.steps.map((step) => {
-      if ((step.type !== "choice" && step.type !== "listen" && step.type !== "gap") || !step.options || typeof step.answer !== "number") {
+      if (!["choice", "listen", "gap", "speed"].includes(step.type) || !step.options || typeof step.answer !== "number") {
         return step;
       }
       const options = [...step.options];

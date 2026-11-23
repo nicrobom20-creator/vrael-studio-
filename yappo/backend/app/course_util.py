@@ -13,6 +13,18 @@ def vocab(word, translation, example, example_ru, reading=""):
     }
 
 
+def speed(prompt, options, answer, explain, seconds=8):
+    return {
+        "type": "speed",
+        "prompt": prompt,
+        "sub": "Успей выбрать",
+        "options": list(options),
+        "answer": answer,
+        "explain": explain,
+        "seconds": seconds,
+    }
+
+
 def gap(prompt, options, answer, explain):
     return {
         "type": "gap",

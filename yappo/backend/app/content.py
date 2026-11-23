@@ -123,7 +123,7 @@ _SCENES = {
     "fr": fr_scenes,
 }
 
-STEP_TYPES = {"vocab", "choice", "match", "build", "listen", "speak", "gap"}
+STEP_TYPES = {"vocab", "choice", "match", "build", "listen", "speak", "gap", "speed"}
 CHAPTER_ONE_SKILLS = {"vocabulary", "choice", "match", "build", "listen", "speak"}
 
 
@@ -265,6 +265,10 @@ def _validate_step(node_id: str, step: dict, language: str) -> None:
         options = step["options"]
         if "____" not in step.get("prompt", "") or not (0 <= step["answer"] < len(options)):
             raise ValueError(f"{node_id}: gap")
+    elif kind == "speed":
+        options = step["options"]
+        if not (0 <= step["answer"] < len(options)) or int(step.get("seconds") or 0) < 3:
+            raise ValueError(f"{node_id}: speed")
     elif kind == "choice":
         options = step["options"]
         if not (0 <= step["answer"] < len(options)) or len(options) < 2:

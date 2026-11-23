@@ -70,7 +70,7 @@ def shuffle_steps(steps: list) -> list:
     out = copy.deepcopy(steps)
     for step in out:
         kind = step.get("type")
-        if kind in {"choice", "listen", "gap"} and step.get("options"):
+        if kind in {"choice", "listen", "gap", "speed"} and step.get("options"):
             options = list(step["options"])
             index = int(step.get("answer") or 0)
             if not 0 <= index < len(options):

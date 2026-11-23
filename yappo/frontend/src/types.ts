@@ -117,7 +117,8 @@ export interface PathData {
 }
 
 export interface Step {
-  type: "vocab" | "choice" | "match" | "build" | "listen" | "speak" | "gap";
+  type: "vocab" | "choice" | "match" | "build" | "listen" | "speak" | "gap" | "speed";
+  seconds?: number;
   word?: string;
   reading?: string;
   translation?: string;

@@ -1,4 +1,4 @@
-from app.course_util import build, chapter, choice, gap, lesson, line, listen, match, speak, story, vocab
+from app.course_util import build, chapter, choice, gap, lesson, line, listen, match, speak, speed, story, vocab
 
 NPC = "Оливер"
 
@@ -41,6 +41,9 @@ def chapters():
                     gap("I'd like a ____, please.", ["tea", "station", "name", "sorry"], 0, "Tea — чай. Пропуск стоит на месте слова."),
                     gap("My name ____ Anna.", ["is", "are", "am", "be"], 0, "My name is Anna. После name в этой фразе стоит is."),
                     gap("Where ____ the station?", ["is", "are", "am", "name"], 0, "Where is the station? — Где вокзал?"),
+                    speed("Как сказать «спасибо»?", ["Thank you", "Please", "Sorry", "Hello"], 0, "Thank you — спасибо.", 8),
+                    speed("«Чай, пожалуйста»", ["A tea, please.", "A ticket, please.", "Good night.", "Where is it?"], 0,
+                          "A tea, please — чай, пожалуйста.", 8),
                 ]),
                 lesson(f"{c1}-match", c1, "Пары в кафе", "match", [
                     match("Соедини слово и перевод", [
