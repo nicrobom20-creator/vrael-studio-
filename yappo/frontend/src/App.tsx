@@ -25,6 +25,7 @@ const AdminScreen = lazy(() => import("./screens/AdminScreen").then((m) => ({ de
 const ShopScreen = lazy(() => import("./screens/ShopScreen").then((m) => ({ default: m.ShopScreen })));
 const CallScreen = lazy(() => import("./screens/CallScreen").then((m) => ({ default: m.CallScreen })));
 const WordsScreen = lazy(() => import("./screens/WordsScreen").then((m) => ({ default: m.WordsScreen })));
+const LeagueScreen = lazy(() => import("./screens/LeagueScreen").then((m) => ({ default: m.LeagueScreen })));
 
 export function App() {
   const { ready, error, user, boot, toast } = useApp();
@@ -46,6 +47,7 @@ export function App() {
     { path: "/shop", element: <ShopScreen /> },
     { path: "/call", element: <CallScreen /> },
     { path: "/words", element: <WordsScreen /> },
+    { path: "/league", element: <LeagueScreen /> },
   ]);
 
   if (location.pathname === "/support") {

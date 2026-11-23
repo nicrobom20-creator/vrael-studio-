@@ -34,6 +34,7 @@ from app.payments import apply_payment_event
 from app.practice import grade_placement, placement_questions
 from app.security import read_session, signature_is_fresh, sign_session, verify_rollypay_signature, verify_telegram_init_data
 from app.wardrobe import buy_item, equip_item, shop_payload
+from app.league import league_payload
 from app.words import due_words, grade_word, save_word
 from app.services import (
     ServiceError,
@@ -367,6 +368,10 @@ def create_app() -> FastAPI:
         except ServiceError as error:
             _raise(error)
         return serialize_user(session, user)
+
+    @app.get("/api/league")
+    def league(user: User = Depends(current_user), session: Session = Depends(get_session)):
+        return league_payload(session, user)
 
     @app.get("/api/words")
     def words(user: User = Depends(current_user), session: Session = Depends(get_session)):
