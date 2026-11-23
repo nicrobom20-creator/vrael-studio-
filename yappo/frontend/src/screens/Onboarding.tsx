@@ -1,6 +1,6 @@
 import { motion } from "framer-motion";
-import { useState } from "react";
-import { ApiError, api, deviceId, readStartParam } from "../api";
+import { useState, type FormEvent } from "react";
+import { ApiError, api, deviceId, readInitData, readStartParam } from "../api";
 import { Companion } from "../components/Companion";
 import { CityScene } from "../components/CityScene";
 import { GoldButton } from "../components/World";
@@ -48,11 +48,9 @@ export function Onboarding() {
   const [quizAt, setQuizAt] = useState(0);
   const [answers, setAnswers] = useState<Record<string, string>>({});
   const [planLevel, setPlanLevel] = useState("start");
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [name, setName] = useState("");
   const [loginMode, setLoginMode] = useState(false);
   const [busy, setBusy] = useState(false);
+  const inTelegram = Boolean(readInitData() || window.Telegram?.WebApp?.initData);
   const mascotNow = (user?.mascot || mascot) as MascotId;
   const zone = Intl.DateTimeFormat().resolvedOptions().timeZone || "Europe/Moscow";
 
@@ -111,12 +109,50 @@ export function Onboarding() {
     }
   }
 
-  async function ensureAccount() {
+  async function savePlacement() {
+    if (!Object.keys(answers).length || !localStorage.getItem("yappo_token")) return;
+    try {
+      const graded = await api<{ level: string }>("/api/placement", {
+        method: "POST",
+        body: JSON.stringify({ answers }),
+      });
+      setPlanLevel(graded.level);
+    } catch {
+      /* the self-assessed level still stands */
+    }
+  }
+
+  async function continueTelegram() {
+    setBusy(true);
+    try {
+      const initData = readInitData();
+      if (!user) {
+        if (!initData) {
+          notify("Открой Yappo из бота, чтобы войти через Telegram");
+          return;
+        }
+        const auth = await api<{ token: string; user: User }>("/api/auth/telegram", {
+          method: "POST",
+          body: JSON.stringify({ init_data: initData }),
+        });
+        localStorage.setItem("yappo_token", auth.token);
+        setUser(auth.user);
+        await savePlacement();
+      }
+      setPhase("trial");
+    } catch (error) {
+      notify(error instanceof Error ? error.message : "Не удалось войти через Telegram");
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function ensureAccount(fields: { email: string; password: string; name: string }) {
     if (user) {
-      if (!user.email && email && password) {
+      if (!user.email && fields.email && fields.password) {
         const linked = await api<User>("/api/auth/link", {
           method: "POST",
-          body: JSON.stringify({ email, password, name }),
+          body: JSON.stringify(fields),
         });
         setUser(linked);
       }
@@ -126,21 +162,11 @@ export function Onboarding() {
     const path = loginMode ? "/api/auth/login" : "/api/auth/register";
     const auth = await api<{ token: string; user: User }>(path, {
       method: "POST",
-      body: JSON.stringify({ email, password, name }),
+      body: JSON.stringify(fields),
     });
     localStorage.setItem("yappo_token", auth.token);
     setUser(auth.user);
-    if (Object.keys(answers).length) {
-      try {
-        const graded = await api<{ level: string }>("/api/placement", {
-          method: "POST",
-          body: JSON.stringify({ answers }),
-        });
-        setPlanLevel(graded.level);
-      } catch {
-        /* the self-assessed level still stands */
-      }
-    }
+    await savePlacement();
     setPhase("trial");
   }
 
@@ -194,7 +220,9 @@ export function Onboarding() {
     ask: "Короткий тест покажет, с чего начать. Можно пропустить.",
     quiz: questions[quizAt]?.prompt || "",
     results: "Вот твой план. Я пойду рядом.",
-    account: user ? "Аккаунт уже есть. Почту можно добавить сейчас или позже." : "Сохрани прогресс: почта и пароль.",
+    account: inTelegram
+      ? "Можно войти через Telegram. Почта не нужна — её можно привязать позже."
+      : "Сохрани прогресс: почта и пароль.",
     trial: "Три дня Premium без карты. Потом сам вернёшься на бесплатный тариф, списаний не будет.",
   }[phase];
   const plan = LEVEL_COPY[planLevel] || LEVEL_COPY.start;
@@ -279,23 +307,26 @@ export function Onboarding() {
             </div>
           )}
           {phase === "account" && (
-            <form className="grid gap-2" onSubmit={(event) => { event.preventDefault(); void ensureAccount().catch((error: Error) => notify(error.message)); }}>
-              {user && <p className="text-sm text-cream/70">Номер аккаунта {user.public_id || "появится после сохранения"}</p>}
-              <input className="field" type="email" autoComplete="email" placeholder="Почта" value={email} onChange={(event) => setEmail(event.target.value)} />
-              <input className="field" type="password" autoComplete={loginMode ? "current-password" : "new-password"} placeholder="Пароль" value={password} onChange={(event) => setPassword(event.target.value)} />
-              {!loginMode && !user && (
-                <input className="field" placeholder="Как к тебе обращаться" value={name} onChange={(event) => setName(event.target.value)} />
+            <div className="grid gap-3">
+              {inTelegram && (
+                <GoldButton disabled={busy} onClick={() => void continueTelegram()}>Продолжить через Telegram</GoldButton>
               )}
-              <GoldButton type="submit" disabled={busy || (!user && (!email || password.length < 8))}>{loginMode ? "Войти" : user ? "Дальше" : "Создать аккаунт"}</GoldButton>
+              {user?.public_id && <p className="text-sm text-cream/70">Номер аккаунта {user.public_id}</p>}
+              <AccountFields
+                loginMode={loginMode}
+                optional={inTelegram || Boolean(user)}
+                busy={busy}
+                onSubmit={(fields) => void ensureAccount(fields).catch((error: Error) => notify(error.message))}
+              />
               {!user && (
                 <button type="button" className="text-sm text-gold2" onClick={() => setLoginMode((value) => !value)}>
                   {loginMode ? "Нет аккаунта — зарегистрироваться" : "Уже есть аккаунт — войти"}
                 </button>
               )}
-              {!user && config?.demo && (
+              {!user && config?.demo && !inTelegram && (
                 <button type="button" className="text-sm text-cream/60" onClick={() => void demo().catch((error: Error) => notify(error.message))}>Демо без почты</button>
               )}
-            </form>
+            </div>
           )}
           {phase === "trial" && (
             <div className="glass p-4 text-sm leading-relaxed">
@@ -315,7 +346,9 @@ export function Onboarding() {
             </>
           )}
           {phase === "results" && <GoldButton onClick={() => setPhase("account")}>К аккаунту</GoldButton>}
-          {phase === "account" && user && <button type="button" className="text-sm text-cream/70" onClick={() => setPhase("trial")}>Продолжить без почты</button>}
+          {phase === "account" && user && !inTelegram && (
+            <button type="button" className="text-sm text-cream/70" onClick={() => setPhase("trial")}>Продолжить без почты</button>
+          )}
           {phase === "trial" && (
             <>
               <GoldButton disabled={busy} onClick={() => void finish(true)}>Открыть 3 дня</GoldButton>
@@ -325,5 +358,83 @@ export function Onboarding() {
         </div>
       </div>
     </div>
+  );
+}
+
+function AccountFields({
+  loginMode,
+  optional,
+  busy,
+  onSubmit,
+}: {
+  loginMode: boolean;
+  optional: boolean;
+  busy: boolean;
+  onSubmit: (fields: { email: string; password: string; name: string }) => void;
+}) {
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [name, setName] = useState("");
+
+  function submit(event: FormEvent) {
+    event.preventDefault();
+    onSubmit({ email: email.trim(), password, name: name.trim() });
+  }
+
+  return (
+    <form className="grid gap-2" onSubmit={submit} autoComplete="on">
+      <label className="text-xs text-cream/60" htmlFor="yappo-email">
+        {optional ? "Почта, если хочешь привязать" : "Почта"}
+      </label>
+      <input
+        id="yappo-email"
+        name="email"
+        className="field"
+        type="email"
+        inputMode="email"
+        autoComplete="email"
+        autoCapitalize="none"
+        autoCorrect="off"
+        spellCheck={false}
+        enterKeyHint="next"
+        placeholder="name@example.com"
+        value={email}
+        onChange={(event) => setEmail(event.target.value)}
+      />
+      <label className="text-xs text-cream/60" htmlFor="yappo-password">Пароль</label>
+      <input
+        id="yappo-password"
+        name="password"
+        className="field"
+        type="password"
+        autoComplete={loginMode ? "current-password" : "new-password"}
+        autoCapitalize="none"
+        autoCorrect="off"
+        spellCheck={false}
+        enterKeyHint={loginMode ? "done" : "next"}
+        placeholder="От 8 символов"
+        value={password}
+        onChange={(event) => setPassword(event.target.value)}
+      />
+      {!loginMode && (
+        <>
+          <label className="text-xs text-cream/60" htmlFor="yappo-name">Имя</label>
+          <input
+            id="yappo-name"
+            name="name"
+            className="field"
+            type="text"
+            autoComplete="name"
+            enterKeyHint="done"
+            placeholder="Как к тебе обращаться"
+            value={name}
+            onChange={(event) => setName(event.target.value)}
+          />
+        </>
+      )}
+      <GoldButton type="submit" disabled={busy || !email.trim() || password.length < 8}>
+        {loginMode ? "Войти" : optional ? "Привязать почту" : "Создать аккаунт"}
+      </GoldButton>
+    </form>
   );
 }

@@ -27,10 +27,14 @@ export function Companion({
   className?: string;
   rivSrc?: string;
 }) {
-  const src = rivSrc || `/rive/${mascot}.riv`;
-  const [mode, setMode] = useState<"art" | "rive">(cache.get(src) ? "rive" : "art");
+  const src = rivSrc || "";
+  const [mode, setMode] = useState<"art" | "rive">(src && cache.get(src) ? "rive" : "art");
 
   useEffect(() => {
+    if (!src) {
+      setMode("art");
+      return;
+    }
     if (cache.has(src)) {
       setMode(cache.get(src) ? "rive" : "art");
       return;
