@@ -33,7 +33,7 @@ from app.models import User
 from app.payments import apply_payment_event
 from app.practice import grade_placement, placement_questions
 from app.security import read_session, signature_is_fresh, sign_session, verify_rollypay_signature, verify_telegram_init_data
-from app.wardrobe import buy_item, equip_item, shop_payload
+from app.wardrobe import buy_boost, buy_item, equip_item, shop_payload
 from app.certificate import certificate_payload
 from app.chest import chest_status, open_chest
 from app.duels import create_duel, join_duel, questions as duel_questions, shadow_duel, submit_duel
@@ -474,6 +474,16 @@ def create_app() -> FastAPI:
     def shop_buy(body: ShopIn, user: User = Depends(current_user), session: Session = Depends(get_session)):
         try:
             payload = buy_item(session, user, body.item_id)
+            session.commit()
+        except ServiceError as error:
+            _raise(error)
+        payload["user"] = serialize_user(session, user)
+        return payload
+
+    @app.post("/api/shop/boost")
+    def shop_boost(body: ShopIn, user: User = Depends(current_user), session: Session = Depends(get_session)):
+        try:
+            payload = buy_boost(session, user, body.item_id)
             session.commit()
         except ServiceError as error:
             _raise(error)

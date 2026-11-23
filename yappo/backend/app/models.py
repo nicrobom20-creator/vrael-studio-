@@ -53,6 +53,8 @@ class User(Base):
     equipped: Mapped[str] = mapped_column(String(32), default="")
     last_chest_date: Mapped[date | None] = mapped_column(Date, nullable=True)
     kids_mode: Mapped[bool] = mapped_column(Boolean, default=False)
+    boost_freeze: Mapped[int] = mapped_column(Integer, default=0)
+    boost_double: Mapped[int] = mapped_column(Integer, default=0)
     created_at: Mapped[datetime] = mapped_column(DateTime, default=utcnow)
 
 

@@ -15,6 +15,11 @@ CATALOG = [
     {"id": "lantern", "name": "Фонарь", "price": 180, "premium": True, "blurb": "Тёплый свет у плеча. Только с Premium."},
 ]
 
+BOOSTS = [
+    {"id": "freeze", "name": "Заморозка серии", "price": 40, "blurb": "Один пропущенный день не сбрасывает серию."},
+    {"id": "double", "name": "Двойной опыт", "price": 30, "blurb": "Следующий новый урок даёт вдвое больше XP."},
+]
+
 CHAPTER_GIFTS = {
     1: ("ribbon", 20, "Лондон"),
     2: ("scarf", 30, "Нью-Йорк"),
@@ -34,6 +39,10 @@ def shop_payload(session: Session, user: User) -> dict:
         "coins": user.coins or 0,
         "equipped": user.equipped or "",
         "premium": premium,
+        "boosts": [
+            {**item, "owned": (user.boost_freeze or 0) if item["id"] == "freeze" else (user.boost_double or 0)}
+            for item in BOOSTS
+        ],
         "items": [
             {
                 **item,
@@ -44,6 +53,20 @@ def shop_payload(session: Session, user: User) -> dict:
             for item in CATALOG
         ],
     }
+
+
+def buy_boost(session: Session, user: User, item_id: str) -> dict:
+    item = next((row for row in BOOSTS if row["id"] == item_id), None)
+    if item is None:
+        raise ServiceError(404, "Такого усиления нет")
+    if (user.coins or 0) < item["price"]:
+        raise ServiceError(400, "Не хватает монет")
+    user.coins = (user.coins or 0) - item["price"]
+    if item_id == "freeze":
+        user.boost_freeze = (user.boost_freeze or 0) + 1
+    else:
+        user.boost_double = (user.boost_double or 0) + 1
+    return shop_payload(session, user)
 
 
 def buy_item(session: Session, user: User, item_id: str) -> dict:

@@ -51,4 +51,7 @@ def test_wardrobe_spends_coins_and_locks_premium(client, monkeypatch):
         assert user.coins == 30 + 20
     finally:
         database.close()
+    bought_boost = client.post("/api/shop/boost", headers=headers, json={"item_id": "double"})
+    assert bought_boost.status_code == 200, bought_boost.text
+    assert bought_boost.json()["user"]["boosts"]["double"] == 1
     get_settings.cache_clear()

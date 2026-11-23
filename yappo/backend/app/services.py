@@ -201,6 +201,7 @@ def serialize_user(session: Session, user: User, now: datetime | None = None) ->
         "trial_used": bool(user.trial_used),
         "coins": user.coins or 0,
         "outfit": user.equipped or "",
+        "boosts": {"freeze": user.boost_freeze or 0, "double": user.boost_double or 0},
         "pet": pet_view(user.xp),
         "kids_mode": bool(user.kids_mode),
         "access": _access_view(session, user),
@@ -620,7 +621,12 @@ def _claim_daily(session: Session, user: User, today, now: datetime) -> list[dic
 
 
 def _mark_studied(user: User, now: datetime, today) -> None:
-    user.streak = apply_streak(user.streak, user.last_study_date, today)
+    missed = user.last_study_date is not None and (today - user.last_study_date).days == 2
+    if missed and (user.boost_freeze or 0) > 0:
+        user.boost_freeze -= 1
+        user.streak = (user.streak or 0) + 1
+    else:
+        user.streak = apply_streak(user.streak, user.last_study_date, today)
     user.last_study_date = today
     user.last_study_at = now
 
@@ -656,6 +662,9 @@ def complete_lesson(session: Session, user: User, lesson_id: str, mistakes: int,
         ))
         already = False
         user.coins = (user.coins or 0) + 8
+        if user.boost_double:
+            gained *= 2
+            user.boost_double -= 1
     else:
         gained = 5
         already = True

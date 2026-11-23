@@ -17,11 +17,20 @@ interface ShopItem {
   locked: boolean;
 }
 
+interface Boost {
+  id: string;
+  name: string;
+  price: number;
+  blurb: string;
+  owned: number;
+}
+
 interface Shop {
   coins: number;
   equipped: string;
   premium: boolean;
   items: ShopItem[];
+  boosts?: Boost[];
   user?: User;
 }
 
@@ -75,6 +84,19 @@ export function ShopScreen() {
                   {item.locked ? "Premium" : "Купить"}
                 </button>
               )}
+            </article>
+          ))}
+        </div>
+        <h2 className="mt-6 font-display text-3xl">Усиления</h2>
+        <div className="mt-2 grid gap-2">
+          {shop?.boosts?.map((item) => (
+            <article key={item.id} className="glass flex items-center gap-3 p-3">
+              <div className="min-w-0 flex-1">
+                <div className="font-medium">{item.name}</div>
+                <div className="text-xs text-cream/65">{item.blurb}</div>
+                <div className="mt-1 text-xs text-gold2">есть {item.owned} · {item.price} монет</div>
+              </div>
+              <button type="button" className="choice-btn shrink-0 px-3 py-2 text-xs" onClick={() => void act("/api/shop/boost", item.id).catch((error: Error) => notify(error.message))}>Купить</button>
             </article>
           ))}
         </div>
