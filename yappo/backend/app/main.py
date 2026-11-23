@@ -34,6 +34,7 @@ from app.payments import apply_payment_event
 from app.practice import grade_placement, placement_questions
 from app.security import read_session, signature_is_fresh, sign_session, verify_rollypay_signature, verify_telegram_init_data
 from app.wardrobe import buy_item, equip_item, shop_payload
+from app.chest import chest_status, open_chest
 from app.duels import create_duel, join_duel, questions as duel_questions, shadow_duel, submit_duel
 from app.league import league_payload
 from app.words import due_words, grade_word, save_word
@@ -377,6 +378,20 @@ def create_app() -> FastAPI:
         except ServiceError as error:
             _raise(error)
         return serialize_user(session, user)
+
+    @app.get("/api/chest")
+    def chest_get(user: User = Depends(current_user)):
+        return chest_status(user)
+
+    @app.post("/api/chest")
+    def chest_open(user: User = Depends(current_user), session: Session = Depends(get_session)):
+        try:
+            result = open_chest(session, user)
+            session.commit()
+        except ServiceError as error:
+            _raise(error)
+        result["user"] = serialize_user(session, user)
+        return result
 
     @app.get("/api/duels/questions")
     def duel_rounds(user: User = Depends(current_user)):

@@ -194,6 +194,15 @@ button {
 
 .city-join { margin-top: -9vh; }
 
+.chest-pop {
+  animation: chest-pop 0.6s ease;
+}
+@keyframes chest-pop {
+  0% { transform: scale(0.9); }
+  40% { transform: scale(1.08); }
+  100% { transform: scale(1); }
+}
+
 .call-bar {
   width: 4px;
   height: 14px;

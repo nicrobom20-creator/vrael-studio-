@@ -77,6 +77,7 @@ def _migrate_users(engine) -> None:
         "trial_used": trial,
         "coins": "INTEGER NOT NULL DEFAULT 0",
         "equipped": "VARCHAR(32) DEFAULT ''",
+        "last_chest_date": "DATE",
     }
     with engine.begin() as conn:
         for name, ddl in columns.items():
