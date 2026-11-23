@@ -14,15 +14,24 @@ class Base(DeclarativeBase):
     pass
 
 
-def _make_engine():
-    url = get_settings().database_url
+def normalize_database_url(url: str) -> str:
+    """Render gives postgresql:// or postgres://. psycopg v3 needs the +psycopg driver."""
     if url.startswith("postgres://"):
         url = "postgresql://" + url[len("postgres://"):]
+    if url.startswith("postgresql://"):
+        url = "postgresql+psycopg://" + url[len("postgresql://"):]
+    return url
+
+
+def _make_engine():
+    url = normalize_database_url(get_settings().database_url)
     kwargs: dict = {"future": True}
     if url.startswith("sqlite"):
         kwargs["connect_args"] = {"check_same_thread": False}
         if url.endswith(":memory:") or url == "sqlite://":
             kwargs["poolclass"] = StaticPool
+    else:
+        kwargs["pool_pre_ping"] = True
     return create_engine(url, **kwargs)
 
 
