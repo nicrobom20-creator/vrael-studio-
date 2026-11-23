@@ -194,6 +194,10 @@ button {
 
 .city-join { margin-top: -9vh; }
 
+.kids { font-size: 18px; }
+.kids .choice-btn,
+.kids .gold-btn { min-height: 52px; font-size: 1.05rem; }
+
 .chest-pop {
   animation: chest-pop 0.6s ease;
 }

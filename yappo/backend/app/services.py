@@ -202,6 +202,7 @@ def serialize_user(session: Session, user: User, now: datetime | None = None) ->
         "coins": user.coins or 0,
         "outfit": user.equipped or "",
         "pet": pet_view(user.xp),
+        "kids_mode": bool(user.kids_mode),
         "access": _access_view(session, user),
         "usage": usage_view(session, user, now_n),
         "achievements": achievements,
@@ -423,6 +424,8 @@ def _apply_profile(user: User, data: dict, *, require: bool) -> None:
         if placement not in _LEVELS:
             raise ServiceError(400, "Неизвестный уровень")
         user.placement_level = placement
+    if "kids_mode" in data and data.get("kids_mode") is not None:
+        user.kids_mode = bool(data["kids_mode"])
     if reminder is not None:
         if reminder and not _CLOCK.match(reminder):
             raise ServiceError(400, "Время в формате ЧЧ:ММ")

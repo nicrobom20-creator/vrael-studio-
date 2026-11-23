@@ -28,6 +28,7 @@ export function SettingsScreen() {
   const [language, setLanguage] = useState(user?.language || "fr");
   const [mascot, setMascot] = useState<MascotId>((user?.mascot || "parrot") as MascotId);
   const [busy, setBusy] = useState(false);
+  const [kids, setKids] = useState(Boolean(user?.kids_mode));
 
   async function save() {
     setBusy(true);
@@ -38,6 +39,7 @@ export function SettingsScreen() {
           daily_goal: goal,
           reminder_time: time,
           timezone: zone,
+          kids_mode: kids,
           language,
           mascot,
         }),
@@ -74,6 +76,10 @@ export function SettingsScreen() {
           <select value={zone} onChange={(event) => setZone(event.target.value)} className="glass mt-1 w-full bg-black/40 px-3 py-3 text-cream">
             {ZONES.map((item) => <option key={item} value={item}>{item}</option>)}
           </select>
+        </label>
+        <label className="mt-4 flex items-center gap-3 text-sm">
+          <input type="checkbox" checked={kids} onChange={(event) => setKids(event.target.checked)} />
+          Детский режим: крупнее кнопки и спокойнее текст
         </label>
         <h2 className="mt-6 font-display text-3xl">Язык</h2>
         <div className="mt-2 grid gap-2">

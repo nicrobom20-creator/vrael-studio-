@@ -52,6 +52,7 @@ class User(Base):
     coins: Mapped[int] = mapped_column(Integer, default=0)
     equipped: Mapped[str] = mapped_column(String(32), default="")
     last_chest_date: Mapped[date | None] = mapped_column(Date, nullable=True)
+    kids_mode: Mapped[bool] = mapped_column(Boolean, default=False)
     created_at: Mapped[datetime] = mapped_column(DateTime, default=utcnow)
 
 

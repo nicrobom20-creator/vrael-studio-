@@ -85,6 +85,7 @@ class ProfileIn(BaseModel):
     study_goal: str | None = None
     languages: list[str] | None = None
     placement_level: str | None = None
+    kids_mode: bool | None = None
 
 
 class AccountIn(BaseModel):

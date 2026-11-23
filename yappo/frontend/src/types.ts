@@ -82,6 +82,7 @@ export interface User {
   coins: number;
   outfit: string;
   pet: { code: string; title: string };
+  kids_mode: boolean;
   access: StaffAccess | null;
   usage: Usage;
   achievements: Achievement[];

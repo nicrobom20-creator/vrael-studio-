@@ -86,7 +86,7 @@ export function App() {
   }
 
   return (
-    <div className="mx-auto min-h-dvh max-w-[480px] overflow-x-hidden bg-ink">
+    <div className={`mx-auto min-h-dvh max-w-[480px] overflow-x-hidden bg-ink ${user.kids_mode ? "kids" : ""}`}>
       <PreloadArt language={user.language} />
       <AnimatePresence mode="wait">
         <motion.div

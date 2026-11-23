@@ -66,6 +66,7 @@ def _migrate_users(engine) -> None:
     have = {column["name"] for column in inspector.get_columns("users")}
     dialect = engine.dialect.name
     trial = "BOOLEAN NOT NULL DEFAULT FALSE" if dialect == "postgresql" else "INTEGER NOT NULL DEFAULT 0"
+    kids = trial
     columns = {
         "email": "VARCHAR(255)",
         "password_hash": "VARCHAR(255) DEFAULT ''",
@@ -78,6 +79,7 @@ def _migrate_users(engine) -> None:
         "coins": "INTEGER NOT NULL DEFAULT 0",
         "equipped": "VARCHAR(32) DEFAULT ''",
         "last_chest_date": "DATE",
+        "kids_mode": kids,
     }
     with engine.begin() as conn:
         for name, ddl in columns.items():
