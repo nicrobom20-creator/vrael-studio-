@@ -133,6 +133,8 @@ def chapters():
                     build("Я бы хотел хлеба", ["I'd like", "some bread."], ["a ticket", "a map"]),
                     build("Яблоко, пожалуйста", ["An apple,", "please."], ["cheese", "goodbye"]),
                     build("Билет, пожалуйста", ["A ticket,", "please."], ["water", "hello"]),
+                    build("Карту, пожалуйста", ["A map,", "please."], ["bread", "goodbye"]),
+                    build("Немного сыра", ["A bit of", "cheese."], ["ticket", "water"]),
                 ]),
                 lesson(f"{c2}-listen", c2, "Шум рынка", "listen", [
                     listen("How much is this?", ["Сколько это стоит?", "Где карта?", "Я бы хотел чай", "До свидания"], 0,
@@ -176,12 +178,16 @@ def chapters():
                            "Can you repeat, please? — повторите, пожалуйста."),
                     choice("«До скорого»", ["See you later", "Good morning", "Last night", "Over there"], 0,
                            "See you later — до скорого."),
+                    gap("I'm ____ Russia.", ["from", "to", "at", "of"], 0, "I'm from Russia — я из России."),
+                    gap("Can you ____, please?", ["repeat", "tea", "map", "later"], 0, "Can you repeat, please? — повторите, пожалуйста."),
                 ]),
                 lesson(f"{c3}-build", c3, "Собери знакомство", "build", [
                     build("Меня зовут Анна", ["My name", "is Anna."], ["is Oliver", "please"]),
                     build("Я из России", ["I'm from", "Russia."], ["London", "tea"]),
                     build("Я не понимаю", ["I don't", "understand."], ["repeat", "later"]),
                     build("До скорого", ["See you", "later."], ["morning", "please"]),
+                    build("Повторите, пожалуйста", ["Can you", "repeat,", "please?"], ["understand", "later"]),
+                    build("Приятно познакомиться", ["Nice to", "meet you."], ["from", "sorry"]),
                 ]),
                 lesson(f"{c3}-speak", c3, "Скажи Оливеру", "speak", [
                     speak("My name is Anna.", "Меня зовут Анна", "Подставь своё имя вместо Anna."),
