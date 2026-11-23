@@ -54,6 +54,19 @@ class User(Base):
     created_at: Mapped[datetime] = mapped_column(DateTime, default=utcnow)
 
 
+class Duel(Base):
+    __tablename__ = "duels"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    code: Mapped[str] = mapped_column(String(8), unique=True, index=True)
+    host_id: Mapped[int] = mapped_column(ForeignKey("users.id"), index=True)
+    guest_id: Mapped[int | None] = mapped_column(ForeignKey("users.id"), nullable=True)
+    host_score: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    guest_score: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    settled: Mapped[bool] = mapped_column(Boolean, default=False)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=utcnow)
+
+
 class WordCard(Base):
     __tablename__ = "word_cards"
     __table_args__ = (UniqueConstraint("user_id", "front"),)

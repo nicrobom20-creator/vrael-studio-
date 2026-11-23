@@ -34,6 +34,7 @@ from app.payments import apply_payment_event
 from app.practice import grade_placement, placement_questions
 from app.security import read_session, signature_is_fresh, sign_session, verify_rollypay_signature, verify_telegram_init_data
 from app.wardrobe import buy_item, equip_item, shop_payload
+from app.duels import create_duel, join_duel, questions as duel_questions, shadow_duel, submit_duel
 from app.league import league_payload
 from app.words import due_words, grade_word, save_word
 from app.services import (
@@ -110,6 +111,14 @@ class WordIn(BaseModel):
 
 class WordGradeIn(BaseModel):
     ok: bool = True
+
+
+class DuelAnswers(BaseModel):
+    answers: dict[str, str] = Field(default_factory=dict)
+
+
+class DuelJoin(BaseModel):
+    code: str
 
 
 class CompleteIn(BaseModel):
@@ -368,6 +377,42 @@ def create_app() -> FastAPI:
         except ServiceError as error:
             _raise(error)
         return serialize_user(session, user)
+
+    @app.get("/api/duels/questions")
+    def duel_rounds(user: User = Depends(current_user)):
+        return {"questions": duel_questions()}
+
+    @app.post("/api/duels")
+    def duel_open(user: User = Depends(current_user), session: Session = Depends(get_session)):
+        row = create_duel(session, user)
+        session.commit()
+        return {"code": row.code, "questions": duel_questions()}
+
+    @app.post("/api/duels/join")
+    def duel_join(body: DuelJoin, user: User = Depends(current_user), session: Session = Depends(get_session)):
+        try:
+            row = join_duel(session, user, body.code)
+            session.commit()
+        except ServiceError as error:
+            _raise(error)
+        return {"code": row.code, "questions": duel_questions()}
+
+    @app.post("/api/duels/{code}/answers")
+    def duel_answers(code: str, body: DuelAnswers, user: User = Depends(current_user), session: Session = Depends(get_session)):
+        try:
+            result = submit_duel(session, user, code, body.answers)
+            session.commit()
+        except ServiceError as error:
+            _raise(error)
+        result["user"] = serialize_user(session, user)
+        return result
+
+    @app.post("/api/duels/shadow")
+    def duel_shadow(body: DuelAnswers, user: User = Depends(current_user), session: Session = Depends(get_session)):
+        result = shadow_duel(session, user, body.answers)
+        session.commit()
+        result["user"] = serialize_user(session, user)
+        return result
 
     @app.get("/api/league")
     def league(user: User = Depends(current_user), session: Session = Depends(get_session)):
