@@ -1,3 +1,5 @@
+import { sfx } from "./sound";
+
 const PUNCT = /[^\p{L}\p{N}\s]/gu;
 
 export function normalizePhrase(value: string): string {
@@ -71,6 +73,104 @@ declare global {
   }
 }
 
+export type MicProblem = "denied" | "unsupported" | "error";
+
+export function openInBrowser() {
+  const url = window.location.href;
+  const opener = window.Telegram?.WebApp?.openLink;
+  if (opener) opener(url);
+  else window.open(url, "_blank", "noopener");
+}
+
+export async function beginSpeech(
+  lang: string,
+  onText: (text: string) => void,
+  onProblem: (problem: MicProblem) => void,
+): Promise<{ stop: () => void }> {
+  if (!navigator.mediaDevices?.getUserMedia) {
+    onProblem("unsupported");
+    return { stop() {} };
+  }
+  let stream: MediaStream;
+  try {
+    stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+  } catch {
+    onProblem("denied");
+    return { stop() {} };
+  }
+  const Ctor = window.SpeechRecognition || window.webkitSpeechRecognition;
+  if (!Ctor) {
+    let recorder: MediaRecorder | null = null;
+    try {
+      recorder = new MediaRecorder(stream);
+      recorder.start();
+    } catch {
+      stream.getTracks().forEach((track) => track.stop());
+      onProblem("unsupported");
+      return { stop() {} };
+    }
+    const stopTracks = () => {
+      try {
+        if (recorder && recorder.state !== "inactive") recorder.stop();
+      } catch {
+        /* already stopped */
+      }
+      stream.getTracks().forEach((track) => track.stop());
+    };
+    const timer = window.setTimeout(() => {
+      stopTracks();
+      onProblem("unsupported");
+    }, 1400);
+    return {
+      stop() {
+        window.clearTimeout(timer);
+        stopTracks();
+      },
+    };
+  }
+  const rec = new Ctor();
+  rec.lang = lang || "en-GB";
+  rec.interimResults = false;
+  rec.continuous = false;
+  let heard = false;
+  let closed = false;
+  const finish = () => {
+    if (closed) return;
+    closed = true;
+    stream.getTracks().forEach((track) => track.stop());
+  };
+  rec.onresult = (event) => {
+    const text = event.results?.[0]?.[0]?.transcript || "";
+    if (text) {
+      heard = true;
+      onText(text);
+    }
+  };
+  const report = (problem: MicProblem) => {
+    if (heard || closed) return;
+    finish();
+    onProblem(problem);
+  };
+  rec.onerror = () => report("error");
+  rec.onend = () => {
+    if (!heard) report("error");
+    else finish();
+  };
+  try {
+    rec.start();
+  } catch {
+    finish();
+    onProblem("error");
+    return { stop() {} };
+  }
+  return {
+    stop() {
+      try { rec.stop(); } catch { /* already stopped */ }
+      finish();
+    },
+  };
+}
+
 export function listenOnce(lang: string, onText: (text: string) => void, onEnd: () => void) {
   const Ctor = window.SpeechRecognition || window.webkitSpeechRecognition;
   if (!Ctor) {
@@ -92,23 +192,7 @@ export function listenOnce(lang: string, onText: (text: string) => void, onEnd: 
 }
 
 export function chime(kind: "ok" | "bad" | "win") {
-  const AudioCtx = window.AudioContext || window.webkitAudioContext;
-  if (!AudioCtx) return;
-  const ctx = new AudioCtx();
-  const notes = kind === "win" ? [523, 659, 784] : kind === "ok" ? [660, 880] : [220];
-  notes.forEach((freq, index) => {
-    const osc = ctx.createOscillator();
-    const gain = ctx.createGain();
-    osc.type = "sine";
-    osc.frequency.value = freq;
-    gain.gain.value = 0.04;
-    osc.connect(gain);
-    gain.connect(ctx.destination);
-    const start = ctx.currentTime + index * 0.08;
-    osc.start(start);
-    osc.stop(start + 0.16);
-  });
-  window.setTimeout(() => ctx.close(), 800);
+  sfx(kind);
 }
 
 declare global {

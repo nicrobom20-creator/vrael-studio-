@@ -59,9 +59,9 @@ export function SettingsScreen() {
         <h1 className="mt-4 font-display text-5xl leading-none">Ритм и спутник</h1>
         <p className="mt-2 text-sm text-cream/70">Напоминание придёт в голосе спутника, если в этот день ещё не было испытания. Часовой пояс по умолчанию — Москва.</p>
         <div className="mt-4 grid grid-cols-3 gap-2">
-          {[15, 20, 30].map((minutes) => (
-            <button key={minutes} onClick={() => setGoal(minutes)} className={`glass py-3 ${goal === minutes ? "border-gold text-gold2" : ""}`}>
-              {minutes} мин
+          {[5, 10, 15, 20, 30, 45, 60].map((minutes) => (
+            <button key={minutes} onClick={() => setGoal(minutes)} className={`choice-btn py-3 ${goal === minutes ? "choice-on" : ""}`}>
+              {minutes === 60 ? "1 ч" : `${minutes} мин`}
             </button>
           ))}
         </div>

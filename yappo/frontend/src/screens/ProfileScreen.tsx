@@ -20,6 +20,7 @@ export function ProfileScreen() {
           <div className="min-w-0 flex-1">
             <div className="font-display text-3xl leading-none">{user.name}</div>
             <div className="mt-1 text-sm text-gold2">{user.mascot_name} · {user.language_name}</div>
+            {user.public_id && <div className="mt-1 text-[11px] text-cream/60">Аккаунт {user.public_id}</div>}
             <div className="mt-2 text-xs text-cream/70">Уровень {user.level}</div>
             <div className="mt-1 h-1.5 overflow-hidden rounded-full bg-white/10">
               <div className="h-full bg-gradient-to-r from-[#f6e6bf] to-[#b8893e]" style={{ width: `${ratio}%` }} />

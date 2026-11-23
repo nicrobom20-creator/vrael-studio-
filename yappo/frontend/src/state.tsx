@@ -1,5 +1,5 @@
 import { createContext, useContext, useEffect, useMemo, useState, type ReactNode } from "react";
-import { api, deviceId, OPEN_IN_BOT, readInitData, readStartParam } from "./api";
+import { api, OPEN_IN_BOT, readInitData } from "./api";
 import type { PublicConfig, User } from "./types";
 
 interface AppState {
@@ -39,27 +39,27 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
       const pub = await api<PublicConfig>("/api/public");
       setConfig(pub);
       const initData = readInitData();
-      const start = readStartParam();
-      let auth: { token: string; user: User };
       if (initData) {
         try {
-          auth = await api("/api/auth/telegram", {
+          const auth = await api<{ token: string; user: User }>("/api/auth/telegram", {
             method: "POST",
             body: JSON.stringify({ init_data: initData }),
           });
+          localStorage.setItem("yappo_token", auth.token);
+          setUser(auth.user);
         } catch {
           throw new Error(OPEN_IN_BOT);
         }
-      } else if (pub.demo) {
-        auth = await api("/api/auth/demo", {
-          method: "POST",
-          body: JSON.stringify({ device_id: deviceId(), start_param: start }),
-        });
+      } else if (localStorage.getItem("yappo_token")) {
+        try {
+          setUser(await api<User>("/api/me"));
+        } catch {
+          localStorage.removeItem("yappo_token");
+          setUser(null);
+        }
       } else {
-        throw new Error(OPEN_IN_BOT);
+        setUser(null);
       }
-      localStorage.setItem("yappo_token", auth.token);
-      setUser(auth.user);
       setReady(true);
     } catch (reason) {
       localStorage.removeItem("yappo_token");

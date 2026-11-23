@@ -25,7 +25,7 @@ const PricingPage = lazy(() => import("./screens/LegalScreen").then((m) => ({ de
 export function App() {
   const { ready, error, user, boot, toast } = useApp();
   const location = useLocation();
-  const hideNav = /^\/(trial|story|premium|friends|settings|board)/.test(location.pathname);
+  const hideNav = /^\/(trial|story|premium|friends|settings|board|admin)/.test(location.pathname);
 
   const element = useRoutes([
     { path: "/", element: <MapScreen /> },
@@ -54,14 +54,14 @@ export function App() {
   }
 
   if (!ready) return <Splash label="Собираем карту…" />;
-  if (!user) {
+  if (!user && error) {
     return (
       <Splash label={error || OPEN_IN_BOT}>
         <button className="gold-btn mt-4 h-11 px-6" onClick={() => void boot()}>Ещё раз</button>
       </Splash>
     );
   }
-  if (!user.onboarded) {
+  if (!user || !user.onboarded) {
     return (
       <Suspense fallback={<Splash label="Собираем карту…" />}>
         <Onboarding />

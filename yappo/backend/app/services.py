@@ -26,12 +26,19 @@ from app.content import (
 from app.gamification import ACHIEVEMENTS, apply_streak, level_progress
 from app.llm import chat_reply, demo_reply
 from app.models import Achievement, Payment, Progress, ReferralReward, UsageDay, User, XpEvent
+from app.ids import new_email_telegram_id, new_public_id
 from app.payments import create_local_payment, create_rollypay_payment
+from app.practice import shuffle_steps
+from app.security import hash_password, verify_password
 from app.referrals import find_referrer, grant_join_referral, new_referral_code, parse_ref
 from app.reminders import local_today
 
 _DEVICE = re.compile(r"^[A-Za-z0-9_-]{8,64}$")
 _CLOCK = re.compile(r"^([01]\d|2[0-3]):[0-5]\d$")
+_EMAIL = re.compile(r"^[^@\s]+@[^@\s]+\.[^@\s]+$")
+_LEVELS = {"start", "words", "base", "talk", "confident"}
+_STUDY_GOALS = {"people", "fun", "growth", "travel", "family", "career", "other"}
+_MINUTES = {5, 10, 15, 20, 30, 45, 60}
 DEMO_ID_BASE = 9_000_000_000_000
 
 
@@ -184,9 +191,27 @@ def serialize_user(session: Session, user: User, now: datetime | None = None) ->
         "daily_goal": user.daily_goal or 15,
         "onboarded": bool(user.onboarded and user.language and user.mascot),
         "referral_code": user.referral_code,
+        "public_id": user.public_id or "",
+        "email": user.email or "",
+        "has_telegram": bool(user.telegram_id and user.telegram_id > 0),
+        "english_level": user.english_level or "",
+        "study_goal": user.study_goal or "",
+        "languages": [code for code in (user.languages or "").split(",") if code],
+        "placement_level": user.placement_level or "",
+        "trial_used": bool(user.trial_used),
+        "access": _access_view(session, user),
         "usage": usage_view(session, user, now_n),
         "achievements": achievements,
     }
+
+
+def _access_view(session: Session, user: User) -> dict | None:
+    from app.admin_service import resolve_admin
+
+    access = resolve_admin(session, user.telegram_id or 0)
+    if access is None:
+        return None
+    return {"role": access.role, "can_invite": access.can_invite}
 
 
 def get_or_create_user(
@@ -205,6 +230,7 @@ def get_or_create_user(
             username=(username or "")[:64],
             first_name=(first_name or "")[:128],
             referral_code=_code(session),
+            public_id=mint_public_id(session),
             timezone="Europe/Moscow",
             daily_goal=15,
         )
@@ -233,9 +259,97 @@ def get_or_create_user(
             user.username = username[:64]
         if first_name:
             user.first_name = first_name[:128]
+    if user is not None and not user.public_id:
+        user.public_id = mint_public_id(session)
     if user is None:
         raise ServiceError(500, "Не удалось создать профиль")
     return user, granted
+
+
+def mint_public_id(session: Session) -> str:
+    for _ in range(8):
+        code = new_public_id()
+        if session.scalar(select(User.id).where(User.public_id == code)) is None:
+            return code
+    raise ServiceError(500, "Не удалось выдать номер")
+
+
+def _clean_email(email: str) -> str:
+    value = (email or "").strip().lower()
+    if not _EMAIL.match(value) or len(value) > 255:
+        raise ServiceError(400, "Проверь почту")
+    return value
+
+
+def _clean_password(password: str) -> str:
+    if not password or len(password) < 8 or len(password) > 128:
+        raise ServiceError(400, "Пароль от 8 символов")
+    return password
+
+
+def register_account(session: Session, email: str, password: str, name: str = "") -> User:
+    email_n = _clean_email(email)
+    password_n = _clean_password(password)
+    taken = session.scalar(select(User.id).where(func.lower(User.email) == email_n))
+    if taken:
+        raise ServiceError(409, "Эта почта уже занята")
+    label = (name or email_n.split("@")[0])[:128]
+    user = None
+    for _ in range(5):
+        candidate = User(
+            telegram_id=new_email_telegram_id(),
+            username="",
+            first_name=label,
+            email=email_n,
+            password_hash=hash_password(password_n),
+            referral_code=_code(session),
+            public_id=mint_public_id(session),
+            timezone="Europe/Moscow",
+            daily_goal=15,
+        )
+        session.add(candidate)
+        try:
+            session.flush()
+        except IntegrityError:
+            session.rollback()
+            continue
+        user = candidate
+        break
+    if user is None:
+        raise ServiceError(500, "Не удалось создать аккаунт")
+    return user
+
+
+def login_account(session: Session, email: str, password: str) -> User:
+    email_n = (email or "").strip().lower()
+    user = session.scalar(select(User).where(func.lower(User.email) == email_n))
+    if user is None or not verify_password(password or "", user.password_hash or ""):
+        raise ServiceError(401, "Почта или пароль не подошли")
+    return user
+
+
+def link_account(session: Session, user: User, email: str, password: str) -> User:
+    if user.email:
+        raise ServiceError(409, "Почта уже привязана")
+    email_n = _clean_email(email)
+    password_n = _clean_password(password)
+    taken = session.scalar(select(User.id).where(func.lower(User.email) == email_n))
+    if taken:
+        raise ServiceError(409, "Эта почта уже занята")
+    user.email = email_n
+    user.password_hash = hash_password(password_n)
+    session.flush()
+    return user
+
+
+def start_trial(session: Session, user: User) -> User:
+    if user.trial_used:
+        raise ServiceError(409, "Пробные 3 дня уже были")
+    now = naive_utc()
+    base = user.premium_until if user.premium_until and user.premium_until > now else now
+    user.premium_until = base + timedelta(days=3)
+    user.trial_used = True
+    return user
 
 
 def demo_telegram_id(device_id: str) -> int:
@@ -269,9 +383,33 @@ def _apply_profile(user: User, data: dict, *, require: bool) -> None:
             raise ServiceError(400, "Такого спутника нет")
         user.mascot = mascot
     if goal is not None:
-        if goal not in (15, 20, 30):
-            raise ServiceError(400, "Цель — 15, 20 или 30 минут")
+        if goal not in _MINUTES:
+            raise ServiceError(400, "Цель — 5, 10, 15, 20, 30, 45 или 60 минут")
         user.daily_goal = goal
+    level = data.get("english_level", None)
+    if level:
+        if level not in _LEVELS:
+            raise ServiceError(400, "Неизвестный уровень")
+        user.english_level = level
+    study = data.get("study_goal", None)
+    if study:
+        if study not in _STUDY_GOALS:
+            raise ServiceError(400, "Неизвестная цель")
+        user.study_goal = study
+    languages = data.get("languages", None)
+    if isinstance(languages, list):
+        clean = []
+        for code in languages:
+            if code in LANGUAGES and code not in clean:
+                clean.append(code)
+        if len(clean) > 3:
+            raise ServiceError(400, "Можно выбрать до трёх языков")
+        user.languages = ",".join(clean)
+    placement = data.get("placement_level", None)
+    if placement:
+        if placement not in _LEVELS:
+            raise ServiceError(400, "Неизвестный уровень")
+        user.placement_level = placement
     if reminder is not None:
         if reminder and not _CLOCK.match(reminder):
             raise ServiceError(400, "Время в формате ЧЧ:ММ")
@@ -305,6 +443,7 @@ def public_payload() -> dict:
                 "city": lang["city"],
                 "country": lang["country"],
                 "tts": lang["tts"],
+                "available": lang["code"] == "en",
             }
             for lang in LANGUAGES.values()
         ],
@@ -370,7 +509,7 @@ def lesson_payload(session: Session, user: User, lesson_id: str) -> dict:
         "xp": node["xp"],
         "tts": meta["tts"],
         "language": user.language,
-        "steps": node["steps"],
+        "steps": shuffle_steps(node["steps"]),
     }
 
 

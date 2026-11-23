@@ -5,10 +5,12 @@ import { ApiError, api, followCheckout, haptic } from "../api";
 import { CityScene } from "../components/CityScene";
 import { Companion } from "../components/Companion";
 import { TopStats } from "../components/Shell";
+import { SentenceGame } from "../components/SentenceGame";
 import { GoldButton, MicButton, StarBurst } from "../components/World";
 import { ConsentLine, openLegal } from "./LegalScreen";
 import { markUnlock } from "../lib/motion";
-import { canListen, chime, listenOnce, phraseHit, speakAloud } from "../lib/speech";
+import { gentleLine, praiseLine } from "../lib/praise";
+import { beginSpeech, chime, openInBrowser, phraseHit, speakAloud, type MicProblem } from "../lib/speech";
 import { useApp } from "../state";
 import type { Lesson, MascotId, Step, User } from "../types";
 
@@ -28,6 +30,10 @@ export function TrialScreen() {
   const [pool, setPool] = useState<string[]>([]);
   const [listening, setListening] = useState(false);
   const [heard, setHeard] = useState("");
+  const [micProblem, setMicProblem] = useState<MicProblem | "">("");
+  const [combo, setCombo] = useState(0);
+  const [hearts, setHearts] = useState(5);
+  const [praise, setPraise] = useState("");
   const [burst, setBurst] = useState(0);
   const [done, setDone] = useState<{ xp: number; next?: { id: string; kind: string; title: string } | null } | null>(null);
 
@@ -42,8 +48,10 @@ export function TrialScreen() {
     }
     api<Lesson>(`/api/lessons/${id}`)
       .then((data) => {
-        setLesson(data);
+        setLesson(shuffleChoices(data));
         setBlocked("");
+        setCombo(0);
+        setHearts(5);
       })
       .catch((error: ApiError) => setBlocked(error.message));
   }, [id]);
@@ -99,13 +107,20 @@ export function TrialScreen() {
     else setIndex((value) => value + 1);
   }
 
-  function wrong() {
+  function wrong(line = gentleLine()) {
     setMistakes((value) => value + 1);
+    setCombo(0);
+    setPraise(line);
     chime("bad");
     haptic("error");
   }
 
-  function right() {
+  function right(line?: string) {
+    setCombo((value) => {
+      const next = value + 1;
+      setPraise(line || praiseLine(next));
+      return next;
+    });
     setBurst((value) => value + 1);
     chime("ok");
     haptic("success");
@@ -128,34 +143,20 @@ export function TrialScreen() {
     setLeftPick(null);
   }
 
-  function checkBuild() {
-    if (!step) return;
-    const answer = (step.answer as string[]) || [];
-    if (built.join("|") === answer.join("|")) {
-      right();
-      window.setTimeout(advance, 400);
-    } else {
-      wrong();
-      setBuilt([]);
-      setPool(shuffle([...answer, ...(step.extra || [])]));
-    }
-  }
-
-  function onVoice(target: string) {
-    if (!canListen()) {
-      setHeard("");
-      right();
-      window.setTimeout(advance, 350);
-      return;
-    }
+  async function onVoice(target: string) {
+    setMicProblem("");
     setListening(true);
-    listenOnce(lesson?.tts || "en-GB", (text) => {
+    await beginSpeech(lesson?.tts || "en-GB", (text) => {
+      setListening(false);
       setHeard(text);
       if (phraseHit(text, target)) {
         right();
         window.setTimeout(advance, 500);
       } else wrong();
-    }, () => setListening(false));
+    }, (problem) => {
+      setMicProblem(problem);
+      setListening(false);
+    });
   }
 
   if (blocked === "limit") {
@@ -174,7 +175,7 @@ export function TrialScreen() {
     return <div className="grid min-h-dvh place-items-center text-cream/70">Открываем врата…</div>;
   }
 
-  const pose = done ? "celebrate" : listening ? "point" : step.type === "speak" ? "wave" : "idle";
+  const pose = done || (praise && combo > 0) ? "celebrate" : praise && combo === 0 ? "think" : listening ? "point" : step.type === "speak" ? "wave" : "idle";
 
   return (
     <div className="relative min-h-dvh overflow-hidden">
@@ -233,7 +234,7 @@ export function TrialScreen() {
                 <Companion mascot={mascot} pose={pose} className="h-full w-full" />
               </div>
               <div className="text-xs leading-snug text-cream/70">
-                {done ? "Врата позади. Тропа открыта." : "Спутник ждёт твою фразу."}
+                {praise || (done ? "Врата позади. Тропа открыта." : "Спутник ждёт твою фразу.")}
               </div>
             </div>
             {done ? (
@@ -241,6 +242,24 @@ export function TrialScreen() {
                 <div className="font-display text-3xl">+{done.xp} XP</div>
                 <p className="mt-1 text-sm text-cream/75">Спутник уже смотрит на следующие врата.</p>
               </div>
+            ) : step.type === "build" ? (
+              <SentenceGame
+                step={step}
+                tts={lesson.tts}
+                mascot={mascot}
+                combo={combo}
+                hearts={hearts}
+                onPass={(line) => right(line)}
+                onMiss={(line) => {
+                  wrong(line);
+                  setHearts((value) => {
+                    const next = value - 1;
+                    if (next <= 0) window.setTimeout(() => void finish(), 600);
+                    return Math.max(0, next);
+                  });
+                }}
+                onNext={advance}
+              />
             ) : (
               <StepBody
                 step={step}
@@ -281,20 +300,25 @@ export function TrialScreen() {
           </div>
         ) : step.type === "speak" ? (
           <div className="mb-2 flex flex-col items-center">
-            <MicButton live={listening} onClick={() => onVoice(step.phrase || "")} />
-            <div className="mt-2 text-xs text-cream/80">Скажи вслух</div>
-            <button className="mt-2 text-xs text-gold2 underline" onClick={advance}>
-              {canListen() ? "Дальше без микрофона" : "Микрофона нет — дальше"}
-            </button>
+            <MicButton live={listening} onClick={() => void onVoice(step.phrase || "")} />
+            <div className="mt-2 text-xs text-cream/80">{heard || "Скажи вслух"}</div>
+            {micProblem && (
+              <p className="mt-2 max-w-xs text-center text-xs text-cream/70">
+                {micProblem === "denied"
+                  ? "Нет доступа к микрофону. Разреши его в Telegram или открой урок в браузере."
+                  : "В этом окне речь не распознаётся. Можно пропустить или открыть урок в браузере."}
+              </p>
+            )}
+            <button className="mt-2 text-xs text-gold2 underline" onClick={advance}>Пропустить</button>
+            <button className="mt-1 text-xs text-gold2 underline" onClick={openInBrowser}>Открыть в браузере</button>
           </div>
-        ) : (
+        ) : step.type === "build" ? null : (
           <div className="mb-3 w-full">
             {step.type === "choice" && !checked && (
               <GoldButton disabled={picked == null} onClick={checkChoice}>Проверить</GoldButton>
             )}
             {step.type === "choice" && checked && <GoldButton onClick={advance}>Дальше</GoldButton>}
             {step.type === "vocab" && <GoldButton onClick={advance}>Запомнил</GoldButton>}
-            {step.type === "build" && <GoldButton onClick={checkBuild}>Проверить фразу</GoldButton>}
             {step.type === "listen" && !checked && (
               <GoldButton disabled={picked == null} onClick={checkChoice}>Проверить</GoldButton>
             )}
@@ -372,8 +396,8 @@ function StepBody(props: {
                 key={option}
                 disabled={props.checked}
                 onClick={() => props.onPick(optionIndex)}
-                className={`break-words rounded-2xl border px-3 py-3 text-left ${
-                  good ? "border-gold bg-gold/20" : bad ? "border-rose-300/70 bg-rose-900/30" : chosen ? "border-gold" : "border-white/10"
+                className={`choice-btn break-words px-3 py-3 text-left ${
+                  good ? "choice-good" : bad ? "choice-bad" : chosen ? "choice-on" : ""
                 }`}
               >
                 <span className="mr-2 text-gold2">{String.fromCharCode(65 + optionIndex)}</span>
@@ -579,6 +603,21 @@ function formatReset(timeZone: string) {
   const h = Math.floor(left / 3600);
   const m = Math.floor((left % 3600) / 60);
   return `${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")}`;
+}
+
+function shuffleChoices(lesson: Lesson): Lesson {
+  return {
+    ...lesson,
+    steps: lesson.steps.map((step) => {
+      if ((step.type !== "choice" && step.type !== "listen") || !step.options || typeof step.answer !== "number") {
+        return step;
+      }
+      const options = [...step.options];
+      const correct = options[step.answer] ?? options[0];
+      const mixed = shuffle(options);
+      return { ...step, options: mixed, answer: mixed.indexOf(correct) };
+    }),
+  };
 }
 
 function shuffle<T>(items: T[]): T[] {

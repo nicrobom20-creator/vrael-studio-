@@ -6,15 +6,33 @@ import { cityOf, pathSpots } from "../components/CityScene";
 import { Companion } from "../components/Companion";
 import { TopStats } from "../components/Shell";
 import { prefersReducedMotion, takeUnlock } from "../lib/motion";
+import { sfx, startAmbient } from "../lib/sound";
 import { useApp } from "../state";
 import type { Chapter, MascotId, PathData, PathNode } from "../types";
+
+const JOURNEY = ["london", "newyork", "sydney"];
+const CITY_NAME: Record<string, string> = {
+  london: "Лондон",
+  newyork: "Нью-Йорк",
+  sydney: "Сидней",
+  paris: "Париж",
+  madrid: "Мадрид",
+  berlin: "Берлин",
+  beijing: "Пекин",
+};
+
+function cityFor(language: string, index: number) {
+  if (language === "en") return JOURNEY[Math.min(index, JOURNEY.length - 1)];
+  return cityOf(language);
+}
 
 export function MapScreen() {
   const { user, notify } = useApp();
   const navigate = useNavigate();
   const [path, setPath] = useState<PathData | null>(null);
-  const [unlock, setUnlock] = useState<{ from: string; to: string; leg: 0 | 1 } | null>(null);
+  const [unlock, setUnlock] = useState<{ from: string; to: string; leg: 0 | 1 | 2 } | null>(null);
   const scroller = useRef<HTMLDivElement>(null);
+  const light = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     api<PathData>("/api/path").then((data) => {
@@ -25,22 +43,49 @@ export function MapScreen() {
   }, [user?.language]);
 
   useEffect(() => {
+    const el = scroller.current;
+    if (!el) return;
+    let frame = 0;
+    const onScroll = () => {
+      cancelAnimationFrame(frame);
+      frame = requestAnimationFrame(() => {
+        const glow = light.current;
+        if (!glow) return;
+        const max = el.scrollHeight - el.clientHeight || 1;
+        const progress = el.scrollTop / max;
+        glow.style.transform = `translate3d(${(progress - 0.5) * 80}px, ${progress * 28}vh, 0)`;
+      });
+    };
+    el.addEventListener("scroll", onScroll, { passive: true });
+    return () => {
+      el.removeEventListener("scroll", onScroll);
+      cancelAnimationFrame(frame);
+    };
+  }, [path]);
+
+  useEffect(() => {
     if (!path) return;
-    const frame = window.requestAnimationFrame(() => settleAboveCta());
+    const frame = window.requestAnimationFrame(() => followCurrent(scroller.current));
     return () => window.cancelAnimationFrame(frame);
   }, [path, unlock?.leg]);
 
   useEffect(() => {
     if (!unlock) return;
     haptic("success");
+    sfx("win");
     if (prefersReducedMotion()) {
       setUnlock(null);
       return;
     }
-    const run = window.setTimeout(() => setUnlock((value) => (value ? { ...value, leg: 1 } : value)), 900);
-    const done = window.setTimeout(() => setUnlock(null), 1500);
+    const run = window.setTimeout(() => setUnlock((value) => (value ? { ...value, leg: 1 } : value)), 480);
+    const wave = window.setTimeout(() => {
+      haptic("medium");
+      setUnlock((value) => (value ? { ...value, leg: 2 } : value));
+    }, 1500);
+    const done = window.setTimeout(() => setUnlock(null), 2400);
     return () => {
       window.clearTimeout(run);
+      window.clearTimeout(wave);
       window.clearTimeout(done);
     };
   }, [unlock?.from]);
@@ -52,20 +97,33 @@ export function MapScreen() {
   const active = path.chapters.find((chapter) => chapter.unlocked && !chapter.complete) || path.chapters[path.chapters.length - 1];
 
   return (
-    <div id="map-scroller" ref={scroller} className="h-dvh overflow-y-auto overflow-x-hidden">
+    <div
+      id="map-scroller"
+      ref={scroller}
+      className="world-scroll h-dvh overflow-y-auto overflow-x-hidden"
+      onPointerDown={() => startAmbient()}
+    >
+      <div ref={light} className="hero-light" />
+      <div className="pointer-events-none absolute inset-0 overflow-hidden">
+        <span className="mote" style={{ left: "18%" }} />
+        <span className="mote mote-b" style={{ left: "70%" }} />
+      </div>
       <div className="sticky top-0 z-40 bg-gradient-to-b from-[#120e0b]/80 to-transparent pb-2">
         <TopStats
           title={active.title}
-          subtitle={`${path.language.city} · Уровень ${user.level}`}
+          subtitle={`${CITY_NAME[cityFor(user.language, active.index - 1)] || path.language.city} · Уровень ${user.level}`}
           xp={user.xp}
           streak={user.streak}
+          studied={user.usage.studied_minutes}
+          goal={user.daily_goal}
         />
       </div>
-      {path.chapters.map((chapter) => (
+      {path.chapters.map((chapter, index) => (
         <ChapterBand
           key={chapter.id}
           chapter={chapter}
-          language={user.language}
+          city={cityFor(user.language, index)}
+          joined={index > 0}
           mascot={mascot}
           line={chapter.id === active.id ? path.mascot_line : chapter.subtitle}
           unlock={unlock}
@@ -77,61 +135,73 @@ export function MapScreen() {
   );
 }
 
-function settleAboveCta() {
-  const scroller = document.getElementById("map-scroller");
+function followCurrent(scroller: HTMLDivElement | null) {
   const node = document.getElementById("node-current");
-  const cta = document.getElementById("map-cta");
-  const companion = document.querySelector("[data-companion='current']");
   if (!scroller || !node) return;
-  const limit = (cta?.getBoundingClientRect().top ?? window.innerHeight - 160) - 64;
-  const bottoms = [node.getBoundingClientRect().bottom];
-  if (companion) {
-    bottoms.push(companion.getBoundingClientRect().bottom);
-    companion.querySelectorAll("img").forEach((img) => bottoms.push(img.getBoundingClientRect().bottom));
+  const top = node.getBoundingClientRect().top - scroller.getBoundingClientRect().top + scroller.scrollTop - scroller.clientHeight * 0.42;
+  if (prefersReducedMotion()) {
+    scroller.scrollTop = top;
+    return;
   }
-  const overflow = Math.max(...bottoms) - limit;
-  if (overflow > 4) scroller.scrollTop += overflow;
+  const start = scroller.scrollTop;
+  const delta = top - start;
+  const began = performance.now();
+  const step = (now: number) => {
+    const progress = Math.min(1, (now - began) / 700);
+    const eased = 1 - (1 - progress) ** 3;
+    scroller.scrollTop = start + delta * eased;
+    if (progress < 1) requestAnimationFrame(step);
+  };
+  requestAnimationFrame(step);
 }
 
 function ChapterBand({
   chapter,
-  language,
+  city,
+  joined,
   mascot,
   line,
   unlock,
   onOpen,
 }: {
   chapter: Chapter;
-  language: string;
+  city: string;
+  joined: boolean;
   mascot: MascotId;
   line: string;
-  unlock: { from: string; to: string; leg: 0 | 1 } | null;
+  unlock: { from: string; to: string; leg: 0 | 1 | 2 } | null;
   onOpen: (node: PathNode) => void;
 }) {
-  const spots = pathSpots(language, chapter.nodes.length);
+  const spots = pathSpots(city === "newyork" || city === "sydney" ? "london" : city, chapter.nodes.length);
   const current = chapter.nodes.find((node) => node.status === "current");
   const currentIndex = current ? chapter.nodes.indexOf(current) : -1;
   const fromIndex = unlock ? chapter.nodes.findIndex((node) => node.id === unlock.from) : -1;
   const toIndex = unlock ? chapter.nodes.findIndex((node) => node.id === unlock.to) : -1;
-  const travel = fromIndex >= 0 && toIndex >= 0;
-  const companionIndex = travel ? (unlock?.leg === 0 ? fromIndex : toIndex) : currentIndex;
-  const companionSpot = companionIndex >= 0 ? spots[companionIndex] : null;
+  const incoming = Boolean(unlock && toIndex >= 0 && fromIndex < 0);
+  const travel = (fromIndex >= 0 && toIndex >= 0) || incoming;
+  const companionIndex = travel ? (unlock?.leg === 0 && fromIndex >= 0 ? fromIndex : toIndex) : currentIndex;
+  const baseSpot = companionIndex >= 0 ? spots[companionIndex] : null;
+  const companionSpot = incoming && unlock?.leg === 0 && baseSpot
+    ? { x: baseSpot.x, y: Math.max(6, baseSpot.y - 16) }
+    : baseSpot;
   const d = spots.map((spot, index) => `${index === 0 ? "M" : "L"} ${spot.x} ${spot.y}`).join(" ");
-  const city = cityOf(language);
-  const art = `/art/${city}-720.webp`;
+  const pose = unlock?.leg === 0 && travel ? "jump" : unlock?.leg === 1 && travel ? "run" : unlock?.leg === 2 ? "wave" : "point";
 
   return (
-    <section id={`chapter-${chapter.id}`} className="relative">
-      <div className="relative w-full overflow-hidden" style={{ height: "calc(142vw * 1280 / 720)" }}>
-        <div className="absolute left-1/2 top-0 h-full w-[142%] -translate-x-1/2">
+    <section id={`chapter-${chapter.id}`} className={`relative ${joined ? "city-join" : ""}`}>
+      <div className="relative aspect-[9/16] w-full overflow-hidden">
         <img
-          src={art}
+          src={`/art/${city}-540.webp`}
+          srcSet={`/art/${city}-360.webp 360w, /art/${city}-540.webp 540w, /art/${city}-720.webp 720w`}
+          sizes="100vw"
           alt=""
           decoding="async"
           loading={chapter.index === 1 ? "eager" : "lazy"}
           className="absolute inset-0 h-full w-full object-cover"
         />
-        <div className="pointer-events-none absolute inset-x-0 top-0 h-24 bg-gradient-to-b from-black/25 to-transparent" />
+        <div className="pointer-events-none absolute left-3 top-3 z-20 rounded-full bg-black/45 px-3 py-1 text-[11px] text-gold2 backdrop-blur">
+          {CITY_NAME[city] || city}
+        </div>
         <svg className="pointer-events-none absolute inset-0 z-10 h-full w-full" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden>
           <path d={d} fill="none" stroke="rgba(255, 214, 140, 0.4)" strokeWidth="7" strokeLinecap="round" strokeLinejoin="round" vectorEffect="non-scaling-stroke" />
           <path d={d} fill="none" stroke="rgba(255, 244, 214, 0.95)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" vectorEffect="non-scaling-stroke" />
@@ -145,37 +215,16 @@ function ChapterBand({
             onOpen={() => onOpen(node)}
           />
         ))}
-        {unlock?.to && toIndex >= 0 && unlock.leg === 0 && (
-          <span
-            className="pointer-events-none absolute z-30 -translate-x-1/2 -translate-y-1/2 text-gold2"
-            style={{ left: `${spots[toIndex].x}%`, top: `${spots[toIndex].y}%` }}
-          >
-            ✦
-          </span>
-        )}
         {companionSpot && (
           <motion.div
             data-companion="current"
             className="pointer-events-none absolute z-20 h-32 w-28"
-            animate={{
-              left: `${Math.max(0, companionSpot.x - 22)}%`,
-              top: `${companionSpot.y - 7}%`,
-            }}
-            transition={prefersReducedMotion() ? { duration: 0 } : { type: "spring", stiffness: travel ? 50 : 70, damping: 16 }}
+            animate={{ left: `${Math.max(0, companionSpot.x - 22)}%`, top: `${companionSpot.y - 7}%` }}
+            transition={prefersReducedMotion() ? { duration: 0 } : { type: "spring", stiffness: travel ? 46 : 70, damping: 16 }}
           >
-            <Companion mascot={mascot} pose={travel && unlock?.leg === 1 ? "run" : "point"} />
+            <Companion mascot={mascot} pose={pose} />
           </motion.div>
         )}
-        </div>
-      </div>
-      <div className="relative h-[46vh] overflow-hidden">
-        <img
-          src={art}
-          alt=""
-          className="absolute bottom-0 left-1/2 h-[155%] w-[142%] max-w-none -translate-x-1/2 object-cover object-bottom"
-          style={{ filter: "blur(8px) brightness(0.62) saturate(0.9)" }}
-        />
-        <div className="absolute inset-0 bg-gradient-to-b from-[#1a120e]/20 via-[#120e0b]/28 to-[#0b0907]/75" />
       </div>
       {current && (
         <div id="map-cta" className="fixed inset-x-3 bottom-[96px] z-30 flex items-center gap-2">
@@ -207,7 +256,7 @@ function Node({ node, spot, breaking, onOpen }: { node: PathNode; spot: { x: num
     <button
       onClick={onOpen}
       id={live ? "node-current" : undefined}
-      className="absolute z-20 -translate-x-1/2 -translate-y-1/2 scroll-my-36"
+      className="absolute z-20 -translate-x-1/2 -translate-y-1/2 active:scale-95"
       style={{ left: `${spot.x}%`, top: `${spot.y}%` }}
       aria-label={node.title}
     >
@@ -217,7 +266,7 @@ function Node({ node, spot, breaking, onOpen }: { node: PathNode; spot: { x: num
             ? "h-9 w-9 border-gold bg-gradient-to-b from-[#f6e6bf] to-[#b8893e] text-[#2a1c0a]"
             : live
               ? "orb-live h-12 w-12 border-2 border-gold bg-black/35 text-gold2 shadow-[0_0_22px_rgba(231,201,138,0.85)]"
-              : "h-9 w-9 border border-gold/55 bg-white/10 text-gold2/80 shadow-[inset_0_0_0_1px_rgba(255,255,255,0.18)]"
+              : "h-9 w-9 border border-gold/55 bg-white/10 text-gold2/80"
         }`}
       >
         {done ? "✓" : live ? "✦" : <Lock />}
@@ -228,11 +277,7 @@ function Node({ node, spot, breaking, onOpen }: { node: PathNode; spot: { x: num
         </span>
       )}
       {live && (
-        <span
-          className={`pointer-events-none absolute top-1/2 max-w-[132px] -translate-y-1/2 whitespace-normal text-left leading-tight rounded-full bg-black/55 px-2 py-0.5 text-[10px] text-gold2 backdrop-blur ${
-            labelLeft ? "right-[118%]" : "left-[118%]"
-          }`}
-        >
+        <span className={`pointer-events-none absolute top-1/2 max-w-[132px] -translate-y-1/2 rounded-full bg-black/55 px-2 py-0.5 text-left text-[10px] leading-tight text-gold2 backdrop-blur ${labelLeft ? "right-[118%]" : "left-[118%]"}`}>
           {node.title}
         </span>
       )}

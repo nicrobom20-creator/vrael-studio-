@@ -66,7 +66,7 @@ export const PATHS: Record<string, { x: number; y: number }[]> = {
 };
 
 export function pathSpots(language: string, count: number) {
-  const line = PATHS[cityOf(language)] || PATHS.paris;
+  const line = PATHS[language] || PATHS[cityOf(language)] || PATHS.paris;
   if (count <= 1) return [line[0]];
   return Array.from({ length: count }, (_, index) => {
     const pos = (index / (count - 1)) * (line.length - 1);

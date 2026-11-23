@@ -31,6 +31,7 @@ from app.config import get_settings
 from app.db import SessionLocal, get_session, init_db
 from app.models import User
 from app.payments import apply_payment_event
+from app.practice import grade_placement, placement_questions
 from app.security import read_session, signature_is_fresh, sign_session, verify_rollypay_signature, verify_telegram_init_data
 from app.services import (
     ServiceError,
@@ -40,14 +41,18 @@ from app.services import (
     get_or_create_user,
     leaderboard,
     lesson_payload,
+    link_account,
+    login_account,
     path_payload,
     public_payload,
     quests_payload,
     referrals_payload,
+    register_account,
     scenes_for,
     send_chat,
     serialize_user,
     start_checkout,
+    start_trial,
     story_payload,
     _apply_profile,
 )
@@ -70,6 +75,25 @@ class ProfileIn(BaseModel):
     daily_goal: int | None = None
     reminder_time: str | None = None
     timezone: str | None = None
+    english_level: str | None = None
+    study_goal: str | None = None
+    languages: list[str] | None = None
+    placement_level: str | None = None
+
+
+class AccountIn(BaseModel):
+    email: str
+    password: str
+    name: str = ""
+
+
+class LoginIn(BaseModel):
+    email: str
+    password: str
+
+
+class PlacementIn(BaseModel):
+    answers: dict[str, str] = Field(default_factory=dict)
 
 
 class CompleteIn(BaseModel):
@@ -281,6 +305,53 @@ def create_app() -> FastAPI:
         except ServiceError as error:
             _raise(error)
         return {"token": _token(user), "referral_joined": joined, "user": serialize_user(session, user)}
+
+    @app.post("/api/auth/register")
+    def auth_register(body: AccountIn, session: Session = Depends(get_session)):
+        try:
+            user = register_account(session, body.email, body.password, body.name)
+            session.commit()
+        except ServiceError as error:
+            _raise(error)
+        return {"token": _token(user), "user": serialize_user(session, user)}
+
+    @app.post("/api/auth/login")
+    def auth_login(body: LoginIn, session: Session = Depends(get_session)):
+        try:
+            user = login_account(session, body.email, body.password)
+            session.commit()
+        except ServiceError as error:
+            _raise(error)
+        return {"token": _token(user), "user": serialize_user(session, user)}
+
+    @app.post("/api/auth/link")
+    def auth_link(body: AccountIn, user: User = Depends(current_user), session: Session = Depends(get_session)):
+        try:
+            link_account(session, user, body.email, body.password)
+            session.commit()
+        except ServiceError as error:
+            _raise(error)
+        return serialize_user(session, user)
+
+    @app.get("/api/placement")
+    def placement_get():
+        return {"questions": placement_questions()}
+
+    @app.post("/api/placement")
+    def placement_post(body: PlacementIn, user: User = Depends(current_user), session: Session = Depends(get_session)):
+        result = grade_placement(body.answers)
+        user.placement_level = result["level"]
+        session.commit()
+        return result
+
+    @app.post("/api/trial")
+    def trial(user: User = Depends(current_user), session: Session = Depends(get_session)):
+        try:
+            start_trial(session, user)
+            session.commit()
+        except ServiceError as error:
+            _raise(error)
+        return serialize_user(session, user)
 
     @app.get("/api/me")
     def me(user: User = Depends(current_user), session: Session = Depends(get_session)):

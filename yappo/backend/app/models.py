@@ -42,7 +42,13 @@ class User(Base):
     referred_by_id: Mapped[int | None] = mapped_column(ForeignKey("users.id"), nullable=True)
     onboarded: Mapped[bool] = mapped_column(Boolean, default=False)
     email: Mapped[str | None] = mapped_column(String(255), unique=True, nullable=True)
+    password_hash: Mapped[str] = mapped_column(String(255), default="")
     public_id: Mapped[str | None] = mapped_column(String(16), unique=True, nullable=True)
+    languages: Mapped[str] = mapped_column(String(64), default="")
+    english_level: Mapped[str] = mapped_column(String(32), default="")
+    study_goal: Mapped[str] = mapped_column(String(32), default="")
+    placement_level: Mapped[str] = mapped_column(String(32), default="")
+    trial_used: Mapped[bool] = mapped_column(Boolean, default=False)
     created_at: Mapped[datetime] = mapped_column(DateTime, default=utcnow)
 
 

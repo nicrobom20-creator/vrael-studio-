@@ -71,6 +71,18 @@ def chapters():
                     speak("Thank you.", "Спасибо", "Ударение на thank."),
                     speak("Goodbye.", "До свидания", "Можно и короче: Bye."),
                 ]),
+                lesson(f"{c1}-sentences", c1, "Живые фразы", "build", [
+                    build("Привет, друг", ["Hello,", "friend."], ["Goodbye", "Please"]),
+                    build("Спасибо", ["Thank", "you"], ["Sorry", "Hello"]),
+                    build("Чай, пожалуйста", ["A tea,", "please."], ["coffee", "water"]),
+                    build("Меня зовут Анна", ["My name", "is Anna."], ["your", "from"]),
+                    build("Где вокзал?", ["Where is", "the station?"], ["the bus", "ticket"]),
+                    build("Сколько это стоит?", ["How much", "is it?"], ["is this", "water"]),
+                    build("Я из России", ["I'm", "from Russia."], ["sorry", "learning"]),
+                    build("Приятно познакомиться", ["Nice", "to meet", "you."], ["goodbye", "please"]),
+                    build("Я не понимаю", ["I don't", "understand."], ["repeat", "ticket"]),
+                    build("До свидания, друг", ["Goodbye,", "friend."], ["Hello", "Please"]),
+                ], xp=25),
                 story(f"{c1}-boss", c1, "Заказ у стойки", [
                     line("mascot", "Последняя сцена главы. Оливер за стойкой. Не спеши, я рядом.", "point"),
                     line("npc", "Hello! What can I get you?", "happy", NPC),
@@ -83,14 +95,14 @@ def chapters():
             ],
         ),
         chapter(
-            c2, 2, "Рынок у реки",
-            "Цены, хлеб и короткие вопросы",
+            c2, 2, "Нью-Йорк",
+            "Улицы, цены и короткие вопросы",
             "Открой набережную",
             "Закрой рыночную главу — и можно знакомиться у воды.",
             [
                 story(f"{c2}-story", c2, "Между лотками", [
                     line("mascot", "Пахнет хлебом. Здесь не читают меню — спрашивают цену вслух.", "happy"),
-                    line("npc", "Hi! How much is this? Two pounds.", "wave", NPC),
+                    line("npc", "Hi! How much is this? Two dollars.", "wave", NPC),
                     line("mascot", "How much is this? — сколько это стоит? Дальше научимся отвечать и просить своё.", "think"),
                 ]),
                 lesson(f"{c2}-vocab", c2, "Слова рынка", "vocabulary", [
@@ -128,12 +140,12 @@ def chapters():
             ],
         ),
         chapter(
-            c3, 3, "Набережная",
-            "Знакомство, как с живым человеком",
+            c3, 3, "Сидней",
+            "Знакомство у гавани",
             "Финал прогулки",
             "Договори главу — это уже почти настоящий разговор.",
             [
-                story(f"{c3}-story", c3, "Скамейка у Темзы", [
+                story(f"{c3}-story", c3, "Скамейка у гавани", [
                     line("mascot", "Оливер сел рядом. Это уже не заказ — это разговор.", "happy"),
                     line("npc", "I'm Oliver. Where are you from?", "wave", NPC),
                     line("mascot", "Where are you from? — откуда ты? Ответ простой: I'm from Russia.", "cheer"),

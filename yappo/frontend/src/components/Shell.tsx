@@ -1,4 +1,6 @@
+import { useEffect, useState } from "react";
 import { NavLink } from "react-router-dom";
+import { isMuted, setMuted, startAmbient } from "../lib/sound";
 
 const ITEMS = [
   { to: "/", label: "Мир", icon: WorldIcon },
@@ -6,6 +8,51 @@ const ITEMS = [
   { to: "/chat", label: "Разговор", icon: ChatIcon },
   { to: "/profile", label: "Профиль", icon: UserIcon },
 ];
+
+export function MuteButton() {
+  const [muted, setState] = useState(isMuted);
+  useEffect(() => {
+    const sync = () => setState(isMuted());
+    window.addEventListener("yappo-sound", sync);
+    return () => window.removeEventListener("yappo-sound", sync);
+  }, []);
+  return (
+    <button
+      type="button"
+      className="tactile glass grid h-8 w-8 place-items-center rounded-full text-xs"
+      aria-label={muted ? "Включить звук" : "Выключить звук"}
+      onClick={() => {
+        const next = !muted;
+        setMuted(next);
+        if (!next) startAmbient();
+      }}
+    >
+      {muted ? "✕" : "♪"}
+    </button>
+  );
+}
+
+export function GoalRing({ value, goal }: { value: number; goal: number }) {
+  const ratio = goal > 0 ? Math.min(1, value / goal) : 0;
+  const radius = 14;
+  const length = 2 * Math.PI * radius;
+  return (
+    <svg width="36" height="36" viewBox="0 0 36 36" aria-label={`Цель дня ${value} из ${goal} минут`}>
+      <circle cx="18" cy="18" r={radius} stroke="rgba(255,255,255,0.16)" strokeWidth="3" fill="none" />
+      <circle
+        cx="18"
+        cy="18"
+        r={radius}
+        stroke="#e7c98a"
+        strokeWidth="3"
+        fill="none"
+        strokeDasharray={`${length * ratio} ${length}`}
+        strokeLinecap="round"
+        transform="rotate(-90 18 18)"
+      />
+    </svg>
+  );
+}
 
 export function BottomNav() {
   return (
@@ -69,12 +116,16 @@ export function TopStats({
   xp,
   streak,
   onBack,
+  studied,
+  goal,
 }: {
   title: string;
   subtitle: string;
   xp: number;
   streak: number;
   onBack?: () => void;
+  studied?: number;
+  goal?: number;
 }) {
   return (
     <header className="relative z-20 px-3 pt-[max(10px,env(safe-area-inset-top))]">
@@ -89,8 +140,10 @@ export function TopStats({
           </div>
         )}
         <div className="flex shrink-0 items-center gap-1.5">
+          {typeof goal === "number" && <GoalRing value={studied || 0} goal={goal} />}
           <span className="glass whitespace-nowrap rounded-full px-2.5 py-1 text-xs text-gold2">✦ {xp}</span>
           <span className="glass whitespace-nowrap rounded-full px-2.5 py-1 text-xs">🔥 {streak}</span>
+          <MuteButton />
         </div>
       </div>
       <div className="mt-2 min-w-0 text-center">

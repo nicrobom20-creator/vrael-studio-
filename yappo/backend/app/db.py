@@ -1,6 +1,6 @@
 from collections.abc import Iterator
 
-from sqlalchemy import create_engine, inspect, text
+from sqlalchemy import create_engine, inspect, select, text
 from sqlalchemy.orm import DeclarativeBase, Session, sessionmaker
 from sqlalchemy.pool import StaticPool
 
@@ -55,6 +55,7 @@ def init_db() -> None:
     engine = get_engine()
     Base.metadata.create_all(engine)
     _migrate_users(engine)
+    _backfill_public_ids()
 
 
 def _migrate_users(engine) -> None:
@@ -63,13 +64,45 @@ def _migrate_users(engine) -> None:
     if "users" not in inspector.get_table_names():
         return
     have = {column["name"] for column in inspector.get_columns("users")}
+    dialect = engine.dialect.name
+    trial = "BOOLEAN NOT NULL DEFAULT FALSE" if dialect == "postgresql" else "INTEGER NOT NULL DEFAULT 0"
+    columns = {
+        "email": "VARCHAR(255)",
+        "password_hash": "VARCHAR(255) DEFAULT ''",
+        "public_id": "VARCHAR(16)",
+        "languages": "VARCHAR(64) DEFAULT ''",
+        "english_level": "VARCHAR(32) DEFAULT ''",
+        "study_goal": "VARCHAR(32) DEFAULT ''",
+        "placement_level": "VARCHAR(32) DEFAULT ''",
+        "trial_used": trial,
+    }
     with engine.begin() as conn:
-        if "email" not in have:
-            conn.execute(text("ALTER TABLE users ADD COLUMN email VARCHAR(255)"))
-        if "public_id" not in have:
-            conn.execute(text("ALTER TABLE users ADD COLUMN public_id VARCHAR(16)"))
+        for name, ddl in columns.items():
+            if name not in have:
+                conn.execute(text(f"ALTER TABLE users ADD COLUMN {name} {ddl}"))
         conn.execute(text("CREATE UNIQUE INDEX IF NOT EXISTS uq_users_email ON users (email)"))
         conn.execute(text("CREATE UNIQUE INDEX IF NOT EXISTS uq_users_public_id ON users (public_id)"))
+
+
+def _backfill_public_ids() -> None:
+    from app.ids import new_public_id
+    from app.models import User
+
+    if SessionLocal is None:
+        return
+    session = SessionLocal()
+    try:
+        missing = session.scalars(select(User).where(User.public_id.is_(None))).all()
+        for user in missing:
+            for _ in range(8):
+                code = new_public_id()
+                taken = session.scalar(select(User.id).where(User.public_id == code))
+                if taken is None:
+                    user.public_id = code
+                    break
+        session.commit()
+    finally:
+        session.close()
 
 
 def get_session() -> Iterator[Session]:

@@ -16,6 +16,7 @@ export interface PublicLanguage {
   city: string;
   country: string;
   tts: string;
+  available?: boolean;
 }
 
 export interface PublicConfig {
@@ -44,6 +45,11 @@ export interface Achievement {
   unlocked_at: string;
 }
 
+export interface StaffAccess {
+  role: "owner" | "admin";
+  can_invite: boolean;
+}
+
 export interface User {
   id: number;
   name: string;
@@ -65,6 +71,15 @@ export interface User {
   daily_goal: number;
   onboarded: boolean;
   referral_code: string;
+  public_id: string;
+  email: string;
+  has_telegram: boolean;
+  english_level: string;
+  study_goal: string;
+  languages: string[];
+  placement_level: string;
+  trial_used: boolean;
+  access: StaffAccess | null;
   usage: Usage;
   achievements: Achievement[];
 }

@@ -107,9 +107,9 @@ export function readStartParam(): string {
   return hash.get("tgWebAppStartParam") || query.get("startapp") || query.get("tgWebAppStartParam") || "";
 }
 
-export function haptic(kind: "light" | "success" | "error") {
+export function haptic(kind: "light" | "medium" | "success" | "error") {
   const hapticFeedback = window.Telegram?.WebApp?.HapticFeedback;
   if (!hapticFeedback) return;
-  if (kind === "light") hapticFeedback.impactOccurred("light");
+  if (kind === "light" || kind === "medium") hapticFeedback.impactOccurred(kind);
   else hapticFeedback.notificationOccurred(kind);
 }
