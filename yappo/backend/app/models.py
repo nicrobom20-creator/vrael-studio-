@@ -54,6 +54,19 @@ class User(Base):
     created_at: Mapped[datetime] = mapped_column(DateTime, default=utcnow)
 
 
+class WordCard(Base):
+    __tablename__ = "word_cards"
+    __table_args__ = (UniqueConstraint("user_id", "front"),)
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    user_id: Mapped[int] = mapped_column(ForeignKey("users.id"), index=True)
+    front: Mapped[str] = mapped_column(String(180))
+    back: Mapped[str] = mapped_column(String(180))
+    box: Mapped[int] = mapped_column(Integer, default=1)
+    due: Mapped[date] = mapped_column(Date, default=lambda: datetime.utcnow().date())
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=utcnow)
+
+
 class OwnedItem(Base):
     __tablename__ = "owned_items"
     __table_args__ = (UniqueConstraint("user_id", "item_id"),)

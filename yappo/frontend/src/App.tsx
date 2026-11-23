@@ -24,6 +24,7 @@ const PricingPage = lazy(() => import("./screens/LegalScreen").then((m) => ({ de
 const AdminScreen = lazy(() => import("./screens/AdminScreen").then((m) => ({ default: m.AdminScreen })));
 const ShopScreen = lazy(() => import("./screens/ShopScreen").then((m) => ({ default: m.ShopScreen })));
 const CallScreen = lazy(() => import("./screens/CallScreen").then((m) => ({ default: m.CallScreen })));
+const WordsScreen = lazy(() => import("./screens/WordsScreen").then((m) => ({ default: m.WordsScreen })));
 
 export function App() {
   const { ready, error, user, boot, toast } = useApp();
@@ -44,6 +45,7 @@ export function App() {
     { path: "/admin", element: <AdminScreen /> },
     { path: "/shop", element: <ShopScreen /> },
     { path: "/call", element: <CallScreen /> },
+    { path: "/words", element: <WordsScreen /> },
   ]);
 
   if (location.pathname === "/support") {

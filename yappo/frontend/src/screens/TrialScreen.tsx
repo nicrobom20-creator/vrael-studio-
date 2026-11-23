@@ -132,6 +132,12 @@ export function TrialScreen() {
     setPraise(line);
     chime("bad");
     haptic("error");
+    if (step && ["choice", "gap", "speed"].includes(step.type) && typeof step.answer === "number") {
+      const back = step.options?.[step.answer];
+      if (step.prompt && back) {
+        void api("/api/words", { method: "POST", body: JSON.stringify({ front: step.prompt, back }) }).catch(() => undefined);
+      }
+    }
   }
 
   function right(line?: string) {

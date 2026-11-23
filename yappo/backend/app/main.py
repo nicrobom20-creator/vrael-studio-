@@ -34,6 +34,7 @@ from app.payments import apply_payment_event
 from app.practice import grade_placement, placement_questions
 from app.security import read_session, signature_is_fresh, sign_session, verify_rollypay_signature, verify_telegram_init_data
 from app.wardrobe import buy_item, equip_item, shop_payload
+from app.words import due_words, grade_word, save_word
 from app.services import (
     ServiceError,
     complete_lesson,
@@ -99,6 +100,15 @@ class PlacementIn(BaseModel):
 
 class ShopIn(BaseModel):
     item_id: str = ""
+
+
+class WordIn(BaseModel):
+    front: str
+    back: str
+
+
+class WordGradeIn(BaseModel):
+    ok: bool = True
 
 
 class CompleteIn(BaseModel):
@@ -357,6 +367,33 @@ def create_app() -> FastAPI:
         except ServiceError as error:
             _raise(error)
         return serialize_user(session, user)
+
+    @app.get("/api/words")
+    def words(user: User = Depends(current_user), session: Session = Depends(get_session)):
+        return {"words": due_words(session, user)}
+
+    @app.post("/api/words")
+    def words_save(body: WordIn, user: User = Depends(current_user), session: Session = Depends(get_session)):
+        try:
+            card = save_word(session, user, body.front, body.back)
+            session.commit()
+        except ServiceError as error:
+            _raise(error)
+        return card
+
+    @app.post("/api/words/{card_id}/grade")
+    def words_grade(
+        card_id: int,
+        body: WordGradeIn,
+        user: User = Depends(current_user),
+        session: Session = Depends(get_session),
+    ):
+        try:
+            card = grade_word(session, user, card_id, body.ok)
+            session.commit()
+        except ServiceError as error:
+            _raise(error)
+        return card
 
     @app.get("/api/shop")
     def shop(user: User = Depends(current_user), session: Session = Depends(get_session)):
