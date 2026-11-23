@@ -314,10 +314,10 @@ export function TrialScreen() {
           </div>
         ) : step.type === "build" ? null : (
           <div className="mb-3 w-full">
-            {step.type === "choice" && !checked && (
+            {(step.type === "choice" || step.type === "gap") && !checked && (
               <GoldButton disabled={picked == null} onClick={checkChoice}>Проверить</GoldButton>
             )}
-            {step.type === "choice" && checked && <GoldButton onClick={advance}>Дальше</GoldButton>}
+            {(step.type === "choice" || step.type === "gap") && checked && <GoldButton onClick={advance}>Дальше</GoldButton>}
             {step.type === "vocab" && <GoldButton onClick={advance}>Запомнил</GoldButton>}
             {step.type === "listen" && !checked && (
               <GoldButton disabled={picked == null} onClick={checkChoice}>Проверить</GoldButton>
@@ -374,7 +374,7 @@ function StepBody(props: {
       </div>
     );
   }
-  if (step.type === "choice" || step.type === "listen") {
+  if (step.type === "choice" || step.type === "listen" || step.type === "gap") {
     return (
       <div>
         <div className="flex items-start justify-between gap-3">
@@ -609,7 +609,7 @@ function shuffleChoices(lesson: Lesson): Lesson {
   return {
     ...lesson,
     steps: lesson.steps.map((step) => {
-      if ((step.type !== "choice" && step.type !== "listen") || !step.options || typeof step.answer !== "number") {
+      if ((step.type !== "choice" && step.type !== "listen" && step.type !== "gap") || !step.options || typeof step.answer !== "number") {
         return step;
       }
       const options = [...step.options];

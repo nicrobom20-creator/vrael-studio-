@@ -123,7 +123,7 @@ _SCENES = {
     "fr": fr_scenes,
 }
 
-STEP_TYPES = {"vocab", "choice", "match", "build", "listen", "speak"}
+STEP_TYPES = {"vocab", "choice", "match", "build", "listen", "speak", "gap"}
 CHAPTER_ONE_SKILLS = {"vocabulary", "choice", "match", "build", "listen", "speak"}
 
 
@@ -261,6 +261,10 @@ def _validate_step(node_id: str, step: dict, language: str) -> None:
             raise ValueError(f"{node_id}: vocab")
         if language == "zh" and not step.get("reading"):
             raise ValueError(f"{node_id}: pinyin missing for {step['word']}")
+    elif kind == "gap":
+        options = step["options"]
+        if "____" not in step.get("prompt", "") or not (0 <= step["answer"] < len(options)):
+            raise ValueError(f"{node_id}: gap")
     elif kind == "choice":
         options = step["options"]
         if not (0 <= step["answer"] < len(options)) or len(options) < 2:

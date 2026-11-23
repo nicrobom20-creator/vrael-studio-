@@ -1,4 +1,4 @@
-from app.course_util import build, chapter, choice, lesson, line, listen, match, speak, story, vocab
+from app.course_util import build, chapter, choice, gap, lesson, line, listen, match, speak, story, vocab
 
 NPC = "Оливер"
 
@@ -38,6 +38,9 @@ def chapters():
                            "Nice to meet you — приятно познакомиться."),
                     choice("«Где вокзал?»", ["Where is the station?", "How much is it?", "I don't understand", "A tea, please"], 0,
                            "Where is the station? — Где вокзал?"),
+                    gap("I'd like a ____, please.", ["tea", "station", "name", "sorry"], 0, "Tea — чай. Пропуск стоит на месте слова."),
+                    gap("My name ____ Anna.", ["is", "are", "am", "be"], 0, "My name is Anna. После name в этой фразе стоит is."),
+                    gap("Where ____ the station?", ["is", "are", "am", "name"], 0, "Where is the station? — Где вокзал?"),
                 ]),
                 lesson(f"{c1}-match", c1, "Пары в кафе", "match", [
                     match("Соедини слово и перевод", [

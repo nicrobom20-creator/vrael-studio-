@@ -13,6 +13,17 @@ def vocab(word, translation, example, example_ru, reading=""):
     }
 
 
+def gap(prompt, options, answer, explain):
+    return {
+        "type": "gap",
+        "prompt": prompt,
+        "sub": "Вставь пропущенное слово",
+        "options": list(options),
+        "answer": answer,
+        "explain": explain,
+    }
+
+
 def choice(prompt, options, answer, explain, sub="Выбери правильный вариант"):
     return {
         "type": "choice",
