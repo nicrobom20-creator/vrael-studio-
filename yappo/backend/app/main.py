@@ -12,6 +12,21 @@ from fastapi.responses import FileResponse, RedirectResponse
 from pydantic import BaseModel, Field
 from sqlalchemy.orm import Session
 
+from app.admin_service import (
+    Access,
+    add_admin,
+    delete_user,
+    grant_premium,
+    list_admins,
+    list_payments,
+    list_subscriptions,
+    remove_admin,
+    resolve_admin,
+    search_users,
+    set_can_invite,
+    stats as admin_stats,
+    user_card,
+)
 from app.config import get_settings
 from app.db import SessionLocal, get_session, init_db
 from app.models import User
@@ -72,6 +87,16 @@ class CheckoutIn(BaseModel):
     plan: str
 
 
+class PremiumGrantIn(BaseModel):
+    days: int
+
+
+class AdminIn(BaseModel):
+    telegram_id: int
+    username: str = ""
+    can_invite: bool = False
+
+
 def _raise(error: ServiceError) -> None:
     raise HTTPException(status_code=error.status, detail=error.detail)
 
@@ -93,6 +118,16 @@ def current_user(
 
 def _token(user: User) -> str:
     return sign_session(user.id, get_settings().app_secret)
+
+
+def staff_user(
+    user: User = Depends(current_user),
+    session: Session = Depends(get_session),
+) -> Access:
+    access = resolve_admin(session, user.telegram_id or 0)
+    if access is None:
+        raise HTTPException(status_code=403, detail="Нет доступа")
+    return access
 
 
 async def _configure_bot() -> None:
@@ -123,6 +158,38 @@ async def _configure_bot() -> None:
         logger.exception("bot setup")
 
 
+_admin_poll: asyncio.Task | None = None
+
+
+async def _configure_admin_bot() -> None:
+    """Private admin bot. Webhook when the public URL is https, otherwise polling."""
+    global _admin_poll
+    settings = get_settings()
+    if not settings.admin_bot_token or __import__("os").environ.get("YAPPO_TESTING"):
+        return
+    try:
+        from app.admin_bot import ADMIN_COMMANDS, get_admin_bot, get_admin_dispatcher
+
+        bot = get_admin_bot()
+        await bot.set_my_commands(ADMIN_COMMANDS)
+        public = settings.public_base_url.strip().rstrip("/")
+        if settings.bot_mode == "webhook" and public.startswith("https://"):
+            await bot.set_webhook(f"{public}/admin-bot/webhook")
+            logger.info("admin webhook set")
+            return
+        await bot.delete_webhook(drop_pending_updates=False)
+
+        async def _poll() -> None:
+            try:
+                await get_admin_dispatcher().start_polling(bot, handle_signals=False)
+            except Exception:
+                logger.exception("admin polling")
+
+        _admin_poll = asyncio.create_task(_poll())
+    except Exception:
+        logger.exception("admin bot setup")
+
+
 async def _reminder_loop(stop: asyncio.Event) -> None:
     from app.bot import dispatch_reminders, get_bot
 
@@ -148,13 +215,18 @@ async def lifespan(app: FastAPI):
     stop = asyncio.Event()
     task = None
     settings = get_settings()
-    if settings.bot_token and not __import__("os").environ.get("YAPPO_TESTING"):
+    testing = __import__("os").environ.get("YAPPO_TESTING")
+    if settings.bot_token and not testing:
         task = asyncio.create_task(_reminder_loop(stop))
         asyncio.create_task(_configure_bot())
+    if not testing:
+        asyncio.create_task(_configure_admin_bot())
     yield
     stop.set()
     if task:
         task.cancel()
+    if _admin_poll:
+        _admin_poll.cancel()
 
 
 def create_app() -> FastAPI:
@@ -353,6 +425,104 @@ def create_app() -> FastAPI:
         await get_dispatcher().feed_update(bot, update)
         return {"ok": True}
 
+    @app.get("/api/admin/stats")
+    def admin_stats_route(access: Access = Depends(staff_user), session: Session = Depends(get_session)):
+        return admin_stats(session)
+
+    @app.get("/api/admin/users")
+    def admin_users(q: str = "", access: Access = Depends(staff_user), session: Session = Depends(get_session)):
+        return {"users": [user_card(session, user) for user in search_users(session, q)]}
+
+    @app.get("/api/admin/users/{user_id}")
+    def admin_user(user_id: int, access: Access = Depends(staff_user), session: Session = Depends(get_session)):
+        user = session.get(User, user_id)
+        if user is None:
+            raise HTTPException(status_code=404, detail="Пользователь не найден")
+        return user_card(session, user)
+
+    @app.post("/api/admin/users/{user_id}/premium")
+    def admin_premium(
+        user_id: int,
+        body: PremiumGrantIn,
+        access: Access = Depends(staff_user),
+        session: Session = Depends(get_session),
+    ):
+        user = session.get(User, user_id)
+        if user is None:
+            raise HTTPException(status_code=404, detail="Пользователь не найден")
+        try:
+            grant_premium(session, user, body.days)
+            session.commit()
+        except ServiceError as error:
+            _raise(error)
+        return user_card(session, user)
+
+    @app.delete("/api/admin/users/{user_id}")
+    def admin_delete_user(user_id: int, access: Access = Depends(staff_user), session: Session = Depends(get_session)):
+        try:
+            delete_user(session, access, user_id)
+            session.commit()
+        except ServiceError as error:
+            _raise(error)
+        return {"ok": True}
+
+    @app.get("/api/admin/subscriptions")
+    def admin_subs(access: Access = Depends(staff_user), session: Session = Depends(get_session)):
+        return {"subscriptions": list_subscriptions(session)}
+
+    @app.get("/api/admin/payments")
+    def admin_payments(access: Access = Depends(staff_user), session: Session = Depends(get_session)):
+        return {"payments": list_payments(session)}
+
+    @app.get("/api/admin/admins")
+    def admin_list(access: Access = Depends(staff_user), session: Session = Depends(get_session)):
+        return {"admins": list_admins(session)}
+
+    @app.post("/api/admin/admins")
+    def admin_add(body: AdminIn, access: Access = Depends(staff_user), session: Session = Depends(get_session)):
+        try:
+            row = add_admin(session, access, body.telegram_id, body.username, body.can_invite)
+            session.commit()
+        except ServiceError as error:
+            _raise(error)
+        return {"telegram_id": row.telegram_id, "can_invite": bool(row.can_invite)}
+
+    @app.delete("/api/admin/admins/{telegram_id}")
+    def admin_remove(telegram_id: int, access: Access = Depends(staff_user), session: Session = Depends(get_session)):
+        try:
+            remove_admin(session, access, telegram_id)
+            session.commit()
+        except ServiceError as error:
+            _raise(error)
+        return {"ok": True}
+
+    @app.post("/api/admin/admins/{telegram_id}/invite")
+    def admin_invite(telegram_id: int, access: Access = Depends(staff_user), session: Session = Depends(get_session)):
+        try:
+            row = set_can_invite(session, access, telegram_id, True)
+            session.commit()
+        except ServiceError as error:
+            _raise(error)
+        return {"telegram_id": row.telegram_id, "can_invite": bool(row.can_invite)}
+
+    @app.post("/admin-bot/webhook")
+    async def admin_webhook(request: Request):
+        live = get_settings()
+        if not live.admin_bot_token:
+            raise HTTPException(status_code=503, detail="ADMIN_BOT_TOKEN не задан")
+        try:
+            payload = await request.json()
+        except json.JSONDecodeError as exc:
+            raise HTTPException(status_code=400, detail="Bad JSON") from exc
+        from aiogram.types import Update
+
+        from app.admin_bot import get_admin_bot, get_admin_dispatcher
+
+        bot = get_admin_bot()
+        update = Update.model_validate(payload, context={"bot": bot})
+        await get_admin_dispatcher().feed_update(bot, update)
+        return {"ok": True}
+
     static_dir = settings.static_dir
     if static_dir and Path(static_dir).is_dir():
         root = Path(static_dir).resolve()
@@ -364,7 +534,7 @@ def create_app() -> FastAPI:
             candidate = (root / full_path).resolve()
             if candidate.is_file() and (candidate == root or root in candidate.parents):
                 return FileResponse(candidate)
-            if full_path.startswith("api/") or full_path.startswith("webhooks/"):
+            if full_path.startswith("api/") or full_path.startswith("webhooks/") or full_path.startswith("admin-bot/"):
                 raise HTTPException(status_code=404, detail="Not found")
             if Path(full_path).suffix.lower() in asset_suffixes:
                 raise HTTPException(status_code=404, detail="Not found")

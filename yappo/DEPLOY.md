@@ -9,7 +9,8 @@
 1. Открой [@BotFather](https://t.me/BotFather).
 2. Если бота ещё нет: `/newbot`, имя Yappo, юзернейм `YappoLang_Bot`.
 3. Скопируй токен. Это `BOT_TOKEN`.
-4. Узнай свой числовой id (например через @userinfobot). Это `ADMIN_TELEGRAM_ID` для команды `/stats`.
+4. Узнай свой числовой id (например через @userinfobot). Это `ADMIN_TELEGRAM_ID` для `/stats` и `OWNER_TELEGRAM_ID` для приватного бота `@Yappoadmin_bot`.
+5. Токен админ-бота — `ADMIN_BOT_TOKEN`. Без него учебный бот работает как раньше. При `BOT_MODE=webhook` и https-адресе вебхук встаёт на `/admin-bot/webhook`. Иначе бот сам переходит на polling. Чужим людям бот отвечает отказом и не отдаёт данные.
 
 ## 2. Сервер (Render)
 

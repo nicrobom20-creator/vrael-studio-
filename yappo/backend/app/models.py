@@ -41,6 +41,8 @@ class User(Base):
     referral_code: Mapped[str] = mapped_column(String(16), unique=True, index=True)
     referred_by_id: Mapped[int | None] = mapped_column(ForeignKey("users.id"), nullable=True)
     onboarded: Mapped[bool] = mapped_column(Boolean, default=False)
+    email: Mapped[str | None] = mapped_column(String(255), unique=True, nullable=True)
+    public_id: Mapped[str | None] = mapped_column(String(16), unique=True, nullable=True)
     created_at: Mapped[datetime] = mapped_column(DateTime, default=utcnow)
 
 
@@ -114,6 +116,18 @@ class PaymentEvent(Base):
     dedupe_key: Mapped[str] = mapped_column(String(160))
     order_id: Mapped[str] = mapped_column(String(80), index=True)
     event_type: Mapped[str] = mapped_column(String(40))
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=utcnow)
+
+
+class Admin(Base):
+    """People allowed into the private admin bot. The owner is not stored here."""
+
+    __tablename__ = "admins"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    telegram_id: Mapped[int] = mapped_column(BigInteger, unique=True, index=True)
+    username: Mapped[str] = mapped_column(String(64), default="")
+    can_invite: Mapped[bool] = mapped_column(Boolean, default=False)
     created_at: Mapped[datetime] = mapped_column(DateTime, default=utcnow)
 
 
