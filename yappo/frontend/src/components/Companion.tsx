@@ -120,5 +120,11 @@ function Outfit({ id }: { id: string }) {
   if (id === "cape") {
     return <span className="pointer-events-none absolute bottom-[8%] left-[12%] right-[12%] top-[34%] rounded-b-[40%] bg-[#7a2d3b]/80" />;
   }
+  if (id === "crown") {
+    return <span className="pointer-events-none absolute left-[30%] right-[30%] top-[6%] h-[12%] rounded-t-full border-2 border-[#e7c98a] bg-[#f6e6bf]/80" />;
+  }
+  if (id === "lantern") {
+    return <span className="pointer-events-none absolute bottom-[28%] right-[8%] h-4 w-3 rounded-full bg-[#f6e6bf] shadow-[0_0_12px_#e7c98a]" />;
+  }
   return null;
 }

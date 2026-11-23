@@ -40,4 +40,15 @@ def test_wardrobe_spends_coins_and_locks_premium(client, monkeypatch):
 
     poor = client.post("/api/shop/buy", headers=headers, json={"item_id": "cape"})
     assert poor.status_code == 403
+    from app.wardrobe import grant_chapter_gift
+
+    database = db.SessionLocal()
+    try:
+        user = database.get(User, created.json()["user"]["id"])
+        gift = grant_chapter_gift(database, user, 1)
+        database.commit()
+        assert gift == "ribbon"
+        assert user.coins == 30 + 20
+    finally:
+        database.close()
     get_settings.cache_clear()

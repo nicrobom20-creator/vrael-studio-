@@ -11,7 +11,15 @@ CATALOG = [
     {"id": "scarf", "name": "Шарф", "price": 50, "premium": False, "blurb": "Тёплый шарф для прогулки."},
     {"id": "star", "name": "Звезда", "price": 40, "premium": False, "blurb": "Маленькая звезда у уха."},
     {"id": "cape", "name": "Плащ", "price": 150, "premium": True, "blurb": "Только с Premium."},
+    {"id": "crown", "name": "Корона", "price": 200, "premium": True, "blurb": "Золотой ободок. Только с Premium."},
+    {"id": "lantern", "name": "Фонарь", "price": 180, "premium": True, "blurb": "Тёплый свет у плеча. Только с Premium."},
 ]
+
+CHAPTER_GIFTS = {
+    1: ("ribbon", 20, "Лондон"),
+    2: ("scarf", 30, "Нью-Йорк"),
+    3: ("star", 40, "Сидней"),
+}
 
 
 def _owned(session: Session, user: User) -> set[str]:
@@ -53,6 +61,20 @@ def buy_item(session: Session, user: User, item_id: str) -> dict:
     session.add(OwnedItem(user_id=user.id, item_id=item_id))
     session.flush()
     return shop_payload(session, user)
+
+
+def grant_chapter_gift(session: Session, user: User, index: int) -> str | None:
+    """First clear of a chapter gives that city's keepsake and a few coins."""
+    gift = CHAPTER_GIFTS.get(index)
+    if gift is None:
+        return None
+    item_id, bonus, _city = gift
+    owned = _owned(session, user)
+    if item_id not in owned:
+        session.add(OwnedItem(user_id=user.id, item_id=item_id))
+    user.coins = (user.coins or 0) + bonus
+    session.flush()
+    return item_id
 
 
 def equip_item(session: Session, user: User, item_id: str) -> dict:

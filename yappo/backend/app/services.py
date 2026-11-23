@@ -549,6 +549,9 @@ def _finish_chapter_rewards(session: Session, user: User, node: dict, done: set[
     if already is None:
         gained = chapter["reward_xp"]
         _add_xp(session, user, gained, reason, now)
+        from app.wardrobe import grant_chapter_gift
+
+        grant_chapter_gift(session, user, chapter["index"])
     if chapter["index"] == 1:
         item = _unlock(session, user, "chapter_1", now)
         if item:
