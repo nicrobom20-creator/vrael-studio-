@@ -419,7 +419,8 @@ button {
   .mote,
   .call-bar,
   .call-eye,
-  .call-mouth {
+  .call-mouth,
+  .chest-pop {
     animation: none !important;
   }
 }

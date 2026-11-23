@@ -29,13 +29,15 @@ export function ProfileScreen() {
             <div className="mt-1 text-[11px] text-cream/55">{user.level_xp} / {user.level_goal} XP</div>
           </div>
         </div>
-        <Link className="gold-btn mt-3 grid h-11 place-items-center text-sm" to="/shop">Гардероб · {user.coins} монет</Link>
-        <Link className="choice-btn mt-2 grid py-3 text-center text-sm" to="/words">Мои слова</Link>
-        <Link className="choice-btn mt-2 grid py-3 text-center text-sm" to="/league">Лига недели</Link>
-        <Link className="choice-btn mt-2 grid py-3 text-center text-sm" to="/duel">Дуэль</Link>
-        <Link className="choice-btn mt-2 grid py-3 text-center text-sm" to="/chest">Сундук дня</Link>
-        <Link className="choice-btn mt-2 grid py-3 text-center text-sm" to="/certificate">Грамота</Link>
-        <Link className="choice-btn mt-2 grid py-3 text-center text-sm" to="/creator">Образ</Link>
+        <div className="mt-3 grid grid-cols-2 gap-2">
+          <Link className="gold-btn grid h-11 place-items-center text-sm" to="/shop">Гардероб</Link>
+          <Link className="choice-btn grid place-items-center text-sm" to="/creator">Образ</Link>
+          <Link className="choice-btn grid place-items-center py-3 text-sm" to="/words">Мои слова</Link>
+          <Link className="choice-btn grid place-items-center py-3 text-sm" to="/league">Лига</Link>
+          <Link className="choice-btn grid place-items-center py-3 text-sm" to="/duel">Дуэль</Link>
+          <Link className="choice-btn grid place-items-center py-3 text-sm" to="/chest">Сундук</Link>
+          <Link className="choice-btn col-span-2 grid place-items-center py-3 text-sm" to="/certificate">Грамота</Link>
+        </div>
         <div className="mt-3 grid grid-cols-3 gap-2 text-center">
           <Stat label="Серия" value={`${user.streak}`} />
           <Stat label="Опыт" value={`${user.xp}`} />
@@ -43,7 +45,7 @@ export function ProfileScreen() {
         </div>
         <div className="mt-3 glass p-4">
           <div className="flex items-center justify-between">
-            <div>
+            <div className="min-w-0 flex-1 pr-2">
               <div className="font-display text-2xl">{user.premium ? "Premium" : "Свободный путь"}</div>
               <div className="text-xs text-cream/65">
                 {user.premium
@@ -51,7 +53,7 @@ export function ProfileScreen() {
                   : `Сегодня ${user.usage.lessons}/${user.usage.lessons_limit ?? "∞"} испытаний · ${user.usage.chat}/${user.usage.chat_limit ?? "∞"} сообщений`}
               </div>
             </div>
-            <Link to="/premium" className="gold-btn grid h-10 place-items-center px-4 text-sm">
+            <Link to="/premium" className="gold-btn grid h-10 shrink-0 place-items-center px-4 text-sm">
               {user.premium ? "Продлить" : "Открыть"}
             </Link>
           </div>
