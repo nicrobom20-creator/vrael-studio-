@@ -32,7 +32,7 @@ export function PremiumScreen() {
         <div className="mt-6 text-[11px] uppercase tracking-[0.2em] text-gold2">Yappo Premium</div>
         <h1 className="max-w-sm font-display text-5xl leading-none">Путь без дневных врат.</h1>
         <p className="mt-3 max-w-sm text-sm leading-relaxed text-cream/75">
-          Свободный путь — {config?.limits.lessons ?? 3} испытания в день и {config?.limits.chat ?? 5} сообщений собеседнику. Premium снимает оба предела. Оплата в рублях, доступ открывается только после подтверждённого платежа.
+          Свободный путь — {config?.limits.lessons ?? 3} испытания в день и {config?.limits.chat ?? 5} сообщений собеседнику. Premium снимает оба предела и открывает плащ, корону и фонарь в гардеробе. Это разовая оплата периода, без автопродления. Карта или СБП через RollyPay. Доступ открывается сразу после подтверждённого платежа.
         </p>
         {user?.premium && (
           <div className="mt-4 glass p-3 text-sm text-gold2">
@@ -59,6 +59,8 @@ export function PremiumScreen() {
           <li>Все испытания текущих глав, без счётчика на день.</li>
           <li>Живой разговор в кафе, аэропорту и на собеседовании.</li>
           <li>Спутник, серия и сюжет остаются с тобой.</li>
+          <li>Наряды Premium в гардеробе: плащ, корона, фонарь.</li>
+          <li>Карту обрабатывает RollyPay. Yappo её не хранит.</li>
         </ul>
         <div className="mt-6">
           <GoldButton onClick={pay} disabled={busy}>{busy ? "Создаём счёт…" : "Оплатить"}</GoldButton>
