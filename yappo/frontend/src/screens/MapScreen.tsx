@@ -1,16 +1,12 @@
-import { motion } from "framer-motion";
-import { lazy, Suspense, useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { api, haptic } from "../api";
-import { cityOf, pathSpots } from "../components/CityScene";
-import { Companion } from "../components/Companion";
-import { TopStats } from "../components/Shell";
+import { MapDiorama } from "../components/MapDiorama";
+import { MuteButton } from "../components/Shell";
 import { prefersReducedMotion, takeUnlock } from "../lib/motion";
 import { sfx, startAmbient } from "../lib/sound";
 import { useApp } from "../state";
-import type { Chapter, MascotId, PathData, PathNode } from "../types";
-
-const MapDiorama = lazy(() => import("../components/MapDiorama").then((mod) => ({ default: mod.MapDiorama })));
+import type { MascotId, PathData, PathNode } from "../types";
 
 const JOURNEY = ["london", "newyork", "sydney", "rome"];
 const CITY_NAME: Record<string, string> = {
@@ -26,261 +22,70 @@ const CITY_NAME: Record<string, string> = {
 
 function cityFor(language: string, index: number) {
   if (language === "en") return JOURNEY[Math.min(index, JOURNEY.length - 1)];
-  return cityOf(language);
+  return language === "fr" ? "paris" : language === "es" ? "madrid" : language === "de" ? "berlin" : language === "zh" ? "beijing" : "london";
 }
 
 export function MapScreen() {
   const { user, notify } = useApp();
   const navigate = useNavigate();
   const [path, setPath] = useState<PathData | null>(null);
-  const [unlock, setUnlock] = useState<{ from: string; to: string; leg: 0 | 1 | 2 } | null>(null);
-  const scroller = useRef<HTMLDivElement>(null);
-  const light = useRef<HTMLDivElement>(null);
-  const sky = useRef<HTMLDivElement>(null);
+  const [lost, setLost] = useState(false);
 
   useEffect(() => {
     api<PathData>("/api/path").then((data) => {
       setPath(data);
-      const pending = takeUnlock();
-      if (pending) setUnlock({ ...pending, leg: 0 });
+      if (takeUnlock()) {
+        haptic("success");
+        sfx("win");
+      }
     }).catch((error: Error) => notify(error.message));
   }, [user?.language]);
 
-  useEffect(() => {
-    const el = scroller.current;
-    if (!el) return;
-    let frame = 0;
-    const onScroll = () => {
-      cancelAnimationFrame(frame);
-      frame = requestAnimationFrame(() => {
-        const glow = light.current;
-        const veil = sky.current;
-        if (!glow) return;
-        const max = el.scrollHeight - el.clientHeight || 1;
-        const progress = el.scrollTop / max;
-        glow.style.transform = `translate3d(${(progress - 0.5) * 80}px, ${progress * 28}vh, 0)`;
-        if (veil && !prefersReducedMotion()) {
-          veil.style.transform = `translate3d(0, ${progress * -48}px, 0)`;
-        }
-      });
-    };
-    el.addEventListener("scroll", onScroll, { passive: true });
-    return () => {
-      el.removeEventListener("scroll", onScroll);
-      cancelAnimationFrame(frame);
-    };
-  }, [path]);
-
-  useEffect(() => {
-    if (!path) return;
-    const frame = window.requestAnimationFrame(() => followCurrent(scroller.current));
-    return () => window.cancelAnimationFrame(frame);
-  }, [path, unlock?.leg]);
-
-  useEffect(() => {
-    if (!unlock) return;
-    haptic("success");
-    sfx("win");
-    if (prefersReducedMotion()) {
-      setUnlock(null);
-      return;
-    }
-    const run = window.setTimeout(() => setUnlock((value) => (value ? { ...value, leg: 1 } : value)), 480);
-    const wave = window.setTimeout(() => {
-      haptic("medium");
-      setUnlock((value) => (value ? { ...value, leg: 2 } : value));
-    }, 1500);
-    const done = window.setTimeout(() => setUnlock(null), 2400);
-    return () => {
-      window.clearTimeout(run);
-      window.clearTimeout(wave);
-      window.clearTimeout(done);
-    };
-  }, [unlock?.from]);
-
   if (!user || !path) {
-    return <div className="grid min-h-dvh place-items-center text-cream/70">Собираем карту…</div>;
+    return <div className="grid min-h-dvh place-items-center text-cream/70">Собираем город…</div>;
   }
-  const mascot = (user.mascot || "parrot") as MascotId;
   const active = path.chapters.find((chapter) => chapter.unlocked && !chapter.complete) || path.chapters[path.chapters.length - 1];
-
   const activeIndex = Math.max(0, path.chapters.findIndex((chapter) => chapter.id === active.id));
   const city = cityFor(user.language, activeIndex);
-  const next = path.chapters[activeIndex + 1];
   const current = active.nodes.find((node) => node.status === "current");
-  const want3d = canWebGL();
+  const mascot = (user.mascot || "parrot") as MascotId;
 
   return (
-    <div id="map-scroller" ref={scroller} className="flex h-dvh flex-col overflow-hidden bg-[#120e0b]" onPointerDown={() => startAmbient()}>
-      <div className="z-40 shrink-0 bg-[#16110d]">
-        <TopStats
-          title={active.title}
-          subtitle={`${CITY_NAME[city] || path.language.city} · Уровень ${user.level}`}
-          xp={user.xp}
-          streak={user.streak}
-        />
-      </div>
-      <div className="relative min-h-0 flex-1 bg-[#1a120e]">
-        {want3d ? (
-          <Suspense fallback={null}>
-            <MapDiorama
-              city={city}
-              mascot={mascot}
-              nodes={active.nodes}
-              onOpen={(node) => openNode(node, navigate, notify)}
-              reduced={prefersReducedMotion()}
-              fallback={
-                <ChapterBand
-                  chapter={active}
-                  city={city}
-                  mascot={mascot}
-                  pet={user.pet?.code}
-                  tint={user.look?.tint}
-                  unlock={unlock}
-                  onOpen={(node) => openNode(node, navigate, notify)}
-                />
-              }
-            />
-          </Suspense>
+    <div id="map-scroller" data-map="webgl" className="relative h-dvh overflow-hidden bg-[#1a120e]" onPointerDown={() => startAmbient()}>
+      <div className="absolute inset-0 bottom-[72px]">
+        {lost ? (
+          <p className="grid h-full place-items-center px-6 text-center text-sm text-cream/70">3D-карта не открылась на этом экране.</p>
         ) : (
-          <ChapterBand
-            chapter={active}
+          <MapDiorama
             city={city}
             mascot={mascot}
-            pet={user.pet?.code}
-            tint={user.look?.tint}
-            unlock={unlock}
+            nodes={active.nodes}
+            reduced={prefersReducedMotion()}
+            onLost={() => setLost(true)}
             onOpen={(node) => openNode(node, navigate, notify)}
           />
         )}
       </div>
-      <div className="z-30 shrink-0 space-y-2 bg-[#16110d] px-3 pb-[max(92px,calc(env(safe-area-inset-bottom)+84px))] pt-2">
-        <div className="flex items-center gap-2">
-          <div className="glass min-w-0 flex-1 truncate px-3 py-2 text-xs text-cream/80">{path.mascot_line}</div>
-          {current && (
-            <button className="gold-btn h-10 shrink-0 px-4 text-sm" onClick={() => openNode(current, navigate, notify)}>
-              {current.kind === "story" ? "К сцене" : "К вратам"}
-            </button>
-          )}
-        </div>
-        {next && (
-          <div className="rounded-2xl border border-white/10 px-3 py-2 text-[11px] text-cream/55">
-            {next.complete ? `${next.title} уже позади` : `${next.title} откроется, когда этот город будет пройден`}
-          </div>
-        )}
-      </div>
-      <div ref={light} className="hidden" />
-      <div ref={sky} className="hidden" />
+      <header className="pointer-events-none absolute inset-x-0 top-0 z-20 flex items-start justify-between px-3 pt-[max(12px,env(safe-area-inset-top))]">
+        <span className="pointer-events-auto glass rounded-full px-3 py-1 font-display text-lg leading-none text-gold2">Yappo</span>
+        <span className="pointer-events-none absolute left-1/2 top-[max(46px,calc(env(safe-area-inset-top)+34px))] -translate-x-1/2 font-display text-4xl text-cream drop-shadow-[0_2px_12px_rgba(0,0,0,0.45)]">
+          {CITY_NAME[city]}
+        </span>
+        <span className="pointer-events-auto flex items-center gap-1.5 text-xs">
+          <span className="glass rounded-full px-2.5 py-1 text-gold2">✦ {user.xp}</span>
+          <span className="glass rounded-full px-2.5 py-1">🔥 {user.streak}</span>
+          <MuteButton />
+        </span>
+      </header>
+      {current && (
+        <button
+          className="gold-btn absolute inset-x-4 bottom-[max(92px,calc(env(safe-area-inset-bottom)+80px))] z-20 h-14 text-base"
+          onClick={() => openNode(current, navigate, notify)}
+        >
+          Начать урок
+        </button>
+      )}
     </div>
-  );
-}
-
-function canWebGL() {
-  try {
-    const canvas = document.createElement("canvas");
-    return Boolean(canvas.getContext("webgl2") || canvas.getContext("webgl"));
-  } catch {
-    return false;
-  }
-}
-
-function stageSpots(city: string, count: number) {
-  const raw = pathSpots(city === "newyork" || city === "sydney" ? "london" : city, count);
-  return raw.map((spot) => ({ x: Math.min(78, Math.max(22, spot.x)), y: 24 + (spot.y / 100) * 46 }));
-}
-
-function followCurrent(scroller: HTMLDivElement | null) {
-  const node = document.getElementById("node-current");
-  if (!scroller || !node) return;
-  const top = node.getBoundingClientRect().top - scroller.getBoundingClientRect().top + scroller.scrollTop - scroller.clientHeight * 0.42;
-  if (prefersReducedMotion()) {
-    scroller.scrollTop = top;
-    return;
-  }
-  const start = scroller.scrollTop;
-  const delta = top - start;
-  const began = performance.now();
-  const step = (now: number) => {
-    const progress = Math.min(1, (now - began) / 700);
-    const eased = 1 - (1 - progress) ** 3;
-    scroller.scrollTop = start + delta * eased;
-    if (progress < 1) requestAnimationFrame(step);
-  };
-  requestAnimationFrame(step);
-}
-
-function ChapterBand({
-  chapter,
-  city,
-  mascot,
-  pet,
-  tint,
-  unlock,
-  onOpen,
-}: {
-  chapter: Chapter;
-  city: string;
-  mascot: MascotId;
-  pet?: string;
-  tint?: string;
-  unlock: { from: string; to: string; leg: 0 | 1 | 2 } | null;
-  onOpen: (node: PathNode) => void;
-}) {
-  const spots = stageSpots(city, chapter.nodes.length);
-  const current = chapter.nodes.find((node) => node.status === "current");
-  const currentIndex = current ? chapter.nodes.indexOf(current) : -1;
-  const fromIndex = unlock ? chapter.nodes.findIndex((node) => node.id === unlock.from) : -1;
-  const toIndex = unlock ? chapter.nodes.findIndex((node) => node.id === unlock.to) : -1;
-  const incoming = Boolean(unlock && toIndex >= 0 && fromIndex < 0);
-  const travel = (fromIndex >= 0 && toIndex >= 0) || incoming;
-  const companionIndex = travel ? (unlock?.leg === 0 && fromIndex >= 0 ? fromIndex : toIndex) : currentIndex;
-  const baseSpot = companionIndex >= 0 ? spots[companionIndex] : null;
-  const companionSpot = incoming && unlock?.leg === 0 && baseSpot
-    ? { x: baseSpot.x, y: Math.max(6, baseSpot.y - 16) }
-    : baseSpot;
-  const d = spots.map((spot, index) => `${index === 0 ? "M" : "L"} ${spot.x} ${spot.y}`).join(" ");
-  const pose = unlock?.leg === 0 && travel ? "jump" : unlock?.leg === 1 && travel ? "run" : unlock?.leg === 2 ? "wave" : "point";
-
-  return (
-    <section id={`chapter-${chapter.id}`} className="relative h-full">
-      <div className="relative h-full w-full overflow-hidden">
-        <img
-          src={`/art/${city}-540.webp`}
-          srcSet={`/art/${city}-360.webp 360w, /art/${city}-540.webp 540w, /art/${city}-720.webp 720w`}
-          sizes="100vw"
-          alt=""
-          decoding="async"
-          loading={chapter.index === 1 ? "eager" : "lazy"}
-          className="absolute inset-0 h-full w-full object-cover"
-        />
-        <div className="pointer-events-none absolute left-3 top-3 z-20 rounded-full bg-black/45 px-3 py-1 text-[11px] text-gold2 backdrop-blur">
-          {CITY_NAME[city] || city}{chapter.premium ? " · Premium" : ""}
-        </div>
-        <svg className="pointer-events-none absolute inset-0 z-10 h-full w-full" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden>
-          <path d={d} fill="none" stroke="rgba(255, 214, 140, 0.4)" strokeWidth="7" strokeLinecap="round" strokeLinejoin="round" vectorEffect="non-scaling-stroke" />
-          <path d={d} fill="none" stroke="rgba(255, 244, 214, 0.95)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" vectorEffect="non-scaling-stroke" />
-        </svg>
-        {chapter.nodes.map((node, index) => (
-          <Node
-            key={node.id}
-            node={node}
-            spot={spots[index]}
-            breaking={unlock?.to === node.id && unlock.leg === 0}
-            onOpen={() => onOpen(node)}
-          />
-        ))}
-        {companionSpot && (
-          <motion.div
-            data-companion="current"
-            className="pointer-events-none absolute z-20 h-32 w-28"
-            animate={{ left: `${Math.max(0, companionSpot.x - 22)}%`, top: `${companionSpot.y - 7}%` }}
-            transition={prefersReducedMotion() ? { duration: 0 } : { type: "spring", stiffness: travel ? 46 : 70, damping: 16 }}
-          >
-            <Companion mascot={mascot} pose={pose} pet={pet} tint={tint} />
-          </motion.div>
-        )}
-      </div>
-    </section>
   );
 }
 
@@ -292,50 +97,4 @@ function openNode(node: PathNode, navigate: (path: string) => void, notify: (mes
   }
   haptic("light");
   navigate(node.kind === "story" ? `/story/${node.id}` : `/trial/${node.id}`);
-}
-
-function Node({ node, spot, breaking, onOpen }: { node: PathNode; spot: { x: number; y: number }; breaking?: boolean; onOpen: () => void }) {
-  const live = node.status === "current";
-  const done = node.status === "done";
-  const labelLeft = spot.x > 62;
-  return (
-    <button
-      onClick={onOpen}
-      id={live ? "node-current" : undefined}
-      className="absolute z-20 -translate-x-1/2 -translate-y-1/2 active:scale-95"
-      style={{ left: `${spot.x}%`, top: `${spot.y}%` }}
-      aria-label={node.title}
-    >
-      <span
-        className={`grid place-items-center rounded-full border backdrop-blur-md ${
-          done
-            ? "h-9 w-9 border-gold bg-gradient-to-b from-[#f6e6bf] to-[#b8893e] text-[#2a1c0a]"
-            : live
-              ? "orb-live h-12 w-12 border-2 border-gold bg-black/35 text-gold2 shadow-[0_0_22px_rgba(231,201,138,0.85)]"
-              : "h-9 w-9 border border-gold/55 bg-white/10 text-gold2/80"
-        }`}
-      >
-        {done ? "✓" : live ? "✦" : <Lock />}
-      </span>
-      {breaking && (
-        <span className="lock-break pointer-events-none absolute inset-0 grid place-items-center text-gold2">
-          <Lock />
-        </span>
-      )}
-      {live && (
-        <span className={`pointer-events-none absolute top-1/2 max-w-[132px] -translate-y-1/2 rounded-full bg-black/55 px-2 py-0.5 text-left text-[10px] leading-tight text-gold2 backdrop-blur ${labelLeft ? "right-[118%]" : "left-[118%]"}`}>
-          {node.title}
-        </span>
-      )}
-    </button>
-  );
-}
-
-function Lock() {
-  return (
-    <svg width="12" height="12" viewBox="0 0 12 12" fill="none" aria-hidden>
-      <rect x="2.2" y="5.2" width="7.6" height="5.2" rx="1.2" stroke="currentColor" strokeWidth="1.1" />
-      <path d="M3.8 5.1V3.7a2.2 2.2 0 0 1 4.4 0v1.4" stroke="currentColor" strokeWidth="1.1" />
-    </svg>
-  );
 }
