@@ -68,7 +68,10 @@ export function MapScreen() {
       </div>
       <header className="pointer-events-none absolute inset-x-0 top-0 z-20 flex items-start justify-between px-3 pt-[max(12px,env(safe-area-inset-top))]">
         <span className="pointer-events-auto glass rounded-full px-3 py-1 font-display text-lg leading-none text-gold2">Yappo</span>
-        <span className="pointer-events-none absolute left-1/2 top-[max(46px,calc(env(safe-area-inset-top)+34px))] -translate-x-1/2 font-display text-4xl text-cream drop-shadow-[0_2px_12px_rgba(0,0,0,0.45)]">
+        <span
+          className="pointer-events-none absolute left-1/2 top-[max(48px,calc(env(safe-area-inset-top)+36px))] -translate-x-1/2 font-display text-4xl text-[#3a2416]"
+          style={{ textShadow: "0 1px 0 rgba(255,236,200,0.9), 0 6px 16px rgba(70,32,8,0.35)" }}
+        >
           {CITY_NAME[city]}
         </span>
         <span className="pointer-events-auto flex items-center gap-1.5 text-xs">
