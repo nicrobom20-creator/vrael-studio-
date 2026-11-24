@@ -35,7 +35,6 @@ export function MapScreen() {
   const [path, setPath] = useState<PathData | null>(null);
   const [unlock, setUnlock] = useState<{ from: string; to: string; leg: 0 | 1 | 2 } | null>(null);
   const scroller = useRef<HTMLDivElement>(null);
-  const [show3d, setShow3d] = useState(false);
   const light = useRef<HTMLDivElement>(null);
   const sky = useRef<HTMLDivElement>(null);
 
@@ -121,29 +120,38 @@ export function MapScreen() {
           streak={user.streak}
         />
       </div>
-      <div className="relative min-h-0 flex-1">
-        <ChapterBand
-          chapter={active}
-          city={city}
-          mascot={mascot}
-          pet={user.pet?.code}
-          tint={user.look?.tint}
-          unlock={unlock}
-          onOpen={(node) => openNode(node, navigate, notify)}
-        />
-        {want3d && (
-          <div className={`absolute inset-0 z-10 ${show3d ? "" : "pointer-events-none opacity-0"}`}>
-            <Suspense fallback={null}>
-              <MapDiorama
-                city={city}
-                mascot={mascot}
-                nodes={active.nodes}
-                spots={stageSpots(city, active.nodes.length)}
-                onOpen={(node) => openNode(node, navigate, notify)}
-                onReady={() => setShow3d(true)}
-              />
-            </Suspense>
-          </div>
+      <div className="relative min-h-0 flex-1 bg-[#1a120e]">
+        {want3d ? (
+          <Suspense fallback={null}>
+            <MapDiorama
+              city={city}
+              mascot={mascot}
+              nodes={active.nodes}
+              onOpen={(node) => openNode(node, navigate, notify)}
+              reduced={prefersReducedMotion()}
+              fallback={
+                <ChapterBand
+                  chapter={active}
+                  city={city}
+                  mascot={mascot}
+                  pet={user.pet?.code}
+                  tint={user.look?.tint}
+                  unlock={unlock}
+                  onOpen={(node) => openNode(node, navigate, notify)}
+                />
+              }
+            />
+          </Suspense>
+        ) : (
+          <ChapterBand
+            chapter={active}
+            city={city}
+            mascot={mascot}
+            pet={user.pet?.code}
+            tint={user.look?.tint}
+            unlock={unlock}
+            onOpen={(node) => openNode(node, navigate, notify)}
+          />
         )}
       </div>
       <div className="z-30 shrink-0 space-y-2 bg-[#16110d] px-3 pb-[max(92px,calc(env(safe-area-inset-bottom)+84px))] pt-2">
@@ -168,9 +176,6 @@ export function MapScreen() {
 }
 
 function canWebGL() {
-  if (prefersReducedMotion()) return false;
-  const memory = (navigator as Navigator & { deviceMemory?: number }).deviceMemory;
-  if (memory && memory < 3) return false;
   try {
     const canvas = document.createElement("canvas");
     return Boolean(canvas.getContext("webgl2") || canvas.getContext("webgl"));

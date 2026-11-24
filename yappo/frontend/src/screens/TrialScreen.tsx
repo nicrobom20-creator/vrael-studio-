@@ -290,7 +290,7 @@ export function TrialScreen() {
             initial={{ opacity: 0, y: 12 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -8 }}
-            className="glass mb-3 w-full p-4"
+            className="play-card mb-3 w-full"
           >
             {lesson.boss && !done && (
               <div className="mb-2 text-center text-[11px] uppercase tracking-[0.16em] text-gold2">Финал города</div>
@@ -298,6 +298,7 @@ export function TrialScreen() {
             {combo > 1 && !done && (
               <div className="combo-pop mb-2 text-center text-sm text-gold2">Серия {combo}</div>
             )}
+            {praise && !done && <div className={combo > 0 ? "result-ok" : "result-bad"}>{praise}</div>}
             <div className="mb-3 flex items-center gap-3">
               <div className="h-14 w-14 shrink-0">
                 <Companion mascot={mascot} pose={pose} className="h-full w-full" />

@@ -57,23 +57,26 @@ export function ShopScreen() {
     <Atmosphere language={user.language} padNav={false}>
       <div className="min-h-dvh px-4 pb-8 pt-[max(16px,env(safe-area-inset-top))]">
         <button type="button" className="text-sm text-cream/70" onClick={() => navigate("/profile")}>← профиль</button>
-        <div className="mt-3 flex items-end justify-between">
-          <h1 className="font-display text-4xl">Гардероб</h1>
+        <div className="mt-4 flex items-end justify-between">
+          <div>
+            <div className="text-[11px] uppercase tracking-[0.18em] text-gold2">Коллекция</div>
+            <h1 className="font-display text-4xl leading-none">Гардероб</h1>
+          </div>
           <div className="text-sm text-gold2">{shop?.coins ?? user.coins} монет</div>
         </div>
-        <div className="mx-auto mt-2 h-40 w-32">
+        <div className="play-card mx-auto mt-4 h-44 w-36">
           <Companion mascot={mascot} pose="idle" outfit={outfit} />
         </div>
-        <div className="mt-3 grid gap-2">
+        <div className="mt-4 grid grid-cols-2 gap-2">
           {shop?.items.map((item) => (
-            <article key={item.id} className="glass flex items-center gap-3 p-3">
-              <div className="h-16 w-14 shrink-0">
+            <article key={item.id} className="glass flex flex-col gap-2 p-3">
+              <div className="mx-auto h-16 w-14">
                 <Companion mascot={mascot} pose="idle" outfit={item.id} />
               </div>
-              <div className="min-w-0 flex-1">
+              <div className="min-w-0 text-center">
                 <div className="font-medium">{item.name}</div>
-                <div className="text-xs text-cream/65">{item.blurb}</div>
-                <div className="mt-1 text-xs text-gold2">{item.premium ? "Premium · " : ""}{item.price} монет</div>
+                <div className="text-[11px] leading-snug text-cream/65">{item.blurb}</div>
+                <div className="mt-1 text-[11px] uppercase tracking-[0.12em] text-gold2">{item.premium ? "Premium · " : ""}{item.price}</div>
               </div>
               {item.equipped ? (
                 <button type="button" className="choice-btn px-3 py-2 text-xs" onClick={() => void act("/api/shop/equip", "").catch((error: Error) => notify(error.message))}>Снять</button>

@@ -103,7 +103,7 @@ export function StoryScreen() {
           key={index}
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
-          className="glass mb-4 w-full p-4 text-left"
+          className="story-card mb-4 w-full text-left"
         >
           <div className="mb-2">
             <div className="text-xs uppercase tracking-[0.16em] text-gold2">{foreign ? line.name || "Собеседник" : user.mascot_name || "Спутник"}</div>

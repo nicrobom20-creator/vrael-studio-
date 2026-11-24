@@ -1,7 +1,7 @@
 """Pick lesson lines from the learner's level and from how far they are in the city."""
 
 from app.content import chapter_by_id, get_node
-from app.level_content import EXTRA
+from app.phrase_bank import NPC, window
 
 ORDER = ("beginner", "mid", "advanced")
 SELF = {
@@ -61,21 +61,168 @@ def _tighten(step: dict, band: str) -> dict:
     return step
 
 
+def _chapter(node: dict) -> dict | None:
+    return chapter_by_id(node.get("chapter_id", ""))
+
+
+def difficulty_rank(node: dict, user) -> int:
+    """Level, city, and the node's place in the city each add difficulty."""
+    chapter = _chapter(node)
+    index = chapter["index"] if chapter else 1
+    nodes = chapter["nodes"] if chapter else [node]
+    if node.get("kind") == "lesson":
+        ordered = [item for item in nodes if item.get("kind") == "lesson"]
+    else:
+        ordered = nodes
+    position = next((i for i, item in enumerate(ordered) if item["id"] == node.get("id")), 0)
+    level = {"beginner": 0, "mid": 4, "advanced": 8}[resolve_band(user)]
+    return level + (index - 1) * 2 + position
+
+
+def _choice_count(rank: int) -> int:
+    return 3 if rank >= 8 else 4
+
+
+def _say_options(correct: str, phrases: list[dict], count: int) -> list[str]:
+    rest = [item["say"] for item in phrases if item["say"] != correct]
+    fillers = ["…", "?", "—"]
+    while len(rest) < count - 1:
+        rest.append(fillers[len(rest) % len(fillers)])
+    return [correct, *rest[: count - 1]]
+
+
+def _ru_options(correct: str, phrases: list[dict], count: int) -> list[str]:
+    rest = [item["ru"] for item in phrases if item["ru"] != correct]
+    while len(rest) < count - 1:
+        rest.append("не то")
+    return [correct, *rest[: count - 1]]
+
+
+def _steps_from(node: dict, phrases: list[dict], rank: int) -> list[dict]:
+    skill = node.get("skill") or "vocabulary"
+    count = _choice_count(rank)
+    seconds = 8 if rank < 4 else 6 if rank < 8 else 5
+    steps: list[dict] = []
+    if skill == "vocabulary":
+        for item in phrases:
+            steps.append({
+                "type": "vocab",
+                "word": item["say"],
+                "reading": item["reading"],
+                "translation": item["ru"],
+                "example": item["say"],
+                "example_ru": item["ru"],
+                "tts": item["say"],
+                "hint": item["hint"],
+            })
+        lead = phrases[0]
+        steps.append({
+            "type": "choice",
+            "prompt": f"Как сказать «{lead['ru']}»?",
+            "sub": "Выбери живой вариант",
+            "options": _say_options(lead["say"], phrases, count),
+            "answer": 0,
+            "explain": f"{lead['say']} — {lead['ru']}.",
+        })
+    elif skill == "match":
+        steps.append({
+            "type": "match",
+            "prompt": "Соедини фразу и смысл",
+            "pairs": [{"left": item["say"], "right": item["ru"]} for item in phrases],
+        })
+    elif skill == "build":
+        for item in phrases:
+            extra = [other["parts"][-1] for other in phrases if other is not item][:2]
+            steps.append({
+                "type": "build",
+                "prompt": "Собери фразу",
+                "ru": item["ru"],
+                "answer": list(item["parts"]),
+                "extra": extra or ["…"],
+                "tts": item["say"],
+            })
+    elif skill == "listen":
+        for item in phrases:
+            steps.append({
+                "type": "listen",
+                "prompt": "Что ты слышишь?",
+                "tts": item["say"],
+                "options": _ru_options(item["ru"], phrases, count),
+                "answer": 0,
+                "explain": f"{item['say']} — {item['ru']}.",
+            })
+    elif skill == "speak":
+        for item in phrases:
+            steps.append({
+                "type": "speak",
+                "prompt": "Скажи вслух",
+                "phrase": item["say"],
+                "translation": item["ru"],
+                "tts": item["say"],
+                "hint": item["hint"],
+            })
+    else:
+        for item in phrases:
+            steps.append({
+                "type": "choice",
+                "prompt": f"Как сказать «{item['ru']}»?",
+                "sub": "Меньше опор, чем в начале пути" if rank >= 4 else "Выбери живой вариант",
+                "options": _say_options(item["say"], phrases, count),
+                "answer": 0,
+                "explain": f"{item['say']} — {item['ru']}.",
+            })
+        if rank >= 4:
+            gap = phrases[-1]
+            missing = gap["parts"][-1]
+            prompt = gap["say"].replace(missing, "____", 1)
+            if "____" not in prompt:
+                prompt = "____ " + gap["say"]
+            steps.append({
+                "type": "gap",
+                "prompt": prompt,
+                "sub": "Вставь пропущенное",
+                "options": _say_options(missing, [{"say": part, "ru": ""} for part in (item["parts"][-1] for item in phrases)], count),
+                "answer": 0,
+                "explain": f"{gap['say']} — {gap['ru']}.",
+            })
+        steps.append({
+            "type": "speed",
+            "prompt": f"Успей: «{phrases[0]['ru']}»",
+            "options": _say_options(phrases[0]["say"], phrases, count),
+            "answer": 0,
+            "explain": f"{phrases[0]['say']} — {phrases[0]['ru']}.",
+            "seconds": seconds,
+        })
+    if skill in {"listen", "speak"} and rank >= 6:
+        heard = phrases[-1]
+        steps.append({
+            "type": "dictate",
+            "prompt": "Напиши, что слышишь",
+            "phrase": heard["say"],
+            "translation": heard["ru"],
+            "tts": heard["say"],
+        })
+    if skill == "speak" and rank >= 8:
+        best = phrases[0]
+        rude = phrases[-1]
+        steps.append({
+            "type": "talk",
+            "prompt": "Собеседник ждёт живой ответ. Выбери реплику.",
+            "beats": [
+                {"text": best["say"], "note": f"Разговор продолжается: {best['ru']}.", "best": True},
+                {"text": rude["say"], "note": "Смысл не тот, и разговор сбивается.", "best": False},
+            ],
+        })
+    return steps
+
+
 def steps_for(node_id: str, user) -> list[dict]:
     node = get_node(node_id)
-    if node is None:
+    if node is None or node.get("kind") != "lesson":
         return []
-    chapter = chapter_by_id(node.get("chapter_id", ""))
-    index = chapter["index"] if chapter else 1
-    band = effective_band(user, index)
-    catalog = list(node.get("steps") or [])
-    replacement = EXTRA.get(node_id, {}).get(band)
-    if replacement:
-        chosen = list(replacement)
-    else:
-        tagged = [step for step in catalog if step.get("band", "beginner") == band]
-        chosen = tagged or catalog
-    return [_tighten(dict(step), band) for step in chosen]
+    rank = difficulty_rank(node, user)
+    language = node.get("language") or "en"
+    return _steps_from(node, window(language, rank), rank)
 
 
 def is_city_boss(node: dict) -> bool:
@@ -86,59 +233,28 @@ def is_city_boss(node: dict) -> bool:
     return bool(lessons) and lessons[-1]["id"] == node.get("id")
 
 
-def boss_steps(band: str) -> list[dict]:
-    """A short finale that is not another copy of the lesson's first card."""
-    if band == "advanced":
-        return [
-            {
-                "type": "dictate",
-                "prompt": "Финал города. Напиши, что слышишь",
-                "phrase": "I wouldn't miss it for the world.",
-                "translation": "Ни за что не пропустил бы.",
-                "tts": "I wouldn't miss it for the world.",
-            },
-            {
-                "type": "talk",
-                "prompt": "Хозяин города спрашивает, останешься ли ещё.",
-                "beats": [
-                    {"text": "I could get used to this.", "note": "Он открывает последнюю калитку.", "best": True},
-                    {"text": "No more city.", "note": "Калитка остаётся прикрытой: фраза слишком резкая.", "best": False},
-                ],
-            },
-        ]
-    if band == "mid":
-        return [
-            {
-                "type": "dictate",
-                "prompt": "Финал города. Напиши, что слышишь",
-                "phrase": "Could I have the bill, please?",
-                "translation": "Можно счёт, пожалуйста?",
-                "tts": "Could I have the bill, please?",
-            },
-            {
-                "type": "speed",
-                "prompt": "Финал. Успей выбрать.",
-                "options": ["I'll have the same.", "I am the same.", "Keep the seat."],
-                "answer": 0,
-                "explain": "I'll have the same — мне то же самое.",
-                "seconds": 6,
-            },
-        ]
+def boss_steps(node: dict, user) -> list[dict]:
+    """Finale uses a harder slice than the lesson that leads into it."""
+    language = node.get("language") or "en"
+    rank = difficulty_rank(node, user) + 3
+    phrases = window(language, rank)
+    heard = phrases[-1]
+    best = phrases[0]
     return [
         {
-            "type": "speed",
-            "prompt": "Финал города. Успей.",
-            "options": ["Thank you", "Sorry", "Ticket"],
-            "answer": 0,
-            "explain": "Thank you — спасибо.",
-            "seconds": 6,
+            "type": "dictate",
+            "prompt": "Финал города. Напиши, что слышишь",
+            "phrase": heard["say"],
+            "translation": heard["ru"],
+            "tts": heard["say"],
         },
         {
-            "type": "dictate",
-            "prompt": "Напиши, что слышишь",
-            "phrase": "A tea, please.",
-            "translation": "Чай, пожалуйста.",
-            "tts": "A tea, please.",
+            "type": "talk",
+            "prompt": "Хозяин города ждёт последнюю реплику.",
+            "beats": [
+                {"text": best["say"], "note": f"Калитка открывается. Смысл: {best['ru']}.", "best": True},
+                {"text": heard["say"], "note": "Фраза мимо, и разговор обрывается.", "best": False},
+            ],
         },
     ]
 
@@ -171,13 +287,29 @@ STORIES = {
 }
 
 
+def _story_from(language: str, phrases: list[dict]) -> list[dict]:
+    lead = phrases[0]
+    return [
+        {"speaker": "mascot", "text": f"Слушай целиком. Смысл: {lead['ru']}.", "emotion": "wave", "name": ""},
+        {"speaker": "npc", "text": lead["say"], "emotion": "happy", "name": NPC.get(language, "")},
+        {"speaker": "mascot", "text": f"{lead['say']} — {lead['ru']}.", "emotion": "think", "name": ""},
+    ]
+
+
 def story_lines(node_id: str, user) -> list[dict] | None:
     node = get_node(node_id)
-    if node is None:
+    if node is None or node.get("kind") != "story":
         return None
-    chapter = chapter_by_id(node.get("chapter_id", ""))
-    band = effective_band(user, chapter["index"] if chapter else 1)
-    return STORIES.get(node_id, {}).get(band)
+    chapter = _chapter(node)
+    index = chapter["index"] if chapter else 1
+    band = effective_band(user, index)
+    custom = STORIES.get(node_id, {}).get(band)
+    if custom:
+        return custom
+    rank = difficulty_rank(node, user)
+    if rank == 0:
+        return None
+    return _story_from(node.get("language") or "en", window(node.get("language") or "en", rank))
 
 
 def hint_for(step: dict, stage: int) -> dict:

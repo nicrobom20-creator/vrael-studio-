@@ -162,7 +162,7 @@ def spend_hint(session: Session, user: User, lesson_id: str, step_index: int, st
     steps = steps_for(node["id"], user)
     chapter = chapter_by_id(node["chapter_id"])
     if is_city_boss(node):
-        steps = steps + boss_steps(effective_band(user, chapter["index"] if chapter else 1))
+        steps = steps + boss_steps(node, user)
     if not 0 <= int(step_index) < len(steps):
         raise ServiceError(400, "Нет такого шага")
     today = _today(user, now)
@@ -574,7 +574,7 @@ def lesson_payload(session: Session, user: User, lesson_id: str) -> dict:
     steps = shuffle_steps(steps_for(node["id"], user))
     boss = is_city_boss(node)
     if boss:
-        steps = steps + boss_steps(band)
+        steps = steps + boss_steps(node, user)
     return {
         "id": node["id"],
         "title": node["title"],

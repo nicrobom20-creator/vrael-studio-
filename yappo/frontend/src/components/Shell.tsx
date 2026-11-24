@@ -56,8 +56,8 @@ export function GoalRing({ value, goal }: { value: number; goal: number }) {
 
 export function BottomNav() {
   return (
-    <nav className="fixed inset-x-0 bottom-0 z-40 px-3 pb-[max(10px,env(safe-area-inset-bottom))]">
-      <div className="glass flex items-stretch justify-between px-2 py-2">
+    <nav className="fixed inset-x-0 bottom-0 z-40 px-3 pb-[max(12px,env(safe-area-inset-bottom))]">
+      <div className="glass flex items-stretch justify-between px-1.5 py-1.5">
         {ITEMS.map((item) => (
           <NavLink
             key={item.to}
@@ -146,9 +146,9 @@ export function TopStats({
           <MuteButton />
         </div>
       </div>
-      <div className="mt-2 min-w-0 text-center">
-        <div className="truncate font-display text-xl leading-tight text-cream">{title}</div>
-        <div className="truncate text-xs text-cream/70">{subtitle}</div>
+      <div className="mt-3 min-w-0 px-2 text-center">
+        <div className="truncate font-display text-[28px] leading-none tracking-[-0.03em] text-cream">{title}</div>
+        <div className="mt-1 truncate text-[11px] uppercase tracking-[0.16em] text-cream/55">{subtitle}</div>
       </div>
     </header>
   );

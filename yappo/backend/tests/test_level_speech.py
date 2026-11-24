@@ -65,6 +65,86 @@ def test_hints_stop_at_five_for_a_free_learner(session):
         assert error.detail["remaining"] == 0
 
 
+def test_every_language_and_city_gets_harder(session):
+    from app.content import chapters_for
+
+    for code in ("en", "fr", "es", "de", "zh"):
+        previous = ""
+        for chapter in chapters_for(code):
+            for node in chapter["nodes"]:
+                if node["kind"] != "lesson":
+                    story = __import__("app.leveling", fromlist=["story_lines"]).story_lines(node["id"], Band("start"))
+                    if chapter["index"] > 1 or node["id"].endswith("boss"):
+                        assert story and story[1]["text"]
+                    continue
+                steps = steps_for(node["id"], Band("start"))
+                blob = " ".join(
+                    str(step.get("word") or step.get("phrase") or step.get("tts") or step.get("prompt") or "")
+                    for step in steps
+                )
+                assert blob.strip()
+                assert blob != previous
+                previous = blob
+        easy = steps_for(f"{code}-1-vocab", Band("start"))
+        hard = steps_for(f"{code}-1-vocab", Band("confident"))
+        assert (easy[0].get("word") or "") != (hard[0].get("word") or "")
+
+
+def test_gemini_audio_body_matches_the_docs():
+    from app.speech import gemini_audio_payload
+
+    body = gemini_audio_payload(b"abcdef", "audio/mp4;codecs=mp4a", "phrase.mp4")
+    inline = body["contents"][0]["parts"][1]["inlineData"]
+    assert body["contents"][0]["role"] == "user"
+    assert inline["mimeType"] == "audio/mp4"
+    assert inline["data"]
+    webm = gemini_audio_payload(b"abcdef", "audio/webm;codecs=opus", "phrase.webm")
+    assert webm["contents"][0]["parts"][1]["inlineData"]["mimeType"] == "audio/webm"
+
+
+def test_transcribe_uses_gemini_when_openai_key_is_absent(monkeypatch):
+    import httpx
+
+    from app.config import get_settings
+
+    monkeypatch.setenv("STT_API_KEY", "")
+    monkeypatch.setenv("LLM_API_KEY", "")
+    monkeypatch.setenv("GEMINI_API_KEY", "gem-key")
+    monkeypatch.setenv("GEMINI_MODEL", "gemini-3.1-flash-lite")
+    get_settings.cache_clear()
+    seen = {}
+
+    class Response:
+        status_code = 200
+
+        def json(self):
+            return {"candidates": [{"content": {"parts": [{"text": "A coffee, please"}]}}]}
+
+    class Client:
+        def __init__(self, timeout=30):
+            seen["timeout"] = timeout
+
+        async def __aenter__(self):
+            return self
+
+        async def __aexit__(self, *args):
+            return False
+
+        async def post(self, url, json=None, headers=None, **kwargs):
+            seen["url"] = url
+            seen["json"] = json
+            seen["headers"] = headers
+            return Response()
+
+    monkeypatch.setattr(httpx, "AsyncClient", Client)
+    text = asyncio.run(transcribe(b"123456", "phrase.m4a", "audio/mp4"))
+    assert text == "A coffee, please"
+    assert seen["url"].endswith("/models/gemini-3.1-flash-lite:generateContent")
+    assert seen["headers"]["x-goog-api-key"] == "gem-key"
+    assert seen["json"]["contents"][0]["parts"][1]["inlineData"]["mimeType"] == "audio/mp4"
+    get_settings.cache_clear()
+
+
 def test_speech_refuses_without_a_key():
     try:
         asyncio.run(transcribe(b"not-audio" * 40, "phrase.webm", "audio/webm"))
