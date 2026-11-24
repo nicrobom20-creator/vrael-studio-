@@ -46,7 +46,8 @@ export function MapScreen() {
   }
   const active = path.chapters.find((chapter) => chapter.unlocked && !chapter.complete) || path.chapters[path.chapters.length - 1];
   const activeIndex = Math.max(0, path.chapters.findIndex((chapter) => chapter.id === active.id));
-  const city = cityFor(user.language, activeIndex);
+  const forced = new URLSearchParams(window.location.search).get("city") || "";
+  const city = CITY_NAME[forced] ? forced : cityFor(user.language, activeIndex);
   const current = active.nodes.find((node) => node.status === "current");
   const mascot = (user.mascot || "parrot") as MascotId;
 

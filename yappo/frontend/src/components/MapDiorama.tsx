@@ -133,10 +133,14 @@ function Townhouse({
   position,
   maps,
   stories,
+  wall = "#e7d3c0",
+  roofTint = "#6e3d34",
 }: {
   position: [number, number, number];
   maps: ReturnType<typeof useMaps>;
   stories: number;
+  wall?: string;
+  roofTint?: string;
 }) {
   const roof = useMemo(() => gableGeometry(), []);
   const height = stories * 0.78;
@@ -148,14 +152,14 @@ function Townhouse({
       </mesh>
       <mesh position={[0, 0.36 + height / 2, 0]} castShadow receiveShadow>
         <boxGeometry args={[1.48, height, 1.18]} />
-        <meshStandardMaterial map={maps.brick} normalMap={maps.brickNor} roughness={0.78} color="#e7d3c0" />
+        <meshStandardMaterial map={maps.brick} normalMap={maps.brickNor} roughness={0.78} color={wall} />
       </mesh>
       <mesh position={[-0.55, 0.7 + height * 0.35, 0.52]} castShadow>
         <boxGeometry args={[0.42, height * 0.55, 0.28]} />
         <meshStandardMaterial map={maps.brick} normalMap={maps.brickNor} roughness={0.8} />
       </mesh>
       <mesh position={[0, 0.36 + height, -0.68]} geometry={roof} castShadow>
-        <meshStandardMaterial map={maps.roof} roughness={0.68} color="#6e3d34" />
+        <meshStandardMaterial map={maps.roof} roughness={0.68} color={roofTint} />
       </mesh>
       <mesh position={[0.42, 0.36 + height + 0.85, 0.2]}>
         <boxGeometry args={[0.16, 0.46, 0.16]} />
@@ -196,7 +200,7 @@ function Townhouse({
 function ClockTower({ maps }: { maps: ReturnType<typeof useMaps> }) {
   const face = useMemo(() => clockFace(), []);
   return (
-    <group position={[-2.2, 0, -11.2]} scale={0.82}>
+    <group>
       <mesh position={[0, 0.35, 0]} castShadow receiveShadow>
         <boxGeometry args={[1.7, 0.7, 1.7]} />
         <meshStandardMaterial color="#d8cbb6" roughness={0.75} />
@@ -472,12 +476,138 @@ function Walker({ mascot, point, reduced }: { mascot: MascotId; point: THREE.Vec
   );
 }
 
-function London({
+function Landmarks({ city, maps }: { city: string; maps: ReturnType<typeof useMaps> }) {
+  const spot = bend(0.22, 0);
+  if (city === "newyork") {
+    return (
+      <group>
+        <group position={[spot.x - 3.1, 0, spot.z - 1.4]}>
+          <mesh position={[0, 2.4, 0]} castShadow><boxGeometry args={[0.85, 4.8, 0.6]} /><meshStandardMaterial color="#c5ccd4" metalness={0.35} roughness={0.4} /></mesh>
+          <mesh position={[0, 5.1, 0]}><boxGeometry args={[0.4, 0.7, 0.35]} /><meshStandardMaterial color="#d5dbe2" metalness={0.4} /></mesh>
+          <mesh position={[0, 5.7, 0]}><coneGeometry args={[0.05, 0.85, 4]} /><meshStandardMaterial color="#e7c96a" metalness={0.7} roughness={0.25} /></mesh>
+        </group>
+        {[-0.4, 0.8, 1.8].map((x, index) => (
+          <mesh key={x} position={[spot.x - 2.2 + x * 0.45, 1.6 + index * 0.55, spot.z - 0.6]} castShadow>
+            <boxGeometry args={[0.55, 2.2 + index * 0.7, 0.45]} />
+            <meshStandardMaterial color={index % 2 ? "#9aa6b2" : "#d8c4a4"} metalness={0.25} roughness={0.45} />
+          </mesh>
+        ))}
+        <Bus position={[bend(0.62).x + 0.7, 0, bend(0.62).z]} color="#f2c21a" />
+      </group>
+    );
+  }
+  if (city === "sydney") {
+    return (
+      <group>
+        <group position={[spot.x - 3.2, 0.15, spot.z - 1.1]}>
+          {[0, 0.75, 1.4].map((x, index) => (
+            <mesh key={x} position={[x, 0.5, 0]} rotation={[0, 0.15, 0.15]}>
+              <sphereGeometry args={[0.62 - index * 0.06, 16, 10, 0, Math.PI]} />
+              <meshStandardMaterial color="#f6f3ec" roughness={0.32} metalness={0.06} side={THREE.DoubleSide} />
+            </mesh>
+          ))}
+        </group>
+        <mesh position={[spot.x - 1.6, 1.6, spot.z - 0.2]} rotation={[0, 0.8, 0]}>
+          <torusGeometry args={[1.7, 0.05, 8, 24, Math.PI]} />
+          <meshStandardMaterial color="#b7c0c6" metalness={0.75} roughness={0.28} />
+        </mesh>
+      </group>
+    );
+  }
+  if (city === "rome") {
+    return (
+      <group position={[spot.x - 2.8, 0.45, spot.z - 0.8]} scale={0.72}>
+        <mesh castShadow>
+          <cylinderGeometry args={[1.35, 1.35, 1.15, 24, 1, true]} />
+          <meshStandardMaterial color="#e2c49a" roughness={0.78} side={THREE.DoubleSide} />
+        </mesh>
+        <mesh position={[0, 0.2, 0]}><torusGeometry args={[1.35, 0.08, 8, 24]} /><meshStandardMaterial color="#c4a574" /></mesh>
+        <mesh position={[0, -0.35, 0]}><torusGeometry args={[1.28, 0.05, 6, 20]} /><meshStandardMaterial color="#b89568" /></mesh>
+        <mesh position={[2.2, -0.2, 1.4]}>
+          <cylinderGeometry args={[0.55, 0.6, 0.18, 16]} />
+          <meshStandardMaterial color="#d9d3c8" roughness={0.4} metalness={0.1} />
+        </mesh>
+      </group>
+    );
+  }
+  return (
+    <group>
+      <group position={[spot.x - 3.4, 0, spot.z - 2.4]} scale={1.15}>
+        <ClockTower maps={maps} />
+      </group>
+      <mesh position={[spot.x - 4.2, 2.2, spot.z + 0.4]} rotation={[0, 0.6, 0]}>
+        <torusGeometry args={[1.15, 0.035, 8, 28]} />
+        <meshStandardMaterial color="#e7eef3" metalness={0.65} roughness={0.28} />
+      </mesh>
+      {Array.from({ length: 10 }, (_, index) => {
+        const angle = (index / 10) * Math.PI * 2;
+        return (
+          <mesh key={index} position={[spot.x - 4.2 + Math.cos(angle) * 0.55, 2.2 + Math.sin(angle) * 0.55, spot.z + 0.4]} rotation={[0, 0.6, angle]}>
+            <boxGeometry args={[1.05, 0.015, 0.015]} />
+            <meshStandardMaterial color="#d5dee6" metalness={0.5} roughness={0.35} />
+          </mesh>
+        );
+      })}
+      <group position={[-0.2, 0.14, -6.2]} rotation={[0, 0.35, 0]}>
+        <mesh castShadow receiveShadow>
+          <boxGeometry args={[3.8, 0.18, 0.85]} />
+          <meshStandardMaterial map={maps.brick} color="#d7cbb8" roughness={0.7} />
+        </mesh>
+        <mesh position={[0, 0.28, 0.4]}>
+          <boxGeometry args={[3.8, 0.1, 0.06]} />
+          <meshStandardMaterial color="#1f6b4a" metalness={0.25} roughness={0.45} />
+        </mesh>
+        {[-1.2, 0, 1.2].map((x) => (
+          <mesh key={x} position={[x, -0.2, 0]} rotation={[Math.PI, 0, 0]}>
+            <torusGeometry args={[0.42, 0.07, 8, 14, Math.PI]} />
+            <meshStandardMaterial color="#cbb89a" roughness={0.75} />
+          </mesh>
+        ))}
+      </group>
+        <Bus position={[bend(0.62).x + 0.7, 0, bend(0.62).z]} color="#c43732" />
+        <Cab position={[bend(0.7).x - 0.5, 0, bend(0.7).z]} />
+        <PhoneBox position={[spot.x - 4.2, 0, spot.z + 0.4]} />
+    </group>
+  );
+}
+
+function Bus({ position, color }: { position: [number, number, number]; color: string }) {
+  return (
+    <group position={position} scale={0.72}>
+      <mesh position={[0, 0.55, 0]} castShadow><boxGeometry args={[0.72, 0.62, 1.7]} /><meshStandardMaterial color={color} roughness={0.45} /></mesh>
+      <mesh position={[0, 1.02, -0.02]} castShadow><boxGeometry args={[0.68, 0.42, 1.55]} /><meshStandardMaterial color={color} roughness={0.45} /></mesh>
+      <mesh position={[0.37, 0.62, 0]}><boxGeometry args={[0.02, 0.26, 1.15]} /><meshStandardMaterial color="#d7e8ef" emissive="#9ec4d4" emissiveIntensity={0.15} /></mesh>
+      <mesh position={[0.37, 1.02, 0]}><boxGeometry args={[0.02, 0.2, 1.1]} /><meshStandardMaterial color="#d7e8ef" /></mesh>
+      {[0.55, -0.55].map((z) => (
+        <mesh key={z} position={[0, 0.2, z]} rotation={[0, 0, Math.PI / 2]}>
+          <cylinderGeometry args={[0.16, 0.16, 0.78, 10]} />
+          <meshStandardMaterial color="#1a1a1a" />
+        </mesh>
+      ))}
+    </group>
+  );
+}
+
+function Cab({ position }: { position: [number, number, number] }) {
+  return (
+    <group position={position} scale={0.7}>
+      <mesh position={[0, 0.38, 0]} castShadow><boxGeometry args={[0.62, 0.38, 1.15]} /><meshStandardMaterial color="#1c1c1c" metalness={0.4} roughness={0.35} /></mesh>
+      <mesh position={[0, 0.68, -0.05]}><boxGeometry args={[0.56, 0.28, 0.62]} /><meshStandardMaterial color="#141414" /></mesh>
+      <mesh position={[0, 0.86, 0.35]}><boxGeometry args={[0.12, 0.06, 0.08]} /><meshStandardMaterial color="#f2c21a" emissive="#e7b423" emissiveIntensity={0.8} /></mesh>
+      <mesh position={[0, 0.18, 0.4]} rotation={[0, 0, Math.PI / 2]}><cylinderGeometry args={[0.12, 0.12, 0.68, 8]} /><meshStandardMaterial color="#222" /></mesh>
+      <mesh position={[0, 0.18, -0.4]} rotation={[0, 0, Math.PI / 2]}><cylinderGeometry args={[0.12, 0.12, 0.68, 8]} /><meshStandardMaterial color="#222" /></mesh>
+    </group>
+  );
+}
+
+function Street({
+  city,
   mascot,
   nodes,
   onOpen,
   reduced,
 }: {
+  city: string;
   mascot: MascotId;
   nodes: PathNode[];
   onOpen: (node: PathNode) => void;
@@ -568,30 +698,27 @@ function London({
           maxDepthThreshold={1.2}
         />
       </mesh>
-      <group position={[-0.35, 0.12, -4.6]} rotation={[0, 0.5, 0]}>
-        <mesh castShadow receiveShadow>
-          <boxGeometry args={[3.6, 0.16, 0.7]} />
-          <meshStandardMaterial map={maps.brick} color="#d9cbb8" roughness={0.7} />
-        </mesh>
-        <mesh position={[0, 0.28, 0.28]}>
-          <boxGeometry args={[3.4, 0.12, 0.06]} />
-          <meshStandardMaterial color="#4a4038" metalness={0.4} roughness={0.4} />
-        </mesh>
-        {[-1.1, 0, 1.1].map((x) => (
-          <mesh key={x} position={[x, -0.15, 0]} rotation={[0, 0, Math.PI]}>
-            <torusGeometry args={[0.38, 0.07, 8, 12, Math.PI]} />
-            <meshStandardMaterial map={maps.brick} color="#d9cbb8" roughness={0.7} />
+      {city !== "london" && city !== "newyork" && (
+        <group position={[-0.2, 0.14, -4.8]} rotation={[0, 0.35, 0]}>
+          <mesh castShadow receiveShadow>
+            <boxGeometry args={[3.4, 0.16, 0.75]} />
+            <meshStandardMaterial map={maps.brick} color={city === "rome" ? "#e2c49a" : "#d5dbe0"} roughness={0.7} />
           </mesh>
-        ))}
-      </group>
+        </group>
+      )}
       {homes.map((home) => (
-        <Townhouse key={home.at.join(",")} position={home.at} maps={maps} stories={home.stories} />
+        <Townhouse
+          key={home.at.join(",")}
+          position={home.at}
+          maps={maps}
+          stories={home.stories}
+          wall={city === "rome" ? "#e6c48a" : city === "newyork" ? "#8d6a52" : city === "sydney" ? "#f4f0e6" : "#e7d3c0"}
+          roofTint={city === "rome" ? "#c45a32" : city === "newyork" ? "#3e3834" : city === "sydney" ? "#d9cfc2" : "#6e3d34"}
+        />
       ))}
-      <ClockTower maps={maps} />
+      <Landmarks city={city} maps={maps} />
       <Skyline />
       <Bushes />
-      <PhoneBox position={[-2.4, 0, 0.4]} />
-      <PhoneBox position={[-2.95, 0, -0.15]} />
       <StreetLamps />
       <Motes />
       {points.map((point, index) => {
@@ -651,6 +778,7 @@ class CityBoundary extends Component<{ children: ReactNode; fallback: ReactNode 
 }
 
 export function MapDiorama({
+  city,
   mascot,
   nodes,
   onOpen,
@@ -689,7 +817,7 @@ export function MapDiorama({
         style={{ position: "absolute", inset: 0 }}
       >
         <Suspense fallback={null}>
-          <London mascot={mascot} nodes={nodes} onOpen={onOpen} reduced={Boolean(reduced)} />
+          <Street city={city} mascot={mascot} nodes={nodes} onOpen={onOpen} reduced={Boolean(reduced)} />
         </Suspense>
       </Canvas>
     </CityBoundary>
