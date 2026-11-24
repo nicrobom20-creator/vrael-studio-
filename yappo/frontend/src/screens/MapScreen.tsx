@@ -1,5 +1,5 @@
 import { motion } from "framer-motion";
-import { useEffect, useRef, useState } from "react";
+import { lazy, Suspense, useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { api, haptic } from "../api";
 import { cityOf, pathSpots } from "../components/CityScene";
@@ -9,6 +9,8 @@ import { prefersReducedMotion, takeUnlock } from "../lib/motion";
 import { sfx, startAmbient } from "../lib/sound";
 import { useApp } from "../state";
 import type { Chapter, MascotId, PathData, PathNode } from "../types";
+
+const MapDiorama = lazy(() => import("../components/MapDiorama").then((mod) => ({ default: mod.MapDiorama })));
 
 const JOURNEY = ["london", "newyork", "sydney", "rome"];
 const CITY_NAME: Record<string, string> = {
@@ -33,6 +35,7 @@ export function MapScreen() {
   const [path, setPath] = useState<PathData | null>(null);
   const [unlock, setUnlock] = useState<{ from: string; to: string; leg: 0 | 1 | 2 } | null>(null);
   const scroller = useRef<HTMLDivElement>(null);
+  const [show3d, setShow3d] = useState(false);
   const light = useRef<HTMLDivElement>(null);
   const sky = useRef<HTMLDivElement>(null);
 
@@ -102,46 +105,83 @@ export function MapScreen() {
   const mascot = (user.mascot || "parrot") as MascotId;
   const active = path.chapters.find((chapter) => chapter.unlocked && !chapter.complete) || path.chapters[path.chapters.length - 1];
 
+  const activeIndex = Math.max(0, path.chapters.findIndex((chapter) => chapter.id === active.id));
+  const city = cityFor(user.language, activeIndex);
+  const next = path.chapters[activeIndex + 1];
+  const current = active.nodes.find((node) => node.status === "current");
+  const want3d = canWebGL();
+
   return (
-    <div
-      id="map-scroller"
-      ref={scroller}
-      className="world-scroll h-dvh overflow-y-auto overflow-x-hidden"
-      onPointerDown={() => startAmbient()}
-    >
-      <div ref={light} className="hero-light" />
-      <div ref={sky} className="hero-sky" />
-      <div className="pointer-events-none absolute inset-0 overflow-hidden">
-        <span className="mote" style={{ left: "18%" }} />
-        <span className="mote mote-b" style={{ left: "70%" }} />
-      </div>
-      <div className="sticky top-0 z-40 bg-gradient-to-b from-[#120e0b]/80 to-transparent pb-2">
+    <div id="map-scroller" ref={scroller} className="flex h-dvh flex-col overflow-hidden bg-[#120e0b]" onPointerDown={() => startAmbient()}>
+      <div className="z-40 shrink-0 bg-[#16110d]">
         <TopStats
           title={active.title}
-          subtitle={`${CITY_NAME[cityFor(user.language, active.index - 1)] || path.language.city} · Уровень ${user.level}`}
+          subtitle={`${CITY_NAME[city] || path.language.city} · Уровень ${user.level}`}
           xp={user.xp}
           streak={user.streak}
-          studied={user.usage.studied_minutes}
-          goal={user.daily_goal}
         />
       </div>
-      {path.chapters.map((chapter, index) => (
+      <div className="relative min-h-0 flex-1">
         <ChapterBand
-          key={chapter.id}
-          chapter={chapter}
-          city={cityFor(user.language, index)}
-          joined={index > 0}
+          chapter={active}
+          city={city}
           mascot={mascot}
           pet={user.pet?.code}
           tint={user.look?.tint}
-          line={chapter.id === active.id ? path.mascot_line : chapter.subtitle}
           unlock={unlock}
           onOpen={(node) => openNode(node, navigate, notify)}
         />
-      ))}
-      <div className="h-28" />
+        {want3d && (
+          <div className={`absolute inset-0 z-10 ${show3d ? "" : "pointer-events-none opacity-0"}`}>
+            <Suspense fallback={null}>
+              <MapDiorama
+                city={city}
+                mascot={mascot}
+                nodes={active.nodes}
+                spots={stageSpots(city, active.nodes.length)}
+                onOpen={(node) => openNode(node, navigate, notify)}
+                onReady={() => setShow3d(true)}
+              />
+            </Suspense>
+          </div>
+        )}
+      </div>
+      <div className="z-30 shrink-0 space-y-2 bg-[#16110d] px-3 pb-[max(92px,calc(env(safe-area-inset-bottom)+84px))] pt-2">
+        <div className="flex items-center gap-2">
+          <div className="glass min-w-0 flex-1 truncate px-3 py-2 text-xs text-cream/80">{path.mascot_line}</div>
+          {current && (
+            <button className="gold-btn h-10 shrink-0 px-4 text-sm" onClick={() => openNode(current, navigate, notify)}>
+              {current.kind === "story" ? "К сцене" : "К вратам"}
+            </button>
+          )}
+        </div>
+        {next && (
+          <div className="rounded-2xl border border-white/10 px-3 py-2 text-[11px] text-cream/55">
+            {next.complete ? `${next.title} уже позади` : `${next.title} откроется, когда этот город будет пройден`}
+          </div>
+        )}
+      </div>
+      <div ref={light} className="hidden" />
+      <div ref={sky} className="hidden" />
     </div>
   );
+}
+
+function canWebGL() {
+  if (prefersReducedMotion()) return false;
+  const memory = (navigator as Navigator & { deviceMemory?: number }).deviceMemory;
+  if (memory && memory < 3) return false;
+  try {
+    const canvas = document.createElement("canvas");
+    return Boolean(canvas.getContext("webgl2") || canvas.getContext("webgl"));
+  } catch {
+    return false;
+  }
+}
+
+function stageSpots(city: string, count: number) {
+  const raw = pathSpots(city === "newyork" || city === "sydney" ? "london" : city, count);
+  return raw.map((spot) => ({ x: Math.min(78, Math.max(22, spot.x)), y: 24 + (spot.y / 100) * 46 }));
 }
 
 function followCurrent(scroller: HTMLDivElement | null) {
@@ -167,25 +207,21 @@ function followCurrent(scroller: HTMLDivElement | null) {
 function ChapterBand({
   chapter,
   city,
-  joined,
   mascot,
   pet,
   tint,
-  line,
   unlock,
   onOpen,
 }: {
   chapter: Chapter;
   city: string;
-  joined: boolean;
   mascot: MascotId;
   pet?: string;
   tint?: string;
-  line: string;
   unlock: { from: string; to: string; leg: 0 | 1 | 2 } | null;
   onOpen: (node: PathNode) => void;
 }) {
-  const spots = pathSpots(city === "newyork" || city === "sydney" ? "london" : city, chapter.nodes.length);
+  const spots = stageSpots(city, chapter.nodes.length);
   const current = chapter.nodes.find((node) => node.status === "current");
   const currentIndex = current ? chapter.nodes.indexOf(current) : -1;
   const fromIndex = unlock ? chapter.nodes.findIndex((node) => node.id === unlock.from) : -1;
@@ -201,8 +237,8 @@ function ChapterBand({
   const pose = unlock?.leg === 0 && travel ? "jump" : unlock?.leg === 1 && travel ? "run" : unlock?.leg === 2 ? "wave" : "point";
 
   return (
-    <section id={`chapter-${chapter.id}`} className={`relative ${joined ? "city-join" : ""}`}>
-      <div className="relative aspect-[9/16] w-full overflow-hidden">
+    <section id={`chapter-${chapter.id}`} className="relative h-full">
+      <div className="relative h-full w-full overflow-hidden">
         <img
           src={`/art/${city}-540.webp`}
           srcSet={`/art/${city}-360.webp 360w, /art/${city}-540.webp 540w, /art/${city}-720.webp 720w`}
@@ -239,14 +275,6 @@ function ChapterBand({
           </motion.div>
         )}
       </div>
-      {current && (
-        <div id="map-cta" className="fixed inset-x-3 bottom-[96px] z-30 flex items-center gap-2">
-          <div className="glass min-w-0 flex-1 truncate px-3 py-2 text-xs text-cream/80">{line}</div>
-          <button className="gold-btn h-10 shrink-0 px-4 text-sm" onClick={() => onOpen(current)}>
-            {current.kind === "story" ? "К сцене" : "К вратам"}
-          </button>
-        </div>
-      )}
     </section>
   );
 }

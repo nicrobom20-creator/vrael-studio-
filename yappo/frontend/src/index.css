@@ -96,12 +96,34 @@ button {
 
 .choice-good {
   border-color: #b7e3b0;
-  background: linear-gradient(180deg, rgba(48, 92, 58, 0.9), rgba(16, 28, 18, 0.94));
+  background: linear-gradient(180deg, rgba(48, 92, 58, 0.95), rgba(16, 28, 18, 0.96));
+  animation: yappo-pop 0.42s ease;
 }
 
 .choice-bad {
   border-color: #e7a3a3;
-  background: linear-gradient(180deg, rgba(110, 42, 42, 0.9), rgba(32, 12, 12, 0.94));
+  background: linear-gradient(180deg, rgba(110, 42, 42, 0.95), rgba(32, 12, 12, 0.96));
+  animation: yappo-shake 0.42s ease;
+}
+
+.combo-pop {
+  animation: yappo-pop 0.35s ease;
+}
+
+@keyframes yappo-pop {
+  0% { transform: scale(0.96); }
+  55% { transform: scale(1.04); }
+  100% { transform: scale(1); }
+}
+
+@keyframes yappo-shake {
+  0%, 100% { transform: translateX(0); }
+  25% { transform: translateX(-6px); }
+  75% { transform: translateX(6px); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .choice-good, .choice-bad, .combo-pop { animation: none; }
 }
 
 .field {

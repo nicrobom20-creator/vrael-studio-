@@ -28,27 +28,136 @@ function voiceFor(lang: string): SpeechSynthesisVoice | null {
   return voices.find((voice) => voice.lang.toLowerCase().startsWith(prefix)) || null;
 }
 
-export function speakAloud(text: string, lang: string) {
-  if (!("speechSynthesis" in window) || !text) return;
-  const speak = () => {
-    const utterance = new SpeechSynthesisUtterance(text);
-    utterance.lang = lang || "en-GB";
-    utterance.rate = 0.92;
-    const voice = voiceFor(utterance.lang);
-    if (voice) utterance.voice = voice;
-    window.speechSynthesis.cancel();
-    window.speechSynthesis.speak(utterance);
-  };
-  if (window.speechSynthesis.getVoices().length) {
-    speak();
-    return;
+export function speakAloud(text: string, lang: string, rate = 0.92): Promise<void> {
+  return new Promise((resolve) => {
+    if (!("speechSynthesis" in window) || !text) {
+      resolve();
+      return;
+    }
+    let settled = false;
+    const finish = () => {
+      if (settled) return;
+      settled = true;
+      resolve();
+    };
+    const speak = () => {
+      const utterance = new SpeechSynthesisUtterance(text);
+      utterance.lang = lang || "en-GB";
+      utterance.rate = rate;
+      const voice = voiceFor(utterance.lang);
+      if (voice) utterance.voice = voice;
+      utterance.onend = finish;
+      utterance.onerror = finish;
+      window.speechSynthesis.cancel();
+      window.speechSynthesis.speak(utterance);
+      window.setTimeout(finish, Math.min(12000, 900 + text.length * 90));
+    };
+    if (window.speechSynthesis.getVoices().length) {
+      speak();
+      return;
+    }
+    const ready = () => {
+      window.speechSynthesis.removeEventListener("voiceschanged", ready);
+      speak();
+    };
+    window.speechSynthesis.addEventListener("voiceschanged", ready);
+    window.speechSynthesis.getVoices();
+    window.setTimeout(speak, 400);
+  });
+}
+
+function pickMime(): string {
+  const types = ["audio/mp4", "audio/webm;codecs=opus", "audio/webm", "audio/aac"];
+  return types.find((type) => window.MediaRecorder?.isTypeSupported?.(type)) || "";
+}
+
+export function recordPhrase(ms = 3200): Promise<Blob> {
+  return new Promise((resolve, reject) => {
+    if (!navigator.mediaDevices?.getUserMedia || typeof MediaRecorder === "undefined") {
+      reject(new Error("В этом окне Telegram нет записи с микрофона."));
+      return;
+    }
+    navigator.mediaDevices.getUserMedia({ audio: true }).then((stream) => {
+      const mime = pickMime();
+      const rec = new MediaRecorder(stream, mime ? { mimeType: mime } : undefined);
+      const chunks: Blob[] = [];
+      rec.ondataavailable = (event) => {
+        if (event.data.size) chunks.push(event.data);
+      };
+      rec.onerror = () => {
+        stream.getTracks().forEach((track) => track.stop());
+        reject(new Error("Запись оборвалась. Попробуй ещё раз."));
+      };
+      rec.onstop = () => {
+        stream.getTracks().forEach((track) => track.stop());
+        resolve(new Blob(chunks, { type: rec.mimeType || mime || "audio/webm" }));
+      };
+      rec.start();
+      window.setTimeout(() => {
+        if (rec.state !== "inactive") rec.stop();
+      }, ms);
+    }).catch(() => reject(new Error("Нет доступа к микрофону. Разреши его в Telegram.")));
+  });
+}
+
+async function recognizeOnce(lang: string): Promise<string> {
+  const Recognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+  if (!Recognition) return "";
+  return new Promise((resolve, reject) => {
+    const rec = new Recognition();
+    rec.lang = lang || "en-GB";
+    rec.interimResults = false;
+    rec.continuous = false;
+    let text = "";
+    const timer = window.setTimeout(() => {
+      try { rec.stop(); } catch { /* already stopped */ }
+      resolve(text);
+    }, 4000);
+    rec.onresult = (event) => {
+      text = event.results?.[0]?.[0]?.transcript || "";
+    };
+    rec.onerror = () => {
+      window.clearTimeout(timer);
+      reject(new Error("listen"));
+    };
+    rec.onend = () => {
+      window.clearTimeout(timer);
+      resolve(text);
+    };
+    try {
+      rec.start();
+    } catch {
+      window.clearTimeout(timer);
+      reject(new Error("listen"));
+    }
+  });
+}
+
+export async function capturePhrase(lang: string): Promise<string> {
+  if (window.SpeechRecognition || window.webkitSpeechRecognition) {
+    try {
+      const text = await recognizeOnce(lang);
+      if (text.trim()) return text.trim();
+    } catch {
+      /* iOS Telegram has no SpeechRecognition. Record and send the audio. */
+    }
   }
-  const ready = () => {
-    window.speechSynthesis.removeEventListener("voiceschanged", ready);
-    speak();
-  };
-  window.speechSynthesis.addEventListener("voiceschanged", ready);
-  window.speechSynthesis.getVoices();
+  const blob = await recordPhrase();
+  const type = blob.type || "audio/webm";
+  const ext = type.includes("mp4") || type.includes("m4a") ? "m4a" : type.includes("aac") ? "aac" : "webm";
+  const body = new FormData();
+  body.append("audio", blob, `phrase.${ext}`);
+  const token = localStorage.getItem("yappo_token");
+  const headers = new Headers();
+  if (token) headers.set("Authorization", `Bearer ${token}`);
+  const base = (import.meta.env.VITE_API_URL || "").replace(/\/$/, "");
+  const response = await fetch(`${base}/api/speech`, { method: "POST", headers, body });
+  const data = await response.json().catch(() => ({}));
+  if (!response.ok) {
+    const detail = data?.detail;
+    throw new Error(typeof detail === "string" ? detail : "Не получилось распознать фразу.");
+  }
+  return String(data.text || "").trim();
 }
 
 type Rec = {

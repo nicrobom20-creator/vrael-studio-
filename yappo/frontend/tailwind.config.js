@@ -11,7 +11,7 @@ export default {
         dusk: "#1A140F",
       },
       fontFamily: {
-        display: ["Cormorant Garamond", "serif"],
+        display: ["Fraunces", "Cormorant Garamond", "serif"],
         sans: ["Manrope", "sans-serif"],
       },
       boxShadow: {

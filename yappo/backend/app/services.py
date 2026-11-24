@@ -11,6 +11,7 @@ from sqlalchemy.orm import Session
 
 from app.clock import naive_utc
 from app.config import get_settings
+from app.leveling import boss_steps, effective_band, hint_for, is_city_boss, steps_for, story_lines
 from app.content import (
     LANGUAGES,
     MASCOTS,
@@ -65,7 +66,7 @@ def is_premium(user: User, now: datetime | None = None) -> bool:
 def _usage(session: Session, user: User, today) -> UsageDay:
     row = session.scalar(select(UsageDay).where(UsageDay.user_id == user.id, UsageDay.day == today))
     if row is None:
-        row = UsageDay(user_id=user.id, day=today, lessons=0, chats=0)
+        row = UsageDay(user_id=user.id, day=today, lessons=0, chats=0, hints=0)
         session.add(row)
         session.flush()
     return row
@@ -149,7 +150,37 @@ def usage_view(session: Session, user: User, now: datetime | None = None) -> dic
         "chat": row.chats,
         "chat_limit": caps["chat"],
         "studied_minutes": row.lessons * 5,
+        "hints": row.hints or 0,
+        "hints_limit": 10 if caps["premium"] else 5,
     }
+
+
+def spend_hint(session: Session, user: User, lesson_id: str, step_index: int, stage: int, now: datetime | None = None) -> dict:
+    node = get_node(lesson_id)
+    if node is None or node["kind"] != "lesson":
+        raise ServiceError(404, "Урок не найден")
+    steps = steps_for(node["id"], user)
+    chapter = chapter_by_id(node["chapter_id"])
+    if is_city_boss(node):
+        steps = steps + boss_steps(effective_band(user, chapter["index"] if chapter else 1))
+    if not 0 <= int(step_index) < len(steps):
+        raise ServiceError(400, "Нет такого шага")
+    today = _today(user, now)
+    row = _usage(session, user, today)
+    limit = 10 if is_premium(user, now) else 5
+    used = row.hints or 0
+    if used >= limit:
+        raise ServiceError(429, {
+            "code": "hints",
+            "message": "Подсказки на сегодня закончились. В Premium их десять в день.",
+            "hints": used,
+            "hints_limit": limit,
+            "remaining": 0,
+        })
+    row.hints = used + 1
+    session.commit()
+    hint = hint_for(steps[int(step_index)], stage)
+    return {**hint, "hints": row.hints, "hints_limit": limit, "remaining": limit - row.hints}
 
 
 def serialize_user(session: Session, user: User, now: datetime | None = None) -> dict:
@@ -538,6 +569,12 @@ def lesson_payload(session: Session, user: User, lesson_id: str) -> dict:
     if _city_locked(user, node):
         raise ServiceError(403, "Этот город открыт с Premium")
     meta = language_meta(user.language)
+    chapter = chapter_by_id(node["chapter_id"])
+    band = effective_band(user, chapter["index"] if chapter else 1)
+    steps = shuffle_steps(steps_for(node["id"], user))
+    boss = is_city_boss(node)
+    if boss:
+        steps = steps + boss_steps(band)
     return {
         "id": node["id"],
         "title": node["title"],
@@ -545,7 +582,9 @@ def lesson_payload(session: Session, user: User, lesson_id: str) -> dict:
         "xp": node["xp"],
         "tts": meta["tts"],
         "language": user.language,
-        "steps": shuffle_steps(node["steps"]),
+        "band": band,
+        "boss": boss,
+        "steps": steps,
     }
 
 
@@ -557,7 +596,15 @@ def story_payload(session: Session, user: User, story_id: str) -> dict:
         raise ServiceError(403, "Эта сцена ещё закрыта")
     if _city_locked(user, node):
         raise ServiceError(403, "Этот город открыт с Premium")
-    return {"id": node["id"], "title": node["title"], "lines": node["lines"], "xp": node["xp"]}
+    chapter = chapter_by_id(node["chapter_id"])
+    lines = story_lines(node["id"], user) or node["lines"]
+    return {
+        "id": node["id"],
+        "title": node["title"],
+        "lines": lines,
+        "xp": node["xp"],
+        "band": effective_band(user, chapter["index"] if chapter else 1),
+    }
 
 
 def _next_node(user: User, node_id: str, done: set[str]) -> dict | None:
@@ -652,7 +699,7 @@ def _mark_studied(user: User, now: datetime, today) -> None:
     user.last_study_at = now
 
 
-def complete_lesson(session: Session, user: User, lesson_id: str, mistakes: int, now: datetime | None = None) -> dict:
+def complete_lesson(session: Session, user: User, lesson_id: str, mistakes: int, combo: int = 0, now: datetime | None = None) -> dict:
     if not user.onboarded:
         raise ServiceError(400, "Сначала пройди знакомство")
     node = get_node(lesson_id)
@@ -678,6 +725,11 @@ def complete_lesson(session: Session, user: User, lesson_id: str, mistakes: int,
     perfect = mistakes == 0
     if existing is None:
         gained = node["xp"] + (5 if perfect else 0)
+        streak = max(0, min(int(combo or 0), 20))
+        if streak >= 8:
+            gained = int(gained * 2)
+        elif streak >= 4:
+            gained = int(gained * 1.5)
         session.add(Progress(
             user_id=user.id, node_id=lesson_id, mistakes=mistakes, xp=gained, completed_at=now_n,
         ))

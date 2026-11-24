@@ -35,6 +35,8 @@ export interface Usage {
   chat: number;
   chat_limit: number | null;
   studied_minutes: number;
+  hints?: number;
+  hints_limit?: number;
 }
 
 export interface Achievement {
@@ -121,8 +123,14 @@ export interface PathData {
   chapters: Chapter[];
 }
 
+export interface Beat {
+  text: string;
+  note: string;
+  best?: boolean;
+}
+
 export interface Step {
-  type: "vocab" | "choice" | "match" | "build" | "listen" | "speak" | "gap" | "speed";
+  type: "vocab" | "choice" | "match" | "build" | "listen" | "speak" | "gap" | "speed" | "dictate" | "talk";
   seconds?: number;
   word?: string;
   reading?: string;
@@ -140,6 +148,7 @@ export interface Step {
   extra?: string[];
   phrase?: string;
   hint?: string;
+  beats?: Beat[];
 }
 
 export interface Lesson {
@@ -149,6 +158,8 @@ export interface Lesson {
   xp: number;
   tts: string;
   language: string;
+  band?: string;
+  boss?: boolean;
   steps: Step[];
 }
 

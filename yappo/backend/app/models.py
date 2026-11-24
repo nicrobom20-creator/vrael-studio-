@@ -117,6 +117,7 @@ class UsageDay(Base):
     day: Mapped[date] = mapped_column(Date, index=True)
     lessons: Mapped[int] = mapped_column(Integer, default=0)
     chats: Mapped[int] = mapped_column(Integer, default=0)
+    hints: Mapped[int] = mapped_column(Integer, default=0)
 
 
 class XpEvent(Base):

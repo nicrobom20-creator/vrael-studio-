@@ -6,7 +6,7 @@ import logging
 from contextlib import asynccontextmanager
 from pathlib import Path
 
-from fastapi import Depends, FastAPI, HTTPException, Request
+from fastapi import Depends, FastAPI, File, HTTPException, Request, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse, RedirectResponse
 from pydantic import BaseModel, Field
@@ -60,8 +60,10 @@ from app.services import (
     start_checkout,
     start_trial,
     story_payload,
+    spend_hint,
     _apply_profile,
 )
+from app.speech import transcribe
 
 logger = logging.getLogger("yappo")
 
@@ -128,6 +130,13 @@ class DuelJoin(BaseModel):
 
 class CompleteIn(BaseModel):
     mistakes: int = 0
+    combo: int = 0
+
+
+class HintIn(BaseModel):
+    lesson_id: str
+    step_index: int = 0
+    stage: int = 1
 
 
 class ChatIn(BaseModel):
@@ -531,6 +540,24 @@ def create_app() -> FastAPI:
         except ServiceError as error:
             _raise(error)
 
+    @app.post("/api/hints")
+    def hints(body: HintIn, user: User = Depends(current_user), session: Session = Depends(get_session)):
+        try:
+            return spend_hint(session, user, body.lesson_id, body.step_index, body.stage)
+        except ServiceError as error:
+            _raise(error)
+
+    @app.post("/api/speech")
+    async def speech(audio: UploadFile = File(...), user: User = Depends(current_user)):
+        raw = await audio.read()
+        if len(raw) < 200 or len(raw) > 4_000_000:
+            raise HTTPException(status_code=400, detail="Запись слишком короткая или длинная")
+        try:
+            text = await transcribe(raw, audio.filename or "phrase.webm", audio.content_type or "")
+        except ServiceError as error:
+            _raise(error)
+        return {"text": text}
+
     @app.get("/api/lessons/{lesson_id}")
     def lesson(lesson_id: str, user: User = Depends(current_user), session: Session = Depends(get_session)):
         try:
@@ -546,7 +573,7 @@ def create_app() -> FastAPI:
         session: Session = Depends(get_session),
     ):
         try:
-            return complete_lesson(session, user, lesson_id, body.mistakes)
+            return complete_lesson(session, user, lesson_id, body.mistakes, body.combo)
         except ServiceError as error:
             _raise(error)
 

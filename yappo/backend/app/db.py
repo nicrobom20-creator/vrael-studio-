@@ -55,6 +55,7 @@ def init_db() -> None:
     engine = get_engine()
     Base.metadata.create_all(engine)
     _migrate_users(engine)
+    _migrate_usage(engine)
     _backfill_public_ids()
 
 
@@ -91,6 +92,17 @@ def _migrate_users(engine) -> None:
                 conn.execute(text(f"ALTER TABLE users ADD COLUMN {name} {ddl}"))
         conn.execute(text("CREATE UNIQUE INDEX IF NOT EXISTS uq_users_email ON users (email)"))
         conn.execute(text("CREATE UNIQUE INDEX IF NOT EXISTS uq_users_public_id ON users (public_id)"))
+
+
+def _migrate_usage(engine) -> None:
+    inspector = inspect(engine)
+    if "usage_days" not in inspector.get_table_names():
+        return
+    have = {column["name"] for column in inspector.get_columns("usage_days")}
+    if "hints" in have:
+        return
+    with engine.begin() as conn:
+        conn.execute(text("ALTER TABLE usage_days ADD COLUMN hints INTEGER NOT NULL DEFAULT 0"))
 
 
 def _backfill_public_ids() -> None:

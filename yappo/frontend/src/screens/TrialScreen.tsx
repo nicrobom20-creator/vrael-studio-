@@ -6,11 +6,12 @@ import { CityScene } from "../components/CityScene";
 import { Companion } from "../components/Companion";
 import { TopStats } from "../components/Shell";
 import { SentenceGame } from "../components/SentenceGame";
-import { GoldButton, MicButton, StarBurst } from "../components/World";
+import { SpeakGate } from "../components/SpeakGate";
+import { GoldButton, StarBurst } from "../components/World";
 import { ConsentLine, openLegal } from "./LegalScreen";
 import { markUnlock } from "../lib/motion";
 import { gentleLine, praiseLine } from "../lib/praise";
-import { beginSpeech, chime, openInBrowser, phraseHit, speakAloud, type MicProblem } from "../lib/speech";
+import { chime, phraseHit, speakAloud } from "../lib/speech";
 import { useApp } from "../state";
 import type { Lesson, MascotId, Step, User } from "../types";
 
@@ -28,9 +29,12 @@ export function TrialScreen() {
   const [leftPick, setLeftPick] = useState<number | null>(null);
   const [built, setBuilt] = useState<string[]>([]);
   const [pool, setPool] = useState<string[]>([]);
-  const [listening, setListening] = useState(false);
   const [heard, setHeard] = useState("");
-  const [micProblem, setMicProblem] = useState<MicProblem | "">("");
+  const [typed, setTyped] = useState("");
+  const [note, setNote] = useState("");
+  const [hintText, setHintText] = useState("");
+  const [hintStage, setHintStage] = useState(0);
+  const [hintsLeft, setHintsLeft] = useState<number | null>(null);
   const [combo, setCombo] = useState(0);
   const [hearts, setHearts] = useState(5);
   const [praise, setPraise] = useState("");
@@ -67,11 +71,15 @@ export function TrialScreen() {
     setLeftPick(null);
     setBuilt([]);
     setHeard("");
+    setTyped("");
+    setNote("");
+    setHintText("");
+    setHintStage(0);
     if (step?.type === "build") {
       setPool(shuffle([...(step.answer as string[]), ...(step.extra || [])]));
     }
-    if (step?.type === "vocab" || step?.type === "listen") {
-      speakAloud(step.tts || step.word || "", lesson?.tts || "en-GB");
+    if (step?.type === "vocab" || step?.type === "listen" || step?.type === "dictate") {
+      speakAloud(step.tts || step.word || step.phrase || "", lesson?.tts || "en-GB");
     }
     if (step?.type === "speed") {
       const total = step.seconds || 8;
@@ -105,7 +113,7 @@ export function TrialScreen() {
         unlocked_achievements: { title: string }[];
       }>(`/api/lessons/${id}/complete`, {
         method: "POST",
-        body: JSON.stringify({ mistakes }),
+        body: JSON.stringify({ mistakes, combo }),
       });
       setUser(result.user);
       markUnlock(id, result.next?.id);
@@ -168,20 +176,49 @@ export function TrialScreen() {
     setLeftPick(null);
   }
 
-  async function onVoice(target: string) {
-    setMicProblem("");
-    setListening(true);
-    await beginSpeech(lesson?.tts || "en-GB", (text) => {
-      setListening(false);
-      setHeard(text);
-      if (phraseHit(text, target)) {
-        right();
-        window.setTimeout(advance, 500);
-      } else wrong();
-    }, (problem) => {
-      setMicProblem(problem);
-      setListening(false);
-    });
+  function deferPhrase(front: string, back: string) {
+    void api("/api/words", { method: "POST", body: JSON.stringify({ front, back }) }).catch(() => undefined);
+    wrong("Фраза ушла в повтор. Это не засчитано как верный ответ.");
+    window.setTimeout(advance, 700);
+  }
+
+  function checkTyped() {
+    if (!step?.phrase) return;
+    setChecked(true);
+    if (phraseHit(typed, step.phrase)) right();
+    else {
+      setNote(step.translation || "Послушай ещё раз и напиши ближе к фразе.");
+      wrong();
+    }
+  }
+
+  function pickTalk(beatIndex: number) {
+    const beat = step?.beats?.[beatIndex];
+    if (!beat) return;
+    setChecked(true);
+    setNote(beat.note);
+    if (beat.best) right();
+    else wrong(beat.note);
+  }
+
+  async function askHint() {
+    if (!lesson) return;
+    try {
+      const result = await api<{ text: string; remaining: number; slow?: boolean; phrase?: string }>("/api/hints", {
+        method: "POST",
+        body: JSON.stringify({ lesson_id: lesson.id, step_index: index, stage: Math.min(3, hintStage + 1) }),
+      });
+      setHintStage((value) => Math.min(3, value + 1));
+      setHintText(result.text);
+      setHintsLeft(result.remaining);
+      if (result.slow && result.phrase) void speakAloud(result.phrase, lesson.tts, 0.62);
+    } catch (error) {
+      if (error instanceof ApiError && error.status === 429) {
+        setHintText("Подсказки на сегодня закончились.");
+        setHintsLeft(0);
+        notify("В Premium — 10 подсказок в день.");
+      } else notify(error instanceof Error ? error.message : "Подсказка не открылась");
+    }
   }
 
   if (blocked === "limit") {
@@ -200,7 +237,8 @@ export function TrialScreen() {
     return <div className="grid min-h-dvh place-items-center text-cream/70">Открываем врата…</div>;
   }
 
-  const pose = done || (praise && combo > 0) ? "celebrate" : praise && combo === 0 ? "think" : listening ? "point" : step.type === "speak" ? "wave" : "idle";
+  const pose = done || (praise && combo > 0) ? "celebrate" : praise && combo === 0 ? "think" : step.type === "speak" ? "wave" : "idle";
+  const hintsRemain = hintsLeft ?? Math.max(0, (user.usage.hints_limit ?? 5) - (user.usage.hints ?? 0));
 
   return (
     <div className="relative min-h-dvh overflow-hidden">
@@ -254,6 +292,12 @@ export function TrialScreen() {
             exit={{ opacity: 0, y: -8 }}
             className="glass mb-3 w-full p-4"
           >
+            {lesson.boss && !done && (
+              <div className="mb-2 text-center text-[11px] uppercase tracking-[0.16em] text-gold2">Финал города</div>
+            )}
+            {combo > 1 && !done && (
+              <div className="combo-pop mb-2 text-center text-sm text-gold2">Серия {combo}</div>
+            )}
             <div className="mb-3 flex items-center gap-3">
               <div className="h-14 w-14 shrink-0">
                 <Companion mascot={mascot} pose={pose} className="h-full w-full" />
@@ -293,6 +337,40 @@ export function TrialScreen() {
                   heard={heard}
                   onPlay={() => speakAloud(step.tts || step.word || step.phrase || "", lesson.tts)}
                 />
+              </div>
+            ) : step.type === "dictate" ? (
+              <div>
+                <div className="font-display text-2xl leading-tight">{step.prompt}</div>
+                <button type="button" className="mt-2 text-xs text-gold2" onClick={() => void speakAloud(step.phrase || "", lesson.tts)}>
+                  ▶ ещё раз
+                </button>
+                <input
+                  className="field mt-3"
+                  value={typed}
+                  onChange={(event) => setTyped(event.target.value)}
+                  placeholder="Напиши, что слышишь"
+                  autoCapitalize="off"
+                  autoCorrect="off"
+                />
+                {note && <p className="mt-2 text-sm text-cream/75">{note}</p>}
+              </div>
+            ) : step.type === "talk" ? (
+              <div>
+                <div className="font-display text-2xl leading-tight">{step.prompt}</div>
+                <div className="mt-3 grid gap-2">
+                  {step.beats?.map((beat, beatIndex) => (
+                    <button
+                      key={beat.text}
+                      type="button"
+                      disabled={checked}
+                      onClick={() => pickTalk(beatIndex)}
+                      className={`choice-btn px-3 py-3 text-left ${checked && beat.best ? "choice-good" : ""}`}
+                    >
+                      {beat.text}
+                    </button>
+                  ))}
+                </div>
+                {note && <p className="mt-3 text-sm text-cream/75">{note}</p>}
               </div>
             ) : step.type === "build" ? (
               <SentenceGame
@@ -351,19 +429,15 @@ export function TrialScreen() {
             </GoldButton>
           </div>
         ) : step.type === "speak" ? (
-          <div className="mb-2 flex flex-col items-center">
-            <MicButton live={listening} onClick={() => void onVoice(step.phrase || "")} />
-            <div className="mt-2 text-xs text-cream/80">{heard || "Скажи вслух"}</div>
-            {micProblem && (
-              <p className="mt-2 max-w-xs text-center text-xs text-cream/70">
-                {micProblem === "denied"
-                  ? "Нет доступа к микрофону. Разреши его в Telegram или открой урок в браузере."
-                  : "В этом окне речь не распознаётся. Можно пропустить или открыть урок в браузере."}
-              </p>
-            )}
-            <button className="mt-2 text-xs text-gold2 underline" onClick={advance}>Пропустить</button>
-            <button className="mt-1 text-xs text-gold2 underline" onClick={openInBrowser}>Открыть в браузере</button>
-          </div>
+          <SpeakGate
+            phrase={step.phrase || ""}
+            lang={lesson.tts}
+            onPass={() => {
+              right();
+              window.setTimeout(advance, 450);
+            }}
+            onDefer={() => deferPhrase(step.phrase || "phrase", step.translation || "")}
+          />
         ) : step.type === "build" ? null : (
           <div className="mb-3 w-full">
             {(step.type === "choice" || step.type === "gap" || step.type === "speed") && !checked && (
@@ -375,6 +449,18 @@ export function TrialScreen() {
               <GoldButton disabled={picked == null} onClick={checkChoice}>Проверить</GoldButton>
             )}
             {step.type === "listen" && checked && <GoldButton onClick={advance}>Дальше</GoldButton>}
+            {step.type === "dictate" && !checked && (
+              <GoldButton disabled={!typed.trim()} onClick={checkTyped}>Проверить</GoldButton>
+            )}
+            {step.type === "dictate" && checked && <GoldButton onClick={advance}>Дальше</GoldButton>}
+            {step.type === "talk" && checked && <GoldButton onClick={advance}>Дальше</GoldButton>}
+            {!checked && (
+              <button type="button" className="mt-2 w-full text-center text-xs text-gold2" onClick={() => void askHint()}>
+                Подсказка · осталось {hintsRemain}
+              </button>
+            )}
+            {hintText && <p className="mt-2 text-center text-sm text-cream/80">{hintText}</p>}
+            {hintsRemain === 0 && <p className="mt-1 text-center text-[11px] text-cream/50">В Premium — 10 подсказок в день.</p>}
           </div>
         )}
         <div className="mb-3 h-1.5 w-full overflow-hidden rounded-full bg-black/40">
